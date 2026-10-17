@@ -3,10 +3,8 @@
 _Written 2026-10-17 (session 2). Replace this file at the end of each session; don't add a second one._
 
 ## State of the repo
-- `main` is the live site and is unchanged this session.
-- Branch `session2` has all of session 2 in three commits (Quick Play + story; Hall of Fame; animations, Shop
-  and docs). Not merged: David reviews first. On sign-off: merge into main, push, delete the branch.
-- `./tools/smoke.sh` passes on the branch.
+- `main` is the live site. Session 2 was signed off, merged and pushed; no open branches.
+- `./tools/smoke.sh` passes.
 
 ## Read first
 1. `CLAUDE.md` (rules, how to run, code map: new files js/hof.js, js/story.js, js/shop.js).
@@ -23,5 +21,5 @@ _Written 2026-10-17 (session 2). Replace this file at the end of each session; d
 - The campaign reset is `storyReset()` in js/save.js (bump `STORY_V` to reset again).
 
 ## What comes next
-- David's review of the branch and answers to STATE.md's open questions.
+- David's answers to STATE.md's open questions.
 - Real iPad/phone check; an outside playtest.

@@ -3,10 +3,10 @@
 _Updated 2026-10-17, end of session 2._
 
 ## Where we are
-Session 2's work is on branch `session2`, **not merged**. `main` (the live site) is unchanged until David
-signs off. Smoke test passes.
+Session 2 is signed off, merged to `main` and live at https://davispiero.github.io/courtside/.
+No open branches. Smoke test passes.
 
-New on the branch:
+New in session 2:
 - Quick Play: four 1-minute quarters, +100 CC for every finished game.
 - Quick Play league switch: NBA or HALL OF FAME (each franchise's all-time top three), plus a team grid.
 - Campaign story told in scenes (two characters, poses, typed text), rivals (Tank and King on the street,
@@ -18,7 +18,6 @@ New on the branch:
 - Hall of Famer difficulty a little easier.
 
 ## Next
-- David reviews the branch, then signs off (merge to main = goes live).
 - Still not done: real iPad/phone check, first outside playtest.
 
 ## Open with David (guesses until confirmed)
