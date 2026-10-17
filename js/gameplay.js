@@ -30,10 +30,24 @@ function contest(p) {
 }
 // Half-width of the green zone on the shot meter (as a fraction of the meter). Good shooters get more;
 // defence shrinks it, by more on harder difficulties. Your own AI teammates' guarding uses Pro.
+// Long shots shrink it too: to under half by half court, and to a sliver past it.
 function greenZone(p) {
   const base = 0.06 + (p.sht / 99) * 0.035,
-    squeeze = (p.t === 0 ? DIFF[OPT.diff] : DIFF[1]).squeeze;
-  return Math.max(0.012, base * (1 - Math.min(0.85, contest(p) * squeeze)));
+    squeeze = (p.t === 0 ? DIFF[OPT.diff] : DIFF[1]).squeeze,
+    dh = hy(HX(p.t) - p.x, 25 - p.y),
+    range = dh <= RANGE ? 1 : dh <= HALF ? lp(1, 0.45, (dh - RANGE) / (HALF - RANGE)) : 0.25;
+  return Math.max(0.012, base * range * (1 - Math.min(0.85, contest(p) * squeeze)));
+}
+// Shot range in feet from the hoop: comfortable out to RANGE (just past the 3-point line), HALF is half court.
+const RANGE = 26,
+  HALF = 41.75;
+// Chance a shot from dh feet goes in, as a share of what it would be from close range.
+// Perfect releases from inside RANGE always go in; past half court it's about 1 in 10 at Pro.
+function rangeMake(p, dh) {
+  if (dh <= RANGE) return 1;
+  const D = p.t === 0 ? DIFF[OPT.diff] : DIFF[1];
+  if (dh <= HALF) return lp(1, D.half, (dh - RANGE) / (HALF - RANGE));
+  return lp(D.deep, D.full, cl((dh - HALF) / 40, 0, 1));
 }
 // Rules for the next game: quarters and their length, or a first-to-N target; optional starting score.
 const RULES_STD = { nq: 4, qlen: 240, target: 0, start: [0, 0] };
@@ -42,7 +56,7 @@ function init() {
   [G.home, G.away] = G.rules.start;
   G.time = G.rules.qlen;
   G.q = 1;
-  G.st = { pts: 0, reb: 0, ast: 0, stl: 0, greens: 0, dunks: 0, ankles: 0, threes: 0, blk: 0, drops: 0 };
+  G.st = { pts: 0, reb: 0, ast: 0, stl: 0, greens: 0, dunks: 0, ankles: 0, threes: 0, blk: 0, drops: 0, pun: 0 };
   G.cut = null;
   G.shot = null;
   G.dead = 0;
@@ -232,16 +246,20 @@ function startSlide(p) {
     dx = Math.cos(p.f);
     dy = Math.sin(p.f);
   }
-  const v0 = cl(sp * 2.1 + 2, 7, 40);
-  p.sl = { t: 0, d: Math.min(1.05, Math.log(v0 / 1.5) / 3.2 + 0.05), dx, dy, v0 };
+  // A slide is a way to cover ground: it carries about twice as far as it used to.
+  const v0 = cl(sp * 2.3 + 2, 8, 44);
+  p.sl = { t: 0, d: Math.min(1.7, Math.log(v0 / 1.5) / SLIDE_DECAY + 0.05), dx, dy, v0 };
   p.f = Math.atan2(dy, dx);
   p.stam = Math.max(0, p.stam - 12);
   sfx("slide");
 }
+const SLIDE_DECAY = 1.8; // how fast a slide slows down (it was 3.2: lower goes further)
+// How long a player stays down after a punch or a slide tackle (seconds). Short, so the game keeps moving.
+const KNOCKDOWN = 1.4;
 function slideStep(p, dt) {
   const s = p.sl;
   s.t += dt;
-  const v = s.v0 * Math.exp(-3.2 * s.t);
+  const v = s.v0 * Math.exp(-SLIDE_DECAY * s.t);
   p.vx = s.dx * v;
   p.vy = s.dy * v;
   if (Math.random() < dt * 60)
@@ -272,7 +290,7 @@ function slideHit(p) {
     if (d > 2.9 || (dx * s.dx + dy * s.dy) / (d || 1) < -0.3) continue;
     s.hit = 1;
     s.v0 *= 0.45;
-    q.rag = { t: 0, d: 2.8, dx: s.dx, dy: s.dy };
+    q.rag = { t: 0, d: KNOCKDOWN, dx: s.dx, dy: s.dy };
     q.vx = s.dx * 9;
     q.vy = s.dy * 9;
     q.hw = null;
@@ -322,6 +340,7 @@ function punch(p) {
   p.f = ang;
   p.pun = 0.34;
   p.punT = 0.1;
+  if (p.t === 0) G.st.pun++; // every punch your team throws costs coins at the end (js/save.js)
   p.vx += Math.cos(ang) * 7;
   p.vy += Math.sin(ang) * 7;
   G.shot = null;
@@ -348,7 +367,7 @@ function punchHit(p) {
     dy = v.y - p.y,
     L = hy(dx, dy) || 1,
     b = G.ball;
-  v.rag = { t: 0, d: 2.6, dx: dx / L, dy: dy / L };
+  v.rag = { t: 0, d: KNOCKDOWN, dx: dx / L, dy: dy / L };
   v.sl = null;
   v.vx = (dx / L) * 12;
   v.vy = (dy / L) * 12;
@@ -413,6 +432,14 @@ function beginShot(p) {
     scripted(p, dh < 9 && mv > 5 && tw > 0.3 && p.fin + (p.ht - 76) * 2 >= 74 ? "dunk" : "layup");
     return;
   }
+  // Right under the rim it's always a layup, never a jump shot. With a defender on you it can rim out,
+  // more often on harder difficulties; strong finishers miss less.
+  if (dh < 6.5) {
+    const D = p.t === 0 ? DIFF[OPT.diff] : DIFF[1],
+      miss = cl((4.5 - df) / 4.5, 0, 1) * D.layup * cl(1 - (p.fin - 75) / 60, 0.5, 1.3);
+    scripted(p, "layup", Math.random() < miss);
+    return;
+  }
   G.shot = { p, t: 0, d: 0.85, zw: greenZone(p) };
   p.shotJumped = 0;
   const SH = SHOTS[styleOf(p, "shot")] || {},
@@ -438,7 +465,8 @@ function launch(p, q, ai) {
       0.05,
       0.92,
     ),
-    made = (q > 0.82 && !ai) || Math.random() < ch;
+    rm = rangeMake(p, dh),
+    made = (q > 0.82 && !ai && Math.random() < rm) || Math.random() < ch * rm;
   const Tm = 0.7 + dh * 0.024,
     z0 = p.z + 7.2,
     tx = hx + (made ? 0 : rn(-0.9, 0.9)),
@@ -483,7 +511,8 @@ function launch(p, q, ai) {
 }
 // Dunks and layups play as short cutscenes: approach and gather, take off, rise to the rim, flush or
 // release, hang, land. The hand path and leg pose come from the equipped style (js/anim.js rimHand/airLegs).
-function scripted(p, kind) {
+// miss: a contested layup that rolls off the rim instead of dropping.
+function scripted(p, kind, miss) {
   if (G.cut) return;
   const dir = p.t ? -1 : 1,
     dk = kind === "dunk",
@@ -502,6 +531,7 @@ function scripted(p, kind) {
     sc: 0,
     side: Math.random() < 0.5 ? -1 : 1,
     style,
+    miss: !!miss,
     two: style === "dunk.basic" ? Math.random() < 0.5 : !!rimFx(style).two,
     nm: style.endsWith(".basic")
       ? ["TOMAHAWK JAM", "TWO-HAND HAMMER", "THE POSTER", "RIM RATTLER"][(Math.random() * 4) | 0]
@@ -584,7 +614,13 @@ function cutUpd(dt) {
     const k = (u - S) / (1 - S);
     p.hw = dk ? (k < 0.55 ? [c0.h - c0.dir * 0.55, 25, 10.15] : null) : k < 0.5 ? [p.x + Math.cos(f) * 1.0, p.y + Math.sin(f) * 1.0, p.z + 7.4] : null;
     p.hw2 = dk && c0.two && p.hw ? p.hw : null;
-    if (!c0.sc) {
+    if (!c0.sc && c0.miss) {
+      // Rolled off the rim: a loose ball, anyone's rebound.
+      c0.sc = 1;
+      const a = Math.random() * 6.2832;
+      Object.assign(b, { mode: "loose", own: -1, x: c0.h, y: 25, z: 10.2, vx: Math.cos(a) * 5 - c0.dir * 3, vy: Math.sin(a) * 5, vz: 5, made: false, missed: true, shooter: p.id });
+      toast("OFF THE RIM", 0.7);
+    } else if (!c0.sc) {
       c0.sc = 1;
       Object.assign(b, {
         mode: "loose",

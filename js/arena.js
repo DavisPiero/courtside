@@ -218,15 +218,16 @@ function jumbo() {
 // Street court colours: asphalt in bounds, concrete outside, keys painted in faded team colours.
 const ASPH = [[58, 64, 80], [55, 61, 77]],
   CONC = [84, 87, 95],
-  fade = (k) => k.map((v, i) => (v * 0.5 + ASPH[0][i] * 0.5) | 0);
+  // Team paint on an outdoor court is half worn into the surface.
+  fade = (k) => k.map((v, i) => (v * 0.5 + CT().floor[i] * 0.5) | 0);
 const FOG = { arena: [26, 30, 58], street: [104, 78, 112] };
 // A haze band over the background (crowd and stands, or the skyline) so the court pops.
 function fogBand() {
   if (!SET.fog) return;
-  const street = OPT.court === "street",
+  const street = streetish(),
     far = P(V.x + Math.cos(V.yaw) * 3000, V.y + Math.sin(V.yaw) * 3000, 0),
     hz = far ? cl(far[1], -RH, RH * 2) : RH * 0.4,
-    F = street ? FOG.street : FOG.arena,
+    F = CT().fog,
     g = c.createLinearGradient(0, hz - RH * 0.55, 0, hz + RH * 0.05);
   g.addColorStop(0, `rgba(${F},0)`);
   g.addColorStop(0.7, `rgba(${F},${street ? 0.45 : 0.4})`);
@@ -236,7 +237,7 @@ function fogBand() {
 }
 // Street lamps throw warm pools of light on the asphalt (Dramatic lighting only).
 function lampPools() {
-  if (SET.lighting !== "high") return;
+  if (SET.lighting !== "high" || !CT().pools) return;
   c.save();
   c.globalCompositeOperation = "lighter";
   for (const [x, y] of [[-5, -5], [99, 55], [-5, 55], [99, -5]]) {
@@ -256,7 +257,8 @@ function lampPools() {
   c.restore();
 }
 function floor() {
-  const street = OPT.court === "street",
+  const street = streetish(),
+    TH = CT(),
     x0 = -6,
     y0 = -6,
     nx = 53,
@@ -289,8 +291,8 @@ function floor() {
             : hy(x - 47, y - 25) < 6
               ? fade(KC[0])
               : !inb
-                ? CONC
-                : ASPH[0]
+                ? TH.out
+                : TH.floor
           : key
             ? KC[x > 47 ? 0 : 1]
             : hy(x - 47, y - 25) < 6
@@ -302,7 +304,7 @@ function floor() {
                   : wB;
       // Depth fog: far tiles fade toward the haze colour.
       const fg = SET.fog ? cl((a[2] - 28) / 120, 0, 0.5) : 0,
-        F = street ? FOG.street : FOG.arena;
+        F = TH.fog;
       c.fillStyle = `rgb(${lp(w[0] * L * n, F[0], fg) | 0},${lp(w[1] * L * n, F[1], fg) | 0},${lp(w[2] * L * n, F[2], fg) | 0})`;
       c.strokeStyle = c.fillStyle;
       c.lineWidth = 1;
@@ -333,7 +335,7 @@ function floor() {
     c.stroke();
   }
   const lw = Math.max(1, RH / 150),
-    Ln = (p) => ln(p, street ? "rgba(236,232,220,.85)" : ST[G.style].l, lw);
+    Ln = (p) => ln(p, street ? TH.line : ST[G.style].l, lw);
   Ln([
     [0, 0],
     [94, 0],
@@ -390,18 +392,31 @@ const SKY = [];
     add(152 + r() * 25, y, 12, 12 + r() * 10, 25 + r() * 60);
   }
 })();
-function streetBg() {
-  // Sky above the horizon, ground below it.
+// Sky above the horizon (three colours, top to horizon), ground below it. Returns the horizon's screen y.
+function skyGround(top, mid, low, ground) {
   const far = P(V.x + Math.cos(V.yaw) * 3000, V.y + Math.sin(V.yaw) * 3000, 0),
     hz = far ? cl(far[1], -RH, RH * 2) : RH * 0.4,
     g = c.createLinearGradient(0, hz - RH * 0.7, 0, hz);
-  g.addColorStop(0, "#151c45");
-  g.addColorStop(0.65, "#5b3c6e");
-  g.addColorStop(1, "#e3825c");
+  g.addColorStop(0, top);
+  g.addColorStop(0.65, mid);
+  g.addColorStop(1, low);
   c.fillStyle = g;
   c.fillRect(0, 0, RW, Math.max(0, hz + 1));
-  c.fillStyle = "#3b3e48";
+  c.fillStyle = ground;
   c.fillRect(0, Math.max(0, hz), RW, RH);
+  return hz;
+}
+function streetBg() {
+  skyGround("#151c45", "#5b3c6e", "#e3825c", "#3b3e48");
+  skyline(0);
+  // Pavement apron around the fence.
+  poly(
+    [[-20, -20], [114, -20], [114, 70], [-20, 70]].map((v) => P(v[0], v[1], 0)),
+    "#4a4d57",
+  );
+}
+// The city skyline. drop: how far below the court the buildings stand (feet), for the rooftop.
+function skyline(drop) {
   // Buildings: draw the faces that point at the camera, far ones first.
   const bs = SKY.map((b) => ({ b, d: dp(b.x + b.w / 2, b.y + b.d / 2, 0) })).sort((a, q) => q.d - a.d);
   for (const { b } of bs) {
@@ -413,26 +428,21 @@ function streetBg() {
     ];
     for (const [a, e, nx, ny] of faces) {
       if ((V.x - a[0]) * nx + (V.y - a[1]) * ny <= 0) continue;
-      const q = [P(a[0], a[1], 0), P(e[0], e[1], 0), P(e[0], e[1], b.h), P(a[0], a[1], b.h)];
+      const q = [P(a[0], a[1], -drop), P(e[0], e[1], -drop), P(e[0], e[1], b.h - drop), P(a[0], a[1], b.h - drop)];
       if (q.some((v) => !v)) continue;
       poly(q, nx ? shade(b.c, -0.25) : b.c);
       c.fillStyle = "#ffcf7a";
       for (const [u, v, on] of b.win) {
         if (!on) continue;
-        const w = P(lp(a[0], e[0], 0.1 + u * 0.8), lp(a[1], e[1], 0.1 + u * 0.8), 4 + v * (b.h - 8));
+        const w = P(lp(a[0], e[0], 0.1 + u * 0.8), lp(a[1], e[1], 0.1 + u * 0.8), 4 + v * (b.h - 8) - drop);
         if (w) c.fillRect(w[0] | 0, w[1] | 0, Math.max(1, w[3] * 0.9) | 0, Math.max(1, w[3] * 1.2) | 0);
       }
     }
   }
-  // Pavement apron around the fence.
-  poly(
-    [[-20, -20], [114, -20], [114, 70], [-20, 70]].map((v) => P(v[0], v[1], 0)),
-    "#4a4d57",
-  );
 }
 // Chain-link fence. Sides between the camera and the court are skipped so they never cover the play.
-function fence() {
-  const F = FENCE,
+function fence(h, lampCol) {
+  const F = { ...FENCE, h: h || FENCE.h },
     sides = [
       [[F.x0, F.y0], [F.x1, F.y0], V.y > F.y0 + 2],
       [[F.x1, F.y1], [F.x0, F.y1], V.y < F.y1 - 2],
@@ -470,19 +480,22 @@ function fence() {
     seg(at(0, F.h), at(L, F.h), 0.22, "#a3aab6");
     seg(at(0, 0.4), at(L, 0.4), 0.15, "#7c838f");
   }
-  // Two street lamps in the far corners.
-  for (const [x, y] of [[F.x0 + 1, F.y0 + 1], [F.x1 - 1, F.y1 - 1], [F.x0 + 1, F.y1 - 1], [F.x1 - 1, F.y0 + 1]]) {
-    seg([x, y, 0], [x, y, 22], 0.35, "#4b505c");
-    const q = P(x, y, 22);
-    if (!q) continue;
-    c.save();
-    c.globalCompositeOperation = "lighter";
-    c.fillStyle = "rgba(255,190,110,.18)";
-    c.beginPath();
-    c.arc(q[0], q[1], cl(q[3] * 4, 3, 30), 0, 7);
-    c.fill();
-    c.fillStyle = "rgba(255,225,170,.9)";
-    c.fillRect(q[0] - 1, q[1] - 1, 3, 2);
-    c.restore();
-  }
+  // A street lamp in each corner.
+  for (const [x, y] of [[F.x0 + 1, F.y0 + 1], [F.x1 - 1, F.y1 - 1], [F.x0 + 1, F.y1 - 1], [F.x1 - 1, F.y0 + 1]]) lamp(x, y, 22, lampCol);
+}
+// A lamp post with a glowing head. col: the glow as "r,g,b".
+function lamp(x, y, h, col) {
+  col = col || "255,190,110";
+  seg([x, y, 0], [x, y, h], 0.35, "#4b505c");
+  const q = P(x, y, h);
+  if (!q) return;
+  c.save();
+  c.globalCompositeOperation = "lighter";
+  c.fillStyle = `rgba(${col},.18)`;
+  c.beginPath();
+  c.arc(q[0], q[1], cl(q[3] * 4, 3, 30), 0, 7);
+  c.fill();
+  c.fillStyle = "rgba(255,235,200,.9)";
+  c.fillRect(q[0] - 1, q[1] - 1, 3, 2);
+  c.restore();
 }

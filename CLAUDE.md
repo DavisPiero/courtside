@@ -30,14 +30,15 @@ where we are, HANDOFF.md for how the last session ended.
 - `js/save.js` your save: Court Coins, packs, campaign stars (browser storage only)
 - `js/anim.js` the animation system: keyframe clips for every move, blending, smoothing
 - `js/packs.js` collectable animations (rarity, names), packs, Player Packs, Daily Shop (prices, odds)
-- `js/campaign.js` campaign chapters, games, every story line, goals; your crew
-- `js/campui.js` campaign, hooper, story card and results screens
+- `js/campaign.js` campaign chapters, games, every story line, goals; your crew; NBA career (teams, offers, salary)
+- `js/campui.js` campaign, hooper, story card, results, team choice screens; daily payday
 - `js/story.js` story scenes (characters talking) and in-game chatter
 - `js/shop.js` Shop (Daily Shop, Packs, Player Packs) and the pack opening
 - `js/touch.js` touch controls for Mobile / Tablet
 - `js/core.js` helpers, options and difficulty, global state, screen sizing
 - `js/projection.js` 3D projection and drawing primitives
-- `js/arena.js` arena and street courts (crowd, fences, floors)
+- `js/arena.js` arena and street court (crowd, fences, floors, skyline)
+- `js/courts.js` the court list (colours, scenery) and the Rooftop, Beach and The Cage courts
 - `js/players.js` player models (drawing; poses come from anim.js), ball
 - `js/render.js` hoops, per-frame render, post effects
 - `js/camera.js` cameras and cutscene cameras

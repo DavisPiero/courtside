@@ -116,7 +116,7 @@ function smoke() {
   const out = [];
   let ok = true;
   for (const mode of ["mayhem", "clean"])
-    for (const court of ["arena", "street"])
+    for (const court of COURT_IDS)
       for (let diff = 0; diff < 4; diff++) {
         try {
           Object.assign(OPT, { mode, court, diff });

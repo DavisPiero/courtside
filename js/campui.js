@@ -1,7 +1,7 @@
 "use strict";
 // Campaign screens: create your hooper, chapter map, story card, results (also used after Quick Play).
 const CUI = { cid: "street", ch: 0, ci: 0, gi: 0, heroP: null };
-SCREENS.push("hero", "campPick", "camp", "story", "res", "inv", "shop", "open", "lab");
+SCREENS.push("hero", "campPick", "camp", "sign", "story", "res", "inv", "shop", "open", "lab");
 
 // ---------- your hooper: name, skin tone, hair
 function openHero(first) {
@@ -41,7 +41,10 @@ function openCamp() {
   };
   $("cpNew").style.display = SAVE.seen.newStory ? "" : "none";
   $("cpStreetStars").textContent = count("street");
-  $("cpNbaStars").textContent = count("nba");
+  // The NBA campaign opens once you've won the Street campaign's Summer Jam.
+  const open = nbaOpen();
+  $("cpNba").classList.toggle("lock", !open);
+  $("cpNbaStars").textContent = open ? count("nba") + (offersWaiting() ? " · NEW OFFERS!" : "") : "🔒 WIN THE STREET CAMPAIGN TO GET SCOUTED";
   const go = (cid) => {
     if (SAVE.seen.newStory) {
       delete SAVE.seen.newStory;
@@ -50,7 +53,7 @@ function openCamp() {
     pickCamp(cid);
   };
   $("cpStreet").onclick = () => go("street");
-  $("cpNba").onclick = () => go("nba");
+  $("cpNba").onclick = () => (!open ? null : SAVE.nba.team ? go("nba") : openSign(() => go("nba")));
   $("bCpX").onclick = () => show("menu");
   $("bCpHero").onclick = () => openHero(false);
   show("campPick");
@@ -76,6 +79,17 @@ function drawCamp() {
   $("chReward").className = "reward r-" + rw.rarity;
   $("chReward").innerHTML = `Beat the boss to unlock: <b>${RARITY[rw.rarity].name} ${rw.name}</b>${got ? ' <span class="got">✓ UNLOCKED</span>' : ""}`;
   $("chSub").textContent = open ? ch.sub : "Locked. Beat the last boss to open it.";
+  // NBA: who you play for, what your contract pays, and new offers after each chapter.
+  const nba = CUI.cid === "nba" && SAVE.nba.team;
+  $("chContract").classList.toggle("on", !!nba);
+  if (nba) {
+    const t = NBA(SAVE.nba.team),
+      wait = offersWaiting();
+    $("chContract").style.setProperty("--tc", t.k);
+    $("chContract").innerHTML = `<span>Playing for the <b>${t.n}</b> with ${mates(t).map((q) => q[0]).join(" and ")} · contract <b>${salary()} CC a day</b></span>
+      <button class="btn${wait ? " new" : ""}" id="bContract">${wait ? "NEW OFFERS!" : "CONTRACT"}</button>`;
+    $("bContract").onclick = () => openSign(() => pickCamp("nba"));
+  }
   $("chPrev").onclick = () => ((CUI.ch = Math.max(0, CUI.ch - 1)), drawCamp());
   $("chNext").onclick = () => ((CUI.ch = Math.min(CAMP.length - 1, CUI.ch + 1)), drawCamp());
   $("campRows").innerHTML = ch.games
@@ -87,7 +101,7 @@ function drawCamp() {
       return `<div class="cg${lock ? " lock" : ""}" data-g="${gi}">
         <div class="num${boss ? " boss" : ""}">${boss ? "BOSS" : gi + 1}</div>
         <b>${lock ? "???" : "VS " + opp.n}</b>
-        <span>${lock ? "Win the game before to unlock" : `${gm.court === "street" ? "Street" : "Arena"} · ${gm.mode === "mayhem" ? "MAYHEM" : "Clean"} · ${DIFF[gm.diff].name} · ${what}`}</span>
+        <span>${lock ? "Win the game before to unlock" : `${COURTS[gm.court].name[0] + COURTS[gm.court].name.slice(1).toLowerCase()} · ${gm.mode === "mayhem" ? "MAYHEM" : "Clean"} · ${DIFF[gm.diff].name} · ${what}`}</span>
         <div class="stars">${starStr(starsOf(gm.id))}</div></div>`;
     })
     .join("");
@@ -158,7 +172,7 @@ function startCamp(ci, gi) {
   Object.assign(OPT, { court: gm.court, mode: CUI.cid === "nba" ? "clean" : gm.mode, diff: gm.diff });
   G.rules = { ...gm.rules };
   G.camp = { cid: CUI.cid, ci, gi };
-  setTeamObjs(crewTeam(), gm.opp());
+  setTeamObjs(CUI.cid === "nba" ? nbaTeam() : crewTeam(), gm.opp());
   start(0);
 }
 // Quick Play: four 1-minute quarters.
@@ -203,7 +217,9 @@ function showResults() {
     }
   }
   if (!camp) extra.push(["Game finished", QUICK_BONUS]);
-  const pay = payout(won, extra);
+  // Punches a "drop N players" goal needs are free: two thrown for each drop asked for.
+  const dropGoal = gm && gm.goals.find((gl) => gl.k === "drops");
+  const pay = payout(won, extra, dropGoal ? dropGoal.n * 2 : 0);
   $("res").classList.toggle("won", won);
   $("resTitle").textContent = won ? (camp && gm.outro && camp.gi === 5 ? "BOSS DOWN!" : "WIN!") : G.home === G.away ? "TIE" : "LOSS";
   $("resScore").textContent = `${TM[0].c} ${G.home} – ${G.away} ${TM[1].c}`;
@@ -212,11 +228,15 @@ function showResults() {
     (unlocked ? `<div class="meta res-unlock r-legendary">LEGENDARY UNLOCKED: ${unlocked.name}! Equip it in the Inventory.</div>` : "") +
     (gm ? gm.goals.map((gl, i) => `<div class="${won && met[i] ? "ok" : ""}">${goalText(gl)}</div>`).join("") : "");
   $("resPay").innerHTML =
-    pay.rows.map(([l, v]) => `<div>${l}<b>+${v}</b></div>`).join("") + `<div class="tot">COURT COINS<b>+${pay.total} CC</b></div>`;
+    pay.rows.map(([l, v]) => `<div class="${v < 0 ? "neg" : ""}">${l}<b>${v < 0 ? "−" + -v : "+" + v}</b></div>`).join("") + `<div class="tot">COURT COINS<b>+${pay.total} CC</b></div>`;
   const acts = [];
   if (camp) {
     const nextG = camp.gi < 5 ? [camp.ci, camp.gi + 1] : camp.ci < CAMP.length - 1 ? [camp.ci + 1, 0] : null;
-    if (won && nextG) acts.push(["NEXT GAME", "pri", () => openStory(...nextG)]);
+    // Winning the Summer Jam gets you scouted; clearing an NBA chapter brings better offers.
+    const scouted = camp.cid === "street" && gm.id === STREET_FINAL && won && !SAVE.nba.team;
+    if (scouted) acts.push(["CHOOSE YOUR NBA TEAM", "pri", () => openSign(() => pickCamp("nba"))]);
+    else if (camp.cid === "nba" && won && offersWaiting()) acts.push(["NEW OFFERS", "pri", () => openSign(() => pickCamp("nba"))]);
+    if (won && nextG) acts.push(["NEXT GAME", acts.length ? "" : "pri", () => openStory(...nextG)]);
     acts.push(["RETRY", won ? "" : "pri", () => openStory(camp.ci, camp.gi, 1)]);
     acts.push(["CAMPAIGN", "", () => pickCamp(camp.cid)]);
   } else {
@@ -226,4 +246,62 @@ function showResults() {
   $("resAct").innerHTML = acts.map(([l, c], i) => `<button class="btn ${c}" data-i="${i}">${l}</button>`).join("");
   $("resAct").querySelectorAll("button").forEach((b) => (b.onclick = acts[+b.dataset.i][2]));
   show("res");
+}
+
+// ---------- NBA career: choose a team, re-sign or move after each NBA chapter. then: where to go after.
+function openSign(then) {
+  const N = SAVE.nba,
+    wait = offersWaiting(),
+    tier = offerTier(),
+    pay = salary(),
+    card = (code, cur) => {
+      const t = NBA(code),
+        m = mates(t);
+      return `<button class="offer${cur ? " cur" : ""}" data-c="${code}" style="--tc:${t.k}">
+        <i>${cur ? "STAY WITH" : "OFFER"}</i><b>${t.n}</b><span>${t.city}</span>
+        <span>Play with ${m.map((q) => `${q[0]} <em>${q[2]}</em>`).join(" and ")}</span>
+        <em>${pay} CC a day</em></button>`;
+    };
+  $("signTitle").textContent = !N.team ? "SCOUTED! CHOOSE YOUR TEAM" : wait ? "NEW OFFERS" : "YOUR CONTRACT";
+  $("signSub").textContent = !N.team
+    ? "Three teams from the bottom of the league want you. Win with them and better teams will call. Your contract pays Court Coins every day."
+    : wait
+      ? `You cleared a chapter. ${["", "Teams from the middle of the league", "The best teams in the league"][tier]} want you. Stay, or move up. Pay goes up either way.`
+      : `You play for the ${NBA(N.team).n}. Your contract pays ${pay} CC a day. Beat this chapter's boss for new offers.`;
+  const codes = wait ? nbaOffers() : [];
+  $("signOffers").innerHTML = (N.team ? card(N.team, 1) : "") + codes.map((c) => card(c)).join("");
+  $("signOffers").querySelectorAll(".offer").forEach(
+    (b) =>
+      (b.onclick = () => {
+        if (wait || !N.team) signWith(b.dataset.c);
+        then();
+      }),
+  );
+  // You can't leave without a team the first time: the NBA campaign needs one.
+  $("bSignX").onclick = () => (N.team ? then() : openCamp());
+  ccShow();
+  show("sign");
+}
+// Payday: your NBA contract pays once a day, the first time the menu opens that day (missed days add up to a week).
+function payday() {
+  if (!SAVE.nba.team) return;
+  const today = dayKey(new Date());
+  if (SAVE.payday === today) return;
+  let days = 1;
+  if (SAVE.payday) {
+    const y = Math.floor(SAVE.payday / 10000),
+      m = Math.floor(SAVE.payday / 100) % 100,
+      d = SAVE.payday % 100;
+    days = Math.round((new Date().setHours(0, 0, 0, 0) - new Date(y, m - 1, d).getTime()) / 864e5);
+  }
+  days = Math.max(1, Math.min(PAY_DAYS_MAX, days));
+  const amt = salary() * days;
+  SAVE.cc += amt;
+  SAVE.payday = today;
+  writeSave();
+  const el = $("payday");
+  el.textContent = `PAYDAY! +${amt} CC · ${NBA(SAVE.nba.team).n} CONTRACT${days > 1 ? ` (${days} DAYS)` : ""}`;
+  el.classList.add("on");
+  sfx("rare");
+  setTimeout(() => el.classList.remove("on"), 4000);
 }

@@ -1,7 +1,7 @@
 "use strict";
 // Hoops, shadows, the per-frame render and the post-processing pass.
 function hoopB(h) {
-  if (OPT.court === "street") return streetHoopB(h);
+  if (streetish()) return streetHoopB(h);
   const bx = h ? 3.9 : 90.1,
     sx = h ? -4 : 98,
     hx = HX(h),
@@ -96,7 +96,7 @@ function hoopF(h) {
     const a = (i / 14) * 6.2832;
     ring.push([hx + Math.cos(a) * 0.75, 25 + Math.sin(a) * 0.75]);
   }
-  const street = OPT.court === "street";
+  const street = streetish();
   // Street hoops have chain nets: grey, broken into links.
   c.strokeStyle = street ? "rgba(200,205,215,.9)" : "rgba(255,255,255,.7)";
   c.lineWidth = 1;
@@ -141,10 +141,10 @@ function render() {
     c.translate(Math.round(rn(-1, 1) * G.shake * 3), Math.round(rn(-1, 1) * G.shake * 3));
     G.shake = Math.max(0, G.shake - 0.03);
   }
-  if (OPT.court === "street") {
-    streetBg();
+  if (streetish()) {
+    CT().bg();
     fogBand();
-    fence();
+    if (CT().around) CT().around();
     floor();
     lampPools();
   } else {
@@ -193,7 +193,7 @@ function render() {
     c.clip();
   }
   // Reflections on the polished hardwood only.
-  if (OPT.court !== "street" && SET.reflections) {
+  if (!streetish() && SET.reflections) {
     PL.forEach((p) => drawP(p, 1));
     drawBall(1);
   }
