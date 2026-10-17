@@ -17,7 +17,8 @@ where we are.
 
 ## How to run and check
 - Play: double-click `index.html`, or `python3 -m http.server 8791` and open
-  http://localhost:8791 (the preview config in `.claude/launch.json` does this).
+  http://localhost:8791/?mute (the preview config in `.claude/launch.json` serves it).
+  Always test with `?mute` so no sound plays.
 - Smoke test (loads the game headless, plays every mode/court/difficulty, reports scores):
   `./tools/smoke.sh`
 - Sound: `M` mutes effects, `N` toggles music. Run it muted when testing.

@@ -9,8 +9,8 @@
   difficulty levels so a beginner and an expert both get a good game.
 
 ## Modes and options (chosen on the setup screen)
-- **Mode:** Mayhem (punch, slide, ankle-breaker stuns, blood, screen shake) or Clean
-  (none of that: just dribble, pass, shoot, steal, block).
+- **Mode:** Mayhem (punch, slide, blood) or Clean (no punch, slide or blood: just dribble,
+  pass, shoot, steal, block). Ankle-breaker stuns from dribble moves stay in both.
 - **Court:** Arena (official indoor court, crowd, jumbotron) or Street (asphalt, chain-link
   fences, pole hoops, chain nets, no crowd).
 - **Difficulty:** Rookie (easy), Pro (normal), All-Star (hard), Hall of Famer (expert).
@@ -23,7 +23,7 @@
 - Steals are instant: no steal cutscene. Dunk cutscenes are short (about 1.5 seconds).
 - Dribble moves (E) cycle through crossover, between the legs, behind the back and spin,
   each animated on the model.
-- Music plays rap tracks free to redistribute, with song and artist shown bottom left.
+- Music plays free (CC BY) hip-hop/trap beats, with song and artist shown bottom left.
 
 ## Not building
 Fouls, free throws, out of bounds, substitutions, seasons/franchise, online play, touch

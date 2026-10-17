@@ -17,12 +17,16 @@ addEventListener("keydown", (e) => {
     if (e.code === "KeyD") cycle(0, 1);
     if (e.code === "ArrowLeft") cycle(1, -1);
     if (e.code === "ArrowRight") cycle(1, 1);
-    if (e.code === "Enter") $("bStart").click();
+    if (e.code === "Enter") {
+      e.preventDefault(); // stop the focused button (e.g. PLAY) from also being pressed
+      $("bStart").click();
+    }
     if (e.code === "Escape") show("menu");
     return;
   }
   if ($("ctls").classList.contains("on") && e.code === "Escape") return $("bCtlX").click();
   if (!G.run) return;
+  if (e.code === "Enter" || e.code === "Space") e.preventDefault(); // keys are for the game, not focused buttons
   if (e.code === "Escape") pause();
   if (e.code === "KeyR" && !G.cut && !G.dead && !G.tip) setPoss(G.poss);
   if (e.code === "KeyC") G.cm = G.cm === "c" ? "b" : "c";

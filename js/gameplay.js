@@ -948,12 +948,15 @@ const MOVES = {
 function dribbleMove(p) {
   const b = G.ball;
   if (p.mv || G.shot || G.cut || p.z > 0 || b.own !== p.id) return;
-  const ks = Object.keys(MOVES).filter((q) => q !== p.lastMv),
+  // Your team shares one "last move" so pressing E never repeats, even after switching player.
+  const last = p.t === 0 ? G.lastMv : p.lastMv,
+    ks = Object.keys(MOVES).filter((q) => q !== last),
     k = ks[(Math.random() * ks.length) | 0],
     M = MOVES[k],
     h = p.hand || -1,
     d = p.id === G.ctrl && G.in ? G.in : { x: Math.cos(p.f), y: Math.sin(p.f) };
-  p.lastMv = k;
+  if (p.t === 0) G.lastMv = k;
+  else p.lastMv = k;
   p.mv = { k, t: 0, d: M.d, h, f0: p.f };
   if (k === "spin") {
     p.vx += d.x * M.push;
