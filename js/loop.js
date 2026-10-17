@@ -122,14 +122,14 @@ function hud() {
     ? "--"
     : Math.floor(G.time / 60) + ":" + String(Math.floor(G.time % 60)).padStart(2, "0");
   $("sck").textContent = G.prac ? "--" : Math.ceil(G.sc);
-  $("num").textContent = p.n;
   $("pn").textContent = n[0];
-  $("pp").textContent = n[1] + " · OVR " + n[2];
+  $("pp").textContent = n[1] + " · " + n[2] + " OVR";
   $("s1").textContent = G.st.pts;
   $("s2").textContent = G.st.reb;
   $("s3").textContent = G.st.ast;
   $("s4").textContent = G.st.stl;
-  $("fps").textContent = Math.round(G.fps) + " FPS · " + (G.cm === "c" ? "CHASE" : "BROADCAST") + " CAM";
+  $("hc").style.background = accent(TM[0]);
+  $("ac").style.background = accent(TM[1]);
 }
 let acc = 0;
 function loop(t) {
@@ -152,11 +152,11 @@ function loop(t) {
   }
   camUpd(dt);
   render();
+  portraits();
 }
 function pause() {
   G.pause = !G.pause;
-  $("pause").style.display = G.pause ? "grid" : "none";
-  $("ctl").style.display = "none";
+  show(G.pause ? "pause" : null);
   G.click = 0;
   keys.clear();
 }

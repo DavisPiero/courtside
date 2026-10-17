@@ -7,15 +7,26 @@ addEventListener("keydown", (e) => {
   if (!e.repeat) BUF[e.code] = T;
   ac();
   if (e.code === "KeyN" && !e.repeat) musToggle();
+  if (e.code === "KeyM" && !e.repeat) {
+    sndToggle();
+    if (G.run) toast(AU.mute ? "SOUND OFF" : "SOUND ON", 0.6);
+  }
+  if ($("setup").classList.contains("on")) {
+    // Setup screen: A/D your team, arrows the opponent, Enter to start, Esc back.
+    if (e.code === "KeyA") cycle(0, -1);
+    if (e.code === "KeyD") cycle(0, 1);
+    if (e.code === "ArrowLeft") cycle(1, -1);
+    if (e.code === "ArrowRight") cycle(1, 1);
+    if (e.code === "Enter") $("bStart").click();
+    if (e.code === "Escape") show("menu");
+    return;
+  }
+  if ($("ctls").classList.contains("on") && e.code === "Escape") return $("bCtlX").click();
   if (!G.run) return;
   if (e.code === "Escape") pause();
   if (e.code === "KeyR" && !G.cut && !G.dead && !G.tip) setPoss(G.poss);
   if (e.code === "KeyC") G.cm = G.cm === "c" ? "b" : "c";
   if (e.code === "Enter" && G.cut && G.cut.t < G.cut.d * 0.7) G.cut.t = G.cut.d * 0.7;
-  if (e.code === "KeyM") {
-    AU.mute ^= 1;
-    toast(AU.mute ? "MUTED" : "SOUND ON", 0.6);
-  }
 });
 addEventListener("mousedown", (e) => {
   ac();
@@ -24,38 +35,20 @@ addEventListener("mousedown", (e) => {
 addEventListener("keyup", (e) => keys.delete(e.code));
 addEventListener("blur", () => keys.clear());
 addEventListener("resize", rs);
-$("go").onclick = () => openSel(0);
-$("pr").onclick = () => openSel(1);
-$("play").onclick = () => {
+$("bPlay").onclick = () => openSel(0);
+$("bPrac").onclick = () => openSel(1);
+$("bCtl").onclick = () => openControls("menu");
+$("bStart").onclick = () => {
   setTeams(SEL.a, SEL.b);
-  $("sel").style.display = "none";
   start(SEL.pr);
 };
-$("bk").onclick = () => {
-  $("sel").style.display = "none";
-  $("menu").style.display = "grid";
-};
-$("rs").onclick = pause;
+$("bBack").onclick = () => show("menu");
+$("bRes").onclick = pause;
+$("bPCtl").onclick = () => openControls("pause");
 $("mu").onclick = musToggle;
-$("ct").onclick = () => {
-  const e = $("ctl");
-  e.style.display = e.style.display === "none" ? "block" : "none";
-};
-$("lm").onclick = () => $("mf").click();
-$("mf").onchange = (e) => {
-  const l = [...e.target.files];
-  if (!l.length) return;
-  MUS.list = l.map((x) => ({
-    s: URL.createObjectURL(x),
-    n: x.name.replace(/\.[^.]+$/, "").replace(/_/g, " "),
-  }));
-  MUS.q = [];
-  MUS.fail = 0;
-  MUS.on = 1;
-  $("mu").textContent = "MUSIC: ON";
-  musNext();
-};
-$("qt2").onclick = () => {
+$("bSnd").onclick = sndToggle;
+$("bQuit").onclick = quitToMenu;
+function quitToMenu() {
   G.run = 0;
   G.pause = 0;
   G.cut = G.tip = null;
@@ -63,10 +56,15 @@ $("qt2").onclick = () => {
   $("ttl").className = "";
   $("meter").classList.remove("on");
   $("vm").style.display = "none";
-  $("pause").style.display = "none";
-  $("hud").style.display = "none";
-  $("menu").style.display = "grid";
-};
+  hudOn(0);
+  show("menu");
+}
+function sndToggle() {
+  AU.mute ^= 1;
+  $("bSnd").textContent = "SOUND: " + (AU.mute ? "OFF" : "ON");
+}
+$("bSnd").textContent = "SOUND: " + (AU.mute ? "OFF" : "ON");
+$("mu").textContent = "MUSIC: " + (MUS.on ? "ON" : "OFF");
 document.addEventListener("visibilitychange", () => {
   if (document.hidden && G.run && !G.pause) pause();
 });

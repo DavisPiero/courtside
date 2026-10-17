@@ -34,10 +34,11 @@ function shade(h, a) {
         .join(""))
   );
 }
-const HST = [1, 0, 2, 1, 2, 0],
-  BRD = [0, 1, 0, 1, 0, 1],
-  BND = [1, 0, 0, 0, 1, 0],
-  SLV = [0, 1, 1, 0, 0, 1];
+// Per-look hair style (0 short, 1 tall top, 2 shaved), beard, headband and arm sleeve.
+const HST = [1, 0, 2, 1, 2, 0, 0, 2, 1, 0, 1, 2],
+  BRD = [0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1],
+  BND = [1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0],
+  SLV = [0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1];
 function hull(pts) {
   pts.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
   const cr = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]),
@@ -318,7 +319,7 @@ function buildSprite(p) {
   const sk = p.sk,
     hr = ["#16100d", "#2a1a10", "#0b0b0b"][look % 3],
     hc = [lean + 0.12, 0, hz + 3.3],
-    hs = HST[look % 6];
+    hs = HST[look % 12];
   for (const [h, kn, ft, sd] of [
     [hL, kL, ftL, 1],
     [hR, kR, ftR, -1],
@@ -389,7 +390,7 @@ function buildSprite(p) {
   ]) {
     add(s0, e, 0.56, sk);
     add(e, w, 0.46, sk);
-    if (SLV[look % 6]) add(mid(s0, e, 0.35), e, 0.62, "#f1f1f1", 0.1);
+    if (SLV[look % 12]) add(mid(s0, e, 0.35), e, 0.62, "#f1f1f1", 0.1);
     add(mid(e, w, 0.62), w, 0.5, "#f1f1f1", 0.1);
     const W = pj(w);
     it.push({ d: W[2] - 0.15, fn: () => blk(W[0], W[1], 0.46 * K, 0.46 * K, sk) });
@@ -436,9 +437,9 @@ function buildSprite(p) {
         x.fillRect(Math.round(cx + sh2 * 1.4 - nz2 / 2), Math.round(cy + h * 0.17), nz2, nz2 + 1);
         x.fillStyle = shade(sk, -0.4);
         x.fillRect(Math.round(cx + sh2 * 1.2 - w * 0.15), Math.round(cy + h * 0.32), Math.max(2, Math.round(w * 0.3)), 1);
-        if (BRD[look % 6]) blk(cx, cy + h * 0.3, w * 0.8, h * 0.3, hr);
+        if (BRD[look % 12]) blk(cx, cy + h * 0.3, w * 0.8, h * 0.3, hr);
       }
-      if (BND[look % 6]) blk(cx, cy - h * 0.2, w + 2, Math.max(1.5, K * 0.17), tm.t);
+      if (BND[look % 12]) blk(cx, cy - h * 0.2, w + 2, Math.max(1.5, K * 0.17), tm.t);
     },
   });
   it.sort((a, q) => q.d - a.d);

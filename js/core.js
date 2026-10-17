@@ -23,6 +23,7 @@ const TEAMS = [
   {
     n: "THUNDER",
     c: "OKC",
+    city: "OKLAHOMA CITY",
     j: "#1f6fe0",
     t: "#ff8a2a",
     s: "#123b8a",
@@ -36,6 +37,7 @@ const TEAMS = [
   {
     n: "SPURS",
     c: "SAS",
+    city: "SAN ANTONIO",
     j: "#e6eaf0",
     t: "#22242c",
     s: "#8f98aa",
@@ -49,6 +51,7 @@ const TEAMS = [
   {
     n: "LAKERS",
     c: "LAL",
+    city: "LOS ANGELES",
     j: "#6a3fb8",
     t: "#ffc72c",
     s: "#3b2275",
@@ -62,6 +65,7 @@ const TEAMS = [
   {
     n: "CELTICS",
     c: "BOS",
+    city: "BOSTON",
     j: "#1d8a4f",
     t: "#ffffff",
     s: "#0f5430",
@@ -82,7 +86,8 @@ function setTeams(a, b) {
 }
 setTeams(0, 1);
 const lite = (c) => (pc(c).reduce((a, b) => a + b) > 330 ? c : "#ffffff");
-const SK = ["#8b5a3c", "#b27850", "#5e3a26", "#c58b60", "#7b4b32", "#a96b46"],
+// Skin tones and looks are per roster slot across all teams (team index * 3 + player), so a player always looks the same.
+const SK = ["#8b5a3c", "#b27850", "#5e3a26", "#c58b60", "#7b4b32", "#a96b46", "#e0b08a", "#6b4029", "#d9a074", "#9a6440", "#cf9a70", "#7e4e33"],
   HX = (t) => (t ? 5.25 : 88.75);
 // Options chosen on the setup screen.
 // mode: "mayhem" (punch, slide, blood) or "clean" (straight basketball). court: "arena" or "street".

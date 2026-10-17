@@ -31,7 +31,8 @@ function init() {
         stam: 100,
         sp: t ? DIFF[OPT.diff].sp : 12.6,
         sh: NM[t * 3 + i][2] - 14,
-        sk: SK[t * 3 + i],
+        look: TEAMS.indexOf(TM[t]) * 3 + i,
+        sk: SK[TEAMS.indexOf(TM[t]) * 3 + i],
         pos: NM[t * 3 + i][1],
         hand: -1,
       });
@@ -1006,7 +1007,7 @@ function separate() {
 function end() {
   G.run = 0;
   $("vm").style.display = "none";
-  $("hud").style.display = "none";
-  $("menu").style.display = "grid";
+  hudOn(0);
+  show("menu");
   $("mt").textContent = `FINAL  ${TM[0].n} ${G.home} – ${G.away} ${TM[1].n}`;
 }

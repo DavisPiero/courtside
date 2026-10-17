@@ -3,26 +3,88 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>COURTSIDE</title>
+<title>Courtside</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;0,800;1,700;1,800&family=Barlow:wght@500;600&display=swap">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 <canvas id="g"></canvas>
+
+<!-- In-game HUD -->
 <div id="hud">
- <div id="card" class="pn"><div id="num">3</div><div><b id="pn">J. RIVERS</b><span id="pp"></span><div class="st"><div><i>PTS</i><span id="s1">0</span></div><div><i>REB</i><span id="s2">0</span></div><div><i>AST</i><span id="s3">0</span></div><div><i>STL</i><span id="s4">0</span></div></div></div></div>
- <div id="sb" class="pn"><b id="hn">TIDE</b><b id="hs">0</b><span id="qt">Q1</span><b id="clk">4:00</b><b id="an">SABERS</b><b id="as">0</b><span>SHOT</span><b id="sck">24</b></div>
- <div id="meter" class="pn"><div class="trk"><i id="nd"></i></div><div class="lb2"><span>EARLY</span><span>GOOD</span><span>LATE</span></div></div>
- <div id="vm"><div class="vt"><i class="vz"></i><i class="vf" id="vf"></i><i class="vn" id="vn"></i></div><b id="vl"></b></div>
- <div id="toast"></div><div id="fps"></div>
+  <div id="card" class="pnl">
+    <div id="pn">PLAYER</div>
+    <div id="pp"></div>
+    <div class="st">
+      <span><i>PTS</i><b id="s1">0</b></span><span><i>REB</i><b id="s2">0</b></span>
+      <span><i>AST</i><b id="s3">0</b></span><span><i>STL</i><b id="s4">0</b></span>
+    </div>
+  </div>
+  <div id="sb" class="pnl">
+    <div class="tm"><i id="hc"></i><b id="hn">HOME</b><b id="hs" class="sc">0</b></div>
+    <div class="mid"><span id="qt">Q1</span><b id="clk">4:00</b><span>SHOT <b id="sck">24</b></span></div>
+    <div class="tm"><b id="as" class="sc">0</b><b id="an">AWAY</b><i id="ac"></i></div>
+  </div>
+  <div id="meter" class="pnl"><div class="trk"><i id="nd"></i></div><div class="lb2"><span>EARLY</span><span>GOOD</span><span>LATE</span></div></div>
+  <div id="vm"><div class="vt"><i class="vz"></i><i class="vf" id="vf"></i><i class="vn" id="vn"></i></div><b id="vl"></b></div>
+  <div id="toast"></div>
 </div>
 <div id="np"></div><div id="ttl"></div><div id="lb1" class="lb"></div><div id="lb2" class="lb"></div>
-<div id="menu" class="ov"><div class="mc pn" style="position:relative"><h1>COURT<br>SIDE<small>RETRO 3D</small></h1><p id="mt">Full-court 3v3 in a true 3D arena, rendered chunky. Drive to the rim open and the bucket is guaranteed. Dunks get a cutscene.</p>
-<div class="cg"><div><kbd>WASD</kbd>Move</div><div><kbd>Shift</kbd>Sprint</div><div><kbd>Space</kbd>Shoot / jump / block</div><div><kbd>Q</kbd>Pass / switch player</div><div><kbd>E</kbd>Crossover</div><div><kbd>F</kbd>Steal / contest</div><div><kbd>C</kbd>Chase / broadcast cam</div><div><kbd>Enter</kbd>Skip cutscene</div><div><kbd>Click</kbd>Punch</div><div><kbd>L-Ctrl</kbd>Slide: sweeps the ball carrier</div><div><kbd>N</kbd>Music on/off</div></div>
-<button class="pri" id="go">TIP OFF</button><button id="pr">PRACTICE</button></div></div>
-<div id="sel" class="ov" style="display:none"><div class="mc sel pn" style="position:relative"><h1 style="font-size:44px">PICK YOUR SIDE</h1><div class="rw"><b>YOUR TEAM</b><div id="myt"></div></div><div class="rw"><b>OPPONENT</b><div id="opt"></div></div><button class="pri" id="play">START GAME</button><button id="bk">BACK</button></div></div>
-<div id="pause" class="ov" style="display:none"><div class="mc pn" style="position:relative"><h1 style="font-size:48px">PAUSED</h1><p>Esc to resume.</p>
-<div id="ctl" style="display:none"><div class="cg"><div><kbd>WASD</kbd>Move</div><div><kbd>Shift</kbd>Sprint</div><div><kbd>Space</kbd>Shoot (release in green) / jump</div><div><kbd>Click</kbd>Punch: drops them, steals the ball</div><div><kbd>Q</kbd>Pass / switch defender</div><div><kbd>E</kbd>Crossover</div><div><kbd>F</kbd>Steal / contest</div><div><kbd>C</kbd>Camera</div><div><kbd>L-Ctrl</kbd>Slide: sweeps the ball carrier</div><div><kbd>N</kbd>Music on/off</div><div><kbd>M</kbd>Sound on/off</div><div><kbd>R</kbd>Reset possession</div><div><kbd>Enter</kbd>Skip cutscene</div></div></div>
-<button class="pri" id="rs">RESUME</button><button id="qt2">MENU</button><button id="ct">CONTROLS</button><button id="mu">MUSIC: ON</button><button id="lm">LOAD MUSIC</button><input type="file" id="mf" accept="audio/*" multiple hidden></div></div>
+
+<!-- Main menu -->
+<div id="menu" class="scr on">
+  <div class="menu-l">
+    <div class="brand">COURT<em>SIDE</em></div>
+    <p id="mt">Full-court 3-on-3. Drive to an open rim and the bucket is yours.</p>
+    <nav>
+      <button class="btn pri" id="bPlay">PLAY</button>
+      <button class="btn" id="bPrac">PRACTICE</button>
+      <button class="btn" id="bCtl">CONTROLS</button>
+    </nav>
+  </div>
+</div>
+
+<!-- Setup: teams, mode, court, difficulty -->
+<div id="setup" class="scr">
+  <header class="su-top"><span>PLAY NOW</span><b>COURTSIDE</b><span>TEAM SELECT</span></header>
+  <div class="su-main">
+    <section class="side" id="sideA"></section>
+    <section class="side r" id="sideB"></section>
+    <div class="roster" id="roster"></div>
+  </div>
+  <footer class="su-bot">
+    <div class="opt"><i>MODE</i><div class="seg" data-k="mode"><button data-v="mayhem">MAYHEM</button><button data-v="clean">CLEAN</button></div></div>
+    <div class="opt"><i>COURT</i><div class="seg" data-k="court"><button data-v="arena">ARENA</button><button data-v="street">STREET</button></div></div>
+    <div class="opt"><i>DIFFICULTY</i><div class="seg" data-k="diff"><button data-v="0">ROOKIE</button><button data-v="1">PRO</button><button data-v="2">ALL-STAR</button><button data-v="3">HALL OF FAMER</button></div></div>
+    <div class="act"><button class="btn" id="bBack">BACK</button><button class="btn pri" id="bStart">START GAME</button></div>
+  </footer>
+</div>
+
+<!-- Pause -->
+<div id="pause" class="scr dim">
+  <div class="pnl box">
+    <h2>PAUSED</h2>
+    <nav>
+      <button class="btn pri" id="bRes">RESUME</button>
+      <button class="btn" id="bPCtl">CONTROLS</button>
+      <button class="btn" id="mu">MUSIC: ON</button>
+      <button class="btn" id="bSnd">SOUND: ON</button>
+      <button class="btn" id="bQuit">QUIT TO MENU</button>
+    </nav>
+  </div>
+</div>
+
+<!-- Controls (from the menu or pause) -->
+<div id="ctls" class="scr dim">
+  <div class="pnl box wide">
+    <h2>CONTROLS</h2>
+    <div class="keys" id="ctlList"></div>
+    <button class="btn pri" id="bCtlX">BACK</button>
+  </div>
+</div>
+
 <script src="js/core.js"></script>
 <script src="js/projection.js"></script>
 <script src="js/arena.js"></script>
