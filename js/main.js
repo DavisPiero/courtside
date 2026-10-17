@@ -29,7 +29,7 @@ addEventListener("keydown", (e) => {
   }
   // Escape steps back out of menu screens.
   if (!G.run && e.code === "Escape") {
-    const back = { inv: "menu", shop: "menu", open: "shop", camp: "menu", story: "camp", hero: SAVE.name ? "camp" : "menu" };
+    const back = { inv: "menu", shop: "menu", open: "shop", campPick: "menu", camp: "campPick", story: "camp", hero: "menu" };
     if ($("open").classList.contains("on")) return openShop();
     if ($("lab").classList.contains("on")) return $("bLabX").click();
     for (const k in back) if ($(k).classList.contains("on")) return show(back[k]);

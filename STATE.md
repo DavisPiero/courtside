@@ -3,7 +3,8 @@
 _Updated 2026-10-17 (session 5)._
 
 ## Where we are
-Round 4 on branch `animations` (not merged or pushed; David reviews first): keyframe animation
+Round 5 (merged and pushed): campaign split into Street and NBA with new stories and a Legendary
+reward per chapter; mobile double-tap zoom fixed. Round 4: keyframe animation
 system with smoother, exaggerated moves (dribble, jumper, dunks, layups, punch, slide, defence),
 37 collectable animations with rarities, Shop packs with visible odds, equip-only Inventory,
 Animation Lab in Settings.

@@ -13,11 +13,15 @@ Loading screen with a spinning pixel basketball, then "How are you playing?": Co
 and mouse) or Mobile / Tablet (touch controls). Main menu: Campaign, Quick Play, Practice,
 Inventory, Settings, plus your Court Coins.
 
-## Campaign: "Streets to the League"
-Create your hooper (name, skin, hair). 5 chapters x 6 games: The Block, The City (street crews,
-first-to-N, comebacks, Mayhem nights), Summer League, The League, The Finals (NBA teams). Each game
-has a story card and 3 stars: win, a twist goal, a style goal. Winning unlocks the next game; boss
-games unlock the next chapter. Your crew (you, Dex, Big Lou) gets better each chapter.
+## Campaigns
+Create your hooper (name, skin, hair), then choose your road:
+- **STREET, "King of the Courts"**: street courts, Mayhem games allowed. The Block, The City, The
+  Summer Jam. Rival: Tank.
+- **NBA, "Road to the Ring"**: arenas and NBA teams, professional rules only (never Mayhem).
+  Undrafted tryout with Coach Ray: Summer League, The League, The Finals.
+Each has 3 chapters x 6 games with a story card and 3 stars (win, twist goal, style goal). Winning
+unlocks the next game. Beating a chapter's boss for the first time unlocks that chapter's Legendary
+animation (shown on the chapter map). Your crew (you, Dex, Big Lou) improves with every boss beaten.
 
 ## Court Coins (CC), the Shop and the Inventory
 Earn CC for winning and for style (perfect releases, dunks, ankle breakers, threes, steals, blocks),
@@ -37,7 +41,8 @@ from the front, side or back.
 Floating joystick on the left (edge = sprint), right-thumb cluster: one big button plus two, with
 labels that change with possession (SHOOT/PASS/MOVE, or JUMP-BLOCK/SWITCH/STEAL). Punch and Slide
 in Mayhem only. Pause and camera top-left. Bigger menus on touch; compact layout on phones;
-"turn sideways" prompt in portrait.
+"turn sideways" prompt in portrait. No accidental zoom: double taps and pinches are blocked, and the
+page snaps back if a browser zooms anyway.
 
 ## Modes and options (chosen on the setup screen)
 - **Mode:** (starts on Clean; hover or tap for a description) Mayhem (punch, slide, blood) or Clean (no punch, slide or blood: just dribble,

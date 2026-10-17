@@ -35,3 +35,7 @@ One line each, newest last.
 - 2026-10-17 · Pack odds shown on every pack; guarantees per tier; duplicates refund coins; new items 3× as likely.
 - 2026-10-17 · New Layups category so the most common finish also has collectable styles.
 - 2026-10-17 · AI shoots with the same jump-shot animation; jump happens on the rise, not at release.
+- 2026-10-17 · Campaign split into Street (Mayhem allowed) and NBA (never Mayhem), 3 chapters each (David's note).
+- 2026-10-17 · Each chapter boss unlocks a set Legendary the first time (owned already = 250 CC instead).
+- 2026-10-17 · Old campaign stars migrate: chapters 1-2 to Street, 3-5 to NBA.
+- 2026-10-17 · iOS ignores user-scalable=no: block fast second taps and pinch gestures, reset zoom if it happens.

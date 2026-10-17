@@ -158,3 +158,42 @@ function orientCheck() {
   document.body.classList.toggle("portrait", !!G.touch && portrait && innerWidth < 900);
 }
 addEventListener("resize", orientCheck);
+
+// ---------- no accidental zooming on phones and tablets
+// iOS Safari ignores "user-scalable=no", so a fast double tap (or a pinch) could zoom the page in and
+// leave it stuck. Three layers stop that:
+(function noZoom() {
+  // 1. A second tap within 350 ms is not allowed to become a double-tap zoom. Game buttons use
+  //    pointer events, so they still register every tap.
+  let lastTap = 0;
+  document.addEventListener(
+    "touchend",
+    (e) => {
+      const now = e.timeStamp;
+      if (now - lastTap < 350 && e.cancelable && !(e.target && e.target.tagName === "INPUT")) e.preventDefault();
+      lastTap = now;
+    },
+    { passive: false },
+  );
+  document.addEventListener("dblclick", (e) => e.preventDefault(), { passive: false });
+  // 2. No pinch zoom (Safari's gesture events) and no two-finger zoom on the page.
+  for (const t of ["gesturestart", "gesturechange", "gestureend"]) document.addEventListener(t, (e) => e.preventDefault(), { passive: false });
+  document.addEventListener(
+    "touchmove",
+    (e) => {
+      if (e.touches.length > 1 && e.cancelable) e.preventDefault();
+    },
+    { passive: false },
+  );
+  // 3. Safety net: if the page ever ends up zoomed, reset the viewport so it snaps back.
+  const vv = window.visualViewport,
+    meta = document.querySelector('meta[name="viewport"]'),
+    base = meta ? meta.content : "";
+  if (vv && meta)
+    vv.addEventListener("resize", () => {
+      if (vv.scale > 1.01) {
+        meta.content = base + ",minimum-scale=1";
+        setTimeout(() => (meta.content = base), 60);
+      }
+    });
+})();
