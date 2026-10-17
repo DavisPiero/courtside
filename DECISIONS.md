@@ -39,3 +39,4 @@ One line each, newest last.
 - 2026-10-17 · Each chapter boss unlocks a set Legendary the first time (owned already = 250 CC instead).
 - 2026-10-17 · Old campaign stars migrate: chapters 1-2 to Street, 3-5 to NBA.
 - 2026-10-17 · iOS ignores user-scalable=no: block fast second taps and pinch gestures, reset zoom if it happens.
+- 2026-10-17 · Hand-off note lives in HANDOFF.md, replaced each session.

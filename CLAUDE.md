@@ -2,7 +2,7 @@
 
 A 3v3 full-court basketball game in the browser, made for Arlo. David directs and makes the
 art calls. See SPEC.md for what makes it fun and what we are not building, STATE.md for
-where we are.
+where we are, HANDOFF.md for how the last session ended.
 
 ## Hard rules
 - No build step. `index.html` must run by double-clicking it, and from GitHub Pages
