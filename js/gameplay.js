@@ -1,6 +1,40 @@
 "use strict";
 // Game flow: possessions, scoring, passing, shooting, steals, mayhem moves, AI and player input.
 // ---------- game flow
+// A player's ratings become game numbers. R = [name, pos, ovr, height in, speed, shooting, finishing,
+// handling, defence, blocking, skin]. Speed: 10 ft/s at 60 up to about 13 at 95; the opponents also get
+// the difficulty multiplier.
+function stats(R, t) {
+  return {
+    ht: R[3],
+    spd: R[4],
+    sht: R[5],
+    fin: R[6],
+    hnd: R[7],
+    dfn: R[8],
+    blk: R[9],
+    sp: (10 + ((R[4] - 60) / 35) * 3) * (t ? DIFF[OPT.diff].sp : 1),
+  };
+}
+// How tightly a shooter is guarded right now: 0 wide open, about 1 smothered. Closer, better and taller
+// defenders count for more; a tall shooter shoots over people.
+function contest(p) {
+  let c = 0;
+  for (const q of G.pl) {
+    if (q.t === p.t || q.rag) continue;
+    const d = dist(p, q);
+    if (d > 6.5) continue;
+    c += (1 - d / 6.5) * (q.dfn / 82) * cl(1 + (q.ht - p.ht) * 0.03, 0.6, 1.5) * (q.z > 0.5 ? 1.25 : 1);
+  }
+  return cl(c, 0, 1.3);
+}
+// Half-width of the green zone on the shot meter (as a fraction of the meter). Good shooters get more;
+// defence shrinks it, by more on harder difficulties. Your own AI teammates' guarding uses Pro.
+function greenZone(p) {
+  const base = 0.06 + (p.sht / 99) * 0.035,
+    squeeze = (p.t === 0 ? DIFF[OPT.diff] : DIFF[1]).squeeze;
+  return Math.max(0.012, base * (1 - Math.min(0.85, contest(p) * squeeze)));
+}
 function init() {
   G.home = G.away = 0;
   G.time = 240;
@@ -28,8 +62,7 @@ function init() {
         vz: 0,
         ph: rn(0, 6),
         stam: 100,
-        sp: t ? DIFF[OPT.diff].sp : 12.6,
-        sh: NM[t * 3 + i][2] - 14,
+        ...stats(NM[t * 3 + i], t),
         look: TEAMS.indexOf(TM[t]) * 3 + i,
         sk: SK[NM[t * 3 + i][10]],
         pos: NM[t * 3 + i][1],
@@ -369,11 +402,12 @@ function beginShot(p) {
     df = minDef(p),
     mv = hy(p.vx, p.vy),
     tw = (p.vx * (h - p.x) + p.vy * (25 - p.y)) / (mv * dh + 0.01);
-  if (dh < 10.5 && df > 4.5) {
-    scripted(p, dh < 9 && mv > 5 && tw > 0.3 ? "dunk" : "layup");
+  // Open at the rim = guaranteed bucket. Strong finishers need less space; only big or bouncy players dunk.
+  if (dh < 10.5 && df > 4.5 - (p.fin - 75) / 12) {
+    scripted(p, dh < 9 && mv > 5 && tw > 0.3 && p.fin + (p.ht - 76) * 2 >= 74 ? "dunk" : "layup");
     return;
-  } // open at the rim = guaranteed bucket
-  G.shot = { p, t: 0, d: 0.85 };
+  }
+  G.shot = { p, t: 0, d: 0.85, zw: greenZone(p) };
 }
 function launch(p, q, ai) {
   const b = G.ball,
@@ -383,7 +417,7 @@ function launch(p, q, ai) {
     df = minDef(p);
   const ch = cl(
       0.2 +
-        (p.sh - 60) * 0.008 +
+        (p.sht - 74) * 0.009 +
         q * 0.5 -
         (dh / 94) * 0.3 -
         (df < 3 ? 0.25 : df < 6 ? 0.1 : 0) +
@@ -540,7 +574,7 @@ function cutUpd(dt) {
 }
 function steal(th, v) {
   th.swp = 0.25;
-  if (Math.random() < dk(th).stealWin) {
+  if (Math.random() < dk(th).stealWin * (th.dfn / 80) * (1.35 - v.hnd / 150)) {
     v.stun = 0.6;
     stealBall(th, v);
   }
@@ -606,15 +640,18 @@ function ballUpd(dt) {
     b.vz -= 32 * dt;
     b.z += b.vz * dt;
     b.spin += dt * 9;
+    // Blocks: only a defender who jumps can block. Good shot-blockers and height help; every inch the
+    // shooter has on the blocker makes it harder (a 7'4" shooter is very hard to block).
+    const sh = PL[b.shooter];
     for (const o of PL)
       if (
         o.t !== h &&
         o.z > 1 &&
         dist(o, b) < 3 &&
-        b.z < o.z + 8.8 &&
+        b.z < o.z + 8.8 * (o.ht / 78) &&
         b.z > o.z + 4 &&
         b.vz > -5 &&
-        Math.random() < dt * 14 * dk(o).block
+        Math.random() < dt * 14 * (o.blk / 75) * cl(1 + (o.ht - (sh ? sh.ht : 78)) * 0.06, 0.2, 2)
       ) {
         b.mode = "loose";
         b.vx = rn(-12, 12);
@@ -674,8 +711,10 @@ function ballUpd(dt) {
       bd = 1e9;
     for (const p of PL) {
       const d = dist(p, b);
-      if (d < bd && p.z + 8 > b.z && !p.rag) {
-        bd = d;
+      // Taller players reach higher and a little further for loose balls.
+      const reach = d - (p.ht - 78) * 0.06;
+      if (reach < bd && p.z + 8 * (p.ht / 78) > b.z && !p.rag) {
+        bd = reach;
         best = p;
       }
     }
@@ -776,9 +815,6 @@ function ai(dt) {
       p.def = true;
       p.ft = Math.atan2(o.y - p.y, o.x - p.x);
       if (b.own === o.id && dist(p, o) < 3.4 && !G.shot && Math.random() < dt * dk(p).stealRate) steal(p, o);
-      // Contest a jump shot by jumping at it; better defenders do it more often.
-      if (G.shot && G.shot.p === o && p.z === 0 && dist(p, o) < 4.5 && Math.random() < dt * 2.5 * dk(p).block)
-        p.vz = 10;
     }
   });
 }
@@ -857,7 +893,7 @@ function human(dt) {
     const o = G.pl[b.own];
     p.swp = 0.25;
     if (dist(p, o) < 4.2) {
-      if (Math.random() < 0.32) stealBall(p, o);
+      if (Math.random() < 0.32 * (p.dfn / 80) * (1.35 - o.hnd / 150)) stealBall(p, o);
       else toast("CONTEST", 0.4);
     } else toast("HANDS UP", 0.4);
   }
@@ -968,7 +1004,7 @@ function dribbleMove(p) {
   }
   let hit = 0;
   for (const q of G.pl)
-    if (q.t !== p.t && dist(q, p) < 6 && Math.random() < (k === "spin" ? 0.45 : 0.35)) {
+    if (q.t !== p.t && dist(q, p) < 6 && Math.random() < (k === "spin" ? 0.45 : 0.35) * (p.hnd / 82)) {
       q.stun = 0.8;
       hit = 1;
     }

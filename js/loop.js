@@ -31,10 +31,15 @@ function step(dt) {
     ballUpd(dt);
     if (G.shot) {
       G.shot.t += dt;
-      const m = G.shot.t / G.shot.d;
+      // The green zone follows the defence live: it shrinks as defenders close in.
+      G.shot.zw = lp(G.shot.zw, greenZone(G.shot.p), Math.min(1, dt * 8));
+      const m = G.shot.t / G.shot.d,
+        zw = G.shot.zw;
       if ((!keys.has("Space") && G.shot.t > 0.1) || m >= 1) {
-        const q = 1 - Math.min(1, Math.abs(m - 0.72) * 2.5);
-        G.mres = { p: G.shot.p, m: cl(m, 0, 1), g: q > 0.82, until: T + 0.9 };
+        // Inside the green = perfect (q > 0.82). Outside, quality falls off with distance from the centre.
+        const off = Math.abs(m - 0.72),
+          q = off <= zw ? 0.83 + (1 - off / zw) * 0.17 : cl(0.82 - (off - zw) * 2.5, 0, 0.82);
+        G.mres = { p: G.shot.p, m: cl(m, 0, 1), g: q > 0.82, until: T + 0.9, zw };
         launch(G.shot.p, q, 0);
       }
     }
@@ -86,13 +91,16 @@ function vmUpd() {
   const vm = $("vm");
   let sp = null,
     m = 0,
+    zw = 0.072,
     cls = "";
   if (G.shot) {
     sp = G.shot.p;
+    zw = G.shot.zw;
     m = cl(G.shot.t / G.shot.d, 0, 1);
   } else if (G.mres && T < G.mres.until) {
     sp = G.mres.p;
     m = G.mres.m;
+    zw = G.mres.zw || zw;
     cls = G.mres.g ? "g" : m < 0.65 ? "e" : "l";
   }
   const q = sp && !G.cut && SET.meter ? P(sp.x, sp.y, sp.z + 4.2) : null;
@@ -104,6 +112,9 @@ function vmUpd() {
   vm.style.height = cl(q[3] * 5.2 * PX, 90, 170) + "px";
   vm.style.left = (q[0] + q[3] * 1.9) * PX + "px";
   vm.style.top = q[1] * PX + "px";
+  const z = vm.querySelector(".vz");
+  z.style.bottom = (0.72 - zw) * 100 + "%";
+  z.style.height = zw * 200 + "%";
   $("vf").style.height = m * 100 + "%";
   $("vn").style.bottom = "calc(" + m * 100 + "% - 2px)";
   vm.className = cls;

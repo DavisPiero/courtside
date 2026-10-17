@@ -71,14 +71,15 @@ function openSel(pr) {
   show("setup");
   drawSel();
 }
-// Team ratings for the rings. OVR is the roster average; OFF leans on the best scorer, DEF on the big man.
+// Team ratings for the rings, from the player ratings in js/teams.js.
+// OVR: roster average. OFF: shooting, finishing and handling. DEF: defence and blocking.
 function ratings(t) {
-  const r = t.p.map((q) => q[2]),
-    avg = r.reduce((a, b) => a + b, 0) / r.length,
-    best = Math.max(...r),
-    big = t.p.find((q) => q[1] === "C" || q[1] === "PF"),
-    def = big ? (big[2] * 2 + avg) / 3 : avg - 2;
-  return { OVR: Math.round(avg), OFF: Math.round((best + avg) / 2), DEF: Math.round(def) };
+  const avg = (f) => Math.round(t.p.reduce((a, q) => a + f(q), 0) / t.p.length);
+  return {
+    OVR: avg((q) => q[2]),
+    OFF: avg((q) => (q[5] + q[6] + q[7]) / 3),
+    DEF: avg((q) => (q[8] * 2 + q[9]) / 3),
+  };
 }
 const star = (t) => t.p.reduce((a, q, i) => (q[2] > t.p[a][2] ? i : a), 0);
 const accent = (t) => (t.t === "#22242c" ? "#c7cfe0" : t.t);
