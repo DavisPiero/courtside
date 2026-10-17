@@ -17,7 +17,8 @@ where we are.
 ## How to run and check
 - Play: double-click `index.html`, or `python3 -m http.server 8791` and open
   http://localhost:8791/?mute (the preview config in `.claude/launch.json` serves it).
-  Always test with `?mute` so no sound plays.
+  Always test with `?mute` so no sound plays. `&device=pc` or `&device=touch` skips the
+  loading and device screens.
 - Smoke test (loads the game headless, plays every mode/court/difficulty, reports scores):
   `./tools/smoke.sh`
 - Sound: `M` mutes effects. Run it muted when testing.
@@ -25,6 +26,11 @@ where we are.
 ## Code map
 - `js/teams.js` all 30 teams, rosters and player ratings (edit freely)
 - `js/settings.js` the settings menu's options and saving them
+- `js/save.js` your save: Court Coins, packs, campaign stars (browser storage only)
+- `js/packs.js` the animation packs: names, prices, descriptions
+- `js/campaign.js` campaign chapters, games, story lines, goals; your crew
+- `js/campui.js` campaign, hooper, story and results screens
+- `js/touch.js` touch controls for Mobile / Tablet
 - `js/core.js` helpers, options and difficulty, global state, screen sizing
 - `js/projection.js` 3D projection and drawing primitives
 - `js/arena.js` arena and street courts (crowd, fences, floors)
@@ -38,4 +44,4 @@ where we are.
 - `js/main.js` input listeners, start-up, smoke-test hook
 
 ## Out of scope (unless David asks)
-Online play, fouls/free throws, substitutions, seasons, saving progress, mobile touch controls.
+Online accounts (brief only, not until David asks), online play, fouls/free throws, substitutions, seasons, saving progress.

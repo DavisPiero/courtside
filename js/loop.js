@@ -174,6 +174,7 @@ function loop(t) {
   portraits();
   invPreview();
   heroPreview();
+  touchUpd();
 }
 function pause() {
   G.pause = !G.pause;

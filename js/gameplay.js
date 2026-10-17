@@ -868,7 +868,13 @@ function human(dt) {
     return;
   }
   let ix = (K("KeyD") || K("ArrowRight") ? 1 : 0) - (K("KeyA") || K("ArrowLeft") ? 1 : 0),
-    iy = (K("KeyW") || K("ArrowUp") ? 1 : 0) - (K("KeyS") || K("ArrowDown") ? 1 : 0);
+    iy = (K("KeyW") || K("ArrowUp") ? 1 : 0) - (K("KeyS") || K("ArrowDown") ? 1 : 0),
+    jm = 1; // touch joystick: how far it's pushed (walk when barely pushed, sprint at the edge)
+  if (G.joy && G.joy.m > 0.15) {
+    ix = G.joy.x;
+    iy = -G.joy.y;
+    jm = Math.min(1, G.joy.m * 1.4);
+  }
   const mg = ix || iy;
   lyaw = V.yaw;
   const l = hy(ix, iy) || 1;
@@ -877,8 +883,8 @@ function human(dt) {
   const wx = Math.cos(lyaw) * iy + Math.sin(lyaw) * ix,
     wy = Math.sin(lyaw) * iy - Math.cos(lyaw) * ix;
   G.in = mg ? { x: wx, y: wy } : null;
-  const spr = mg && (K("ShiftLeft") || K("ShiftRight")) && p.stam > 5,
-    sp = p.sp * (spr ? 1.5 : 1) * (p.stam < 18 ? 0.8 : 1) * (G.shot ? 0.3 : 1) * (p.stun > 0 ? 0.3 : 1);
+  const spr = mg && (K("ShiftLeft") || K("ShiftRight") || (G.joy && G.joy.m > 0.92)) && p.stam > 5,
+    sp = p.sp * jm * (spr ? 1.5 : 1) * (p.stam < 18 ? 0.8 : 1) * (G.shot ? 0.3 : 1) * (p.stun > 0 ? 0.3 : 1);
   const kk = 1 - Math.exp(-(mg ? 11 : 16) * dt);
   p.vx += (wx * sp - p.vx) * kk;
   p.vy += (wy * sp - p.vy) * kk;

@@ -5,6 +5,7 @@
 const SCREENS = ["load", "device", "menu", "setup", "pause", "sets"];
 function show(id) {
   for (const s of SCREENS) $(s) && $(s).classList.toggle("on", s === id);
+  if (typeof ccShow === "function") ccShow();
 }
 function hudOn(on) {
   $("hud").style.display = on ? "block" : "none";
@@ -18,6 +19,18 @@ function openSettings(back) {
   show("sets");
 }
 function controlRows() {
+  if (G.touch)
+    return [
+      ["LEFT", "Joystick: touch anywhere on the left. Push to the edge to sprint."],
+      ["SHOOT", "Hold, release in the green. On defence: JUMP / BLOCK."],
+      ["PASS", "Pass to the open teammate. On defence: SWITCH player."],
+      ["MOVE", "Dribble move. On defence: STEAL."],
+      ["PUNCH", "Mayhem only: drop them, take the ball."],
+      ["SLIDE", "Mayhem only: slide-tackle the ball carrier."],
+      ["II", "Pause"],
+      ["CAM", "Switch camera"],
+      ["TAP", "Skip the dunk replay"],
+    ];
   return [
     ["WASD", "Move"],
     ["Shift", "Sprint"],
@@ -414,6 +427,7 @@ function openDevice() {
     last = SET.device || (touchy ? "touch" : "pc");
   $("dPC").classList.toggle("rec", last === "pc");
   $("dTouch").classList.toggle("rec", last === "touch");
+  document.querySelectorAll(".dcard em").forEach((e) => (e.textContent = SET.device ? "LAST TIME" : "RECOMMENDED"));
   $("dPC").onclick = () => chooseDevice("pc");
   $("dTouch").onclick = () => chooseDevice("touch");
   show("device");
@@ -423,6 +437,7 @@ function chooseDevice(d) {
   saveSettings();
   document.body.classList.toggle("touch", d === "touch");
   G.touch = d === "touch";
+  orientCheck();
   show("menu");
 }
 

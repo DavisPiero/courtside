@@ -49,6 +49,7 @@ addEventListener("keydown", (e) => {
 });
 addEventListener("mousedown", (e) => {
   ac();
+  if (G.touch) return; // touch play punches with its own button
   if (G.run && !G.pause && e.button === 0) G.click = 1;
 });
 addEventListener("keyup", (e) => keys.delete(e.code));

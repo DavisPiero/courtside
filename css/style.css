@@ -287,3 +287,81 @@ body.cine .pnl, body.cine #toast { opacity: 0; }
 .swatches button { width: 40px; height: 40px; border: 0; cursor: pointer; pointer-events: auto; clip-path: var(--notch); box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.35); }
 .swatches button.on { box-shadow: inset 0 0 0 4px #fff; }
 @media (max-width: 760px) { .hbody { grid-template-columns: 1fr; } #heroCv { height: 200px; } }
+
+/* ---------- touch controls (Mobile / Tablet) */
+html, body { touch-action: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
+.rows, #setRows, #invRows, #campRows { touch-action: pan-y; }
+#touch { display: none; position: fixed; inset: 0; z-index: 8; pointer-events: none; }
+body.tplay #touch { display: block; }
+.tzone { position: absolute; left: 0; top: 18%; bottom: 0; width: 46%; pointer-events: auto; }
+.tstick {
+  position: absolute; width: 150px; height: 150px; margin: -75px 0 0 -75px; border-radius: 50%; opacity: 0;
+  left: calc(env(safe-area-inset-left, 0px) + 120px); top: calc(100% - 130px);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.06) 0 55%, rgba(255, 255, 255, 0.12) 56% 100%);
+  box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.35); transition: opacity 0.15s;
+}
+body.tplay .tstick { opacity: 0.45; }
+.tstick.on { opacity: 1 !important; }
+.tstick i {
+  position: absolute; left: 50%; top: 50%; width: 64px; height: 64px; margin: -32px 0 0 -32px; border-radius: 50%;
+  background: rgba(255, 255, 255, 0.85); box-shadow: inset 0 -5px 0 rgba(0, 0, 0, 0.25);
+}
+.tstick.sprint { box-shadow: inset 0 0 0 4px var(--gold); }
+.tstick.sprint i { background: var(--gold); }
+.tbtns { position: absolute; right: calc(env(safe-area-inset-right, 0px) + 18px); bottom: calc(env(safe-area-inset-bottom, 0px) + 18px); width: 250px; height: 250px; }
+.tb {
+  position: absolute; pointer-events: auto; border: 0; border-radius: 50%; display: grid; place-items: center;
+  width: 78px; height: 78px; background: rgba(13, 19, 40, 0.72); color: #fff;
+  box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.55), inset 0 -6px 0 rgba(0, 0, 0, 0.35);
+  font: 400 18px/1 var(--px); letter-spacing: 0.04em; touch-action: none; user-select: none;
+}
+.tb.dn { background: rgba(255, 255, 255, 0.85); color: #10131c; transform: scale(0.94); }
+.tb.big { width: 112px; height: 112px; right: 0; bottom: 0; font-size: 24px; background: rgba(184, 134, 42, 0.8); box-shadow: inset 0 0 0 3px #ffe29a, inset 0 -7px 0 rgba(0, 0, 0, 0.3); }
+.tb.big.dn { background: var(--gold); }
+.tbtns [data-b="pass"] { right: 128px; bottom: 6px; }
+.tbtns [data-b="move"] { right: 10px; bottom: 128px; }
+.tb.sm { width: 64px; height: 64px; font-size: 15px; display: none; }
+.tbtns [data-b="punch"] { right: 116px; bottom: 112px; }
+.tbtns [data-b="slide"] { right: 190px; bottom: 76px; }
+body.tmayhem .tb.mh { display: grid; }
+body.ttip .tbtns [data-b="pass"], body.ttip .tbtns [data-b="move"], body.ttip .tb.mh { display: none; }
+.ttop { position: absolute; left: calc(env(safe-area-inset-left, 0px) + 14px); top: calc(env(safe-area-inset-top, 0px) + 14px); display: flex; gap: 10px; }
+.tb.tiny { position: static; width: 52px; height: 52px; border-radius: 0; clip-path: var(--notch); font-size: 18px; }
+.tskip { display: none; position: absolute; inset: 0; pointer-events: auto; align-items: end; justify-content: center; padding-bottom: 14vh; font: 400 22px/1 var(--px); color: rgba(255, 255, 255, 0.7); z-index: 7; }
+body.tcut .tskip { display: flex; }
+body.tcut .tbtns, body.tcut .tzone { visibility: hidden; }
+/* in touch play the player card moves aside for the pause and camera buttons */
+body.touch #card { display: none; }
+body.touch #vm b { font-size: 24px; }
+#rotate { display: none; position: fixed; inset: 0; z-index: 60; background: #070a14; place-items: center; text-align: center; font: 400 30px/1.2 var(--px); }
+#rotate b { display: block; font-size: 80px; color: var(--gold); animation: spinr 1.6s steps(8) infinite; }
+@keyframes spinr { to { transform: rotate(-90deg); } }
+body.portrait #rotate { display: grid; }
+
+/* ---------- touch menus: bigger targets everywhere (fingers, not mice) */
+body.touch .btn { padding: 16px 24px 18px; font-size: 26px; }
+body.touch .seg button { padding: 14px 16px; font-size: 21px; }
+body.touch .tabs button { padding: 14px 16px; font-size: 24px; }
+body.touch .arr { width: 52px; height: 52px; font-size: 26px; }
+body.touch .row > span, body.touch .pack span, body.touch .cg span { font-size: 21px; }
+body.touch .rows { gap: 10px; }
+body.touch .menu-l nav { width: 290px; }
+/* Short screens (phones in landscape): compact everything so it all fits */
+@media (max-height: 520px) {
+  .brand { font-size: 64px; }
+  #mt { display: none; }
+  .menu-l nav { grid-template-columns: 1fr 1fr; width: min(520px, 90vw) !important; }
+  .menu-l nav .btn.pri { grid-column: 1 / -1; }
+  #setup { grid-template-rows: 44px 1fr auto; }
+  .su-top { font-size: 16px; } .su-top b { font-size: 24px; }
+  .tn b { font-size: 40px; } .city { font-size: 18px; } .rings { margin-top: 8px; }
+  .ring { width: 54px; height: 54px; } .ring b { font-size: 22px; }
+  .roster { display: none; }
+  .su-bot { padding: 8px 12px 10px; gap: 8px 14px; }
+  .box { padding: 16px 18px 18px; } .box h2 { font-size: 38px; margin-bottom: 10px; }
+  .rows { max-height: 52vh; }
+  .tb.big { width: 96px; height: 96px; } .tbtns { transform: scale(0.88); transform-origin: bottom right; }
+  .ibody { grid-template-columns: 170px 1fr; } .iprev { min-height: 200px; } #invCv { height: 190px; }
+  .hbody { grid-template-columns: 150px 1fr; } #heroCv { height: 190px; }
+  #toast { font-size: 34px; }
+}

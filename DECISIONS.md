@@ -22,3 +22,11 @@ One line each, newest last.
 - 2026-10-17 · Settings saved in localStorage: per browser, fine for options.
 - 2026-10-17 · AI no longer jumps to block your jump shots; defence shrinks the green zone (David's note).
 - 2026-10-17 · Model in real proportions, scaled by real height; build width by position.
+- 2026-10-17 · Team select always starts on Clean; tips explain Clean and Mayhem (David's note).
+- 2026-10-17 · Name tag: plain white pixel text with a 1px shadow for readability (David's note).
+- 2026-10-17 · Currency "Court Coins (CC)" (David's name); earned for winning and style, never bought.
+- 2026-10-17 · No accounts or Supabase yet (David's call); save lives in browser storage.
+- 2026-10-17 · Campaign: 5 chapters x 6 games, 3 stars each; crew improves +3 per chapter cleared.
+- 2026-10-17 · Packs change real animations, used by your team only; AI keeps the basics.
+- 2026-10-17 · Touch: floating joystick, context-sensitive 3-button cluster, edge-push sprint.
+- 2026-10-17 · Device choice asked every launch; last choice highlighted (David's spec).
