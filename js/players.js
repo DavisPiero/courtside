@@ -89,6 +89,19 @@ function ballLocal(p) {
     if (m.k === "snatch") return [0.9 - 1.1 * Math.sin(u * Math.PI), h * 0.5, 0.6 + 1.2 * Math.abs(Math.sin(u * Math.PI * 2))];
     if (m.k === "double")
       return [1.0, h * 0.6 * Math.cos(u * 6.2832), 0.55 + 2.4 * Math.abs(Math.cos(u * 6.2832))];
+    if (m.k === "inout") return [1.0, h * 0.6 * (1 - Math.sin(u * Math.PI) * 0.95), 0.55 + 2.2 * Math.abs(Math.cos(u * Math.PI))];
+    if (m.k === "stutter") return [0.85, h * 0.5, 0.55 + 1.1 * Math.abs(Math.sin(u * Math.PI * 4))];
+    if (m.k === "killer") return [1.1, lp(h * 0.9, -h * 0.9, e), 0.5 + 1.7 * Math.abs(Math.cos(u * Math.PI))];
+    if (m.k === "shammgod") {
+      if (u < 0.4) return [lp(0.9, 2.1, ease(u / 0.4)), h * 0.4, 0.55 + 1.6 * Math.abs(Math.cos((u / 0.4) * Math.PI))];
+      const w = (u - 0.4) / 0.6;
+      return [lp(2.1, 0.8, ease(w)), lp(h * 0.4, -h * 0.6, ease(w)), 0.55 + 2.0 * Math.abs(Math.cos(w * Math.PI))];
+    }
+    if (m.k === "tornado") {
+      // Ball at the hip through the spin, switched behind the back in the middle.
+      const t = cl((u - 0.35) / 0.3, 0, 1);
+      return [0.35 - Math.sin(t * Math.PI) * 0.95, lp(h * 0.85, -h * 0.85, ease(t)), 2.4];
+    }
     return [0.35, h * 0.85, 2.5]; // spin: ball tucked at the hip while the body turns
   }
   return [0.9, h * 0.55, 0.55 + Math.abs(Math.sin(B.bph)) * 2.7];
@@ -115,177 +128,89 @@ function buildSprite(p) {
     K = k * S, // drawing scale for this body
     ox = sp.w >> 1,
     oy = sp.h - 24,
-    f = p.f,
-    cf = Math.cos(f),
-    sf = Math.sin(f),
     spd = hy(p.vx, p.vy),
     run = cl(spd / 13, 0, 1.3),
-    sprint = cl((spd - 12) / 6, 0, 1),
+    b = G.ball,
+    hold = port ? !!port.ball : b.own === p.id && b.mode === "held",
+    shooting = port ? port.pose === "shot" : !!((G.shot && G.shot.p === p) || p.aishot),
+    tt = port ? port.t : T;
+  // Ball position in this body's frame (model feet), for the dribbling hand.
+  let ballL = null;
+  if (hold && !shooting) {
+    if (port) ballL = port.ball;
+    else {
+      const cf0 = Math.cos(p.f),
+        sf0 = Math.sin(p.f),
+        dx = b.x - p.x,
+        dy = b.y - p.y;
+      ballL = [dx * cf0 + dy * sf0, -dx * sf0 + dy * cf0, b.z - p.z];
+    }
+    ballL = ballL.map((v) => v / S);
+  }
+  const ctx = {
+    run,
+    sprint: cl((spd - 12) / 6, 0, 1),
+    idle: 1 - cl(run * 3, 0, 1),
+    s1: Math.sin(p.ph),
+    c1: Math.cos(p.ph),
+    tt,
+    bw,
+    land: p.land > 0 ? p.land / 0.18 : 0,
+    air: p.z > 0.3,
+    hold,
+    shooting,
+    shotU: port ? ((port.t * 0.75) % 1) * 1.15 : p.aishot ? (p.aishot.t / p.aishot.d) * 0.72 : shooting ? G.shot.t / G.shot.d : 0,
+    hand: p.hand || -1,
+    shotS: styleOf(p, "shot"),
+    fol: port ? 0 : p.fol || 0,
+    pas: p.pas || 0,
+    swp: p.swp || 0,
+    cel: port ? port.pose === "cel" : p.stt === "cel",
+    celS: styleOf(p, "cel"),
+    pun: p.pun > 0 && !p.rag ? p.pun : 0,
+    sl: !p.rag && p.sl,
+    rag: p.rag,
+    mv: port ? port.mv : p.mv,
+    ballL,
+    guarded: !port && G.pl.length && minDef(p) < 5,
+    bph: b.bph,
+    dk: port ? port.dk : p.dk,
+  };
+  let Q = animPose(p, ctx);
+  // Dunk/layup hand from the cutscene path (world feet) overrides the ball hand.
+  if (p.hw) {
+    const cf0 = Math.cos(p.f),
+      sf0 = Math.sin(p.f),
+      dx = p.hw[0] - p.x,
+      dy = p.hw[1] - p.y,
+      hl = [(dx * cf0 + dy * sf0) / S, (-dx * sf0 + dy * cf0) / S, (p.hw[2] - p.z) / S - Q.hz];
+    Q = clonePose(Q);
+    if (hl[1] >= 0 && !p.hw2) Q.aL = hl;
+    else Q.aR = hl;
+    if (p.hw2) Q.aL = [hl[0], hl[1] + 0.4, hl[2]];
+  }
+  Q = smoothPose(p, Q, tt, port ? 30 : 26);
+  const f = p.f + Q.yaw,
+    cf = Math.cos(f),
+    sf = Math.sin(f),
     fb = cf * Fx + sf * Fy,
     vis = Math.abs(fb),
     fsx = cf * Rx + sf * Ry,
-    b = G.ball,
-    air = p.z > 0.3,
-    hold = port ? !!port.ball : b.own === p.id && b.mode === "held",
-    shooting = port ? port.pose === "shot" : G.shot && G.shot.p === p,
-    shotU = port ? ((port.t * 0.8) % 1) * 1.2 : shooting ? G.shot.t / G.shot.d : 0, // 0..1 through the shot
-    shotS = styleOf(p, "shot"),
-    celOn = port ? port.pose === "cel" : p.stt === "cel",
-    celS = styleOf(p, "cel"),
-    mvv = port ? port.mv : p.mv,
-    land = p.land > 0 ? p.land / 0.18 : 0,
-    tt = port ? port.t : T,
-    rg = p.rag,
-    ra = rg
-      ? (rg.t < 0.3 ? sm(rg.t / 0.3) : rg.t > rg.d - 0.6 ? sm(cl((rg.d - rg.t) / 0.6, 0, 1)) : 1) * 1.5
-      : p.sl
-        ? (p.sl.t < 0.1 ? sm(p.sl.t / 0.1) : p.sl.t > p.sl.d - 0.22 ? sm(cl((p.sl.d - p.sl.t) / 0.22, 0, 1)) : 1) *
-          1.15
-        : 0;
-  const idle = 1 - cl(run * 3, 0, 1),
-    breathe = Math.sin(tt * 2.4 + look) * 0.05 * idle,
-    hz =
-      3.25 -
-      (p.def ? 0.55 : 0) -
-      (shooting ? (shotS === "shot.set" ? 0.15 : 0.25) + 0.45 * (1 - cl(shotU / 0.6, 0, 1)) : 0) - // jump-shot dip, then rise
-      (celOn && celS === "cel.toosmall" ? 0.8 : 0) +
-      (celOn && celS === "cel.dance" ? Math.abs(Math.sin(tt * 9)) * 0.25 : 0) -
-      (hold && !shooting ? 0.2 : 0) -
-      (mvv ? 0.35 : 0) -
-      land * 0.5 +
-      Math.sin(p.ph * 2) * 0.07 * run +
-      breathe,
-    s1 = Math.sin(p.ph),
-    c1 = Math.cos(p.ph),
-    stride = run * 1.25,
-    lean =
-      0.25 * run +
-      0.25 * sprint +
-      (hold ? 0.2 : 0) +
-      (p.pun > 0 ? 0.4 : 0) +
-      (mvv ? 0.25 : 0) +
-      land * 0.2 -
-      ((shooting || p.fol > 0) && shotS === "shot.fade" ? 0.75 : 0), // fadeaway leans back
-    twist = s1 * 0.2 * run; // shoulders counter-rotate against the hips when running
-  // Legs: run cycle with knee lift; a relaxed split stance when standing still.
-  let fL = [s1 * stride, 0.5, Math.max(0, c1) * 0.95 * run],
-    fR = [-s1 * stride, -0.5, Math.max(0, -c1) * 0.95 * run];
-  if (idle > 0.5 && !hold) {
-    fL = [0.15, 0.6, 0];
-    fR = [-0.15, -0.6, 0];
-  }
-  if (p.def) {
-    // Defensive slide: feet stay wide and shuffle sideways instead of running.
-    fL = [0.2, 1.25 + Math.max(0, s1) * 0.35 * run, Math.max(0, c1) * 0.25 * run];
-    fR = [-0.2, -1.25 - Math.max(0, -s1) * 0.35 * run, Math.max(0, -c1) * 0.25 * run];
-  }
-  if (mvv) {
-    const h = mvv.h;
-    if (mvv.k === "legs") {
-      // Lunge: the foot on the receiving side steps forward so the ball can pass underneath.
-      fL = h < 0 ? [1.0, 0.8, 0] : [-0.8, 0.8, 0];
-      fR = h < 0 ? [-0.8, -0.8, 0] : [1.0, -0.8, 0];
-    } else if (mvv.k === "cross") {
-      fL = [0.3, 0.9, 0];
-      fR = [-0.1, -0.9, 0];
-    }
-  }
-  if (land > 0 && !air) {
-    fL = [0.2, 0.65, 0];
-    fR = [-0.2, -0.65, 0];
-  }
-  if (air) {
-    fL = [0.6, 0.5, 1.2];
-    fR = [-0.4, -0.5, 0.6];
-  }
+    ra = Q.pitch,
+    rc = Q.recline || 0,
+    hz = Q.hz,
+    lean = Q.lean,
+    twist = Q.twist,
+    up = (a) => [a[0], a[1], a[2] + hz], // hand targets are stored relative to the hips
+    aL = up(Q.aL),
+    aR = up(Q.aR),
+    fL = Q.fL,
+    fR = Q.fR;
+  const hop = ctx.cel ? celHop(ctx.celS, tt) / S : 0; // backflip celebration leaves the floor
   const hL = [0, 0.4 * bw, hz],
     hR = [0, -0.4 * bw, hz],
     sL = [lean - twist, 0.78 * bw, hz + 2.15],
     sR = [lean + twist, -0.78 * bw, hz + 2.15];
-  // Arms: swing against the legs by default.
-  let aL = [-s1 * stride * 0.9, 1.15 * bw, hz + 0.2 + run * 0.8 + idle * 0.1],
-    aR = [s1 * stride * 0.9, -1.15 * bw, hz + 0.2 + run * 0.8 + idle * 0.1];
-  if (p.def) {
-    aL = [0.9, 2.2, hz + 1.7];
-    aR = [0.9, -2.2, hz + 1.7];
-  }
-  if (hold) {
-    if (shooting) {
-      // Shot forms: set shot from the chest, high release from the sky.
-      const top = shotS === "shot.high" ? 5.7 : shotS === "shot.set" ? 4.2 : 4.9;
-      aL = [0.7, 0.3, hz + top];
-      aR = [0.7, -0.3, hz + top];
-    } else {
-      // The hand on the ball's side follows it; the other arm guards it.
-      let L;
-      if (port) L = port.ball;
-      else {
-        const dx = b.x - p.x,
-          dy = b.y - p.y;
-        L = [dx * cf + dy * sf, -dx * sf + dy * cf, b.z - p.z];
-      }
-      L = L.map((v) => v / S); // world feet to this body's model feet
-      const hand = [L[0], L[1], Math.min(L[2] + 0.3, hz + 2.6)];
-      if (L[1] >= 0) {
-        aL = hand;
-        aR = [0.9, -1.4 * bw, hz + 1.5];
-      } else {
-        aR = hand;
-        aL = [0.9, 1.4 * bw, hz + 1.5];
-      }
-    }
-  }
-  if (p.pas > 0) {
-    aL = [1.9, 0.35, hz + 2.1];
-    aR = [1.9, -0.35, hz + 2.1];
-  }
-  if (p.swp > 0) aR = [2.1, -0.25, hz + 1.1 + p.swp * 2];
-  if (p.fol > 0 && !port) {
-    aL = [0.8, 0.2, hz + 5.3];
-    aR = [0.8, -0.2, hz + 5.3];
-  }
-  if (celOn) {
-    // Celebration packs.
-    if (celS === "cel.flex") {
-      aL = [0.15, 1.05, hz + 3.0];
-      aR = [0.15, -1.05, hz + 3.0];
-    } else if (celS === "cel.shh") {
-      aR = [0.55, -0.05, hz + 2.7];
-      aL = [0.2, 1.0, hz + 0.6];
-    } else if (celS === "cel.toosmall") {
-      aR = [0.9, -0.7, hz + 0.6];
-      aL = [0.4, 1.1, hz + 1.4];
-    } else if (celS === "cel.dance") {
-      const sw = Math.sin(tt * 9);
-      aL = [0.3, 1.4, hz + 2.4 + sw * 1.4];
-      aR = [0.3, -1.4, hz + 2.4 - sw * 1.4];
-    } else {
-      aL = [0, 1.6, hz + 4.4];
-      aR = [0, -1.6, hz + 4.4];
-    }
-  }
-  if (p.pun > 0 && !rg) {
-    aR = [2.4, -0.2, hz + 2.3];
-    aL = [0.2, 1, hz + 1.6];
-  }
-  if (rg) {
-    aL = [-0.3, 1.7, hz + 1.2];
-    aR = [-0.3, -1.7, hz + 1.2];
-    fL = [0.4, 0.7, 0.4];
-    fR = [-0.1, -0.7, 0.2];
-  }
-  if (p.sl && !rg) {
-    aL = [-0.7, 1.5, hz + 0.4];
-    aR = [-0.7, -1.5, hz + 0.4];
-    fL = [1.7, 0.35, 0.3];
-    fR = [0.8, -0.5, 1];
-  }
-  if (p.hw) {
-    const dx = p.hw[0] - p.x,
-      dy = p.hw[1] - p.y;
-    aR = [dx * cf + dy * sf, -dx * sf + dy * cf, p.hw[2] - p.z];
-    aL = p.hw2 ? [aR[0], aR[1] + 0.35, aR[2]] : [0.6, 1.1, hz + 3.8];
-  }
   const [eL, wL] = ik(sL, aL, 1.27, 1.22, [-0.3, 0.9, -0.6]),
     [eR, wR] = ik(sR, aR, 1.27, 1.22, [-0.3, -0.9, -0.6]),
     [kL, ftL] = ik(hL, fL, 1.72, 1.66, [1, 0.1, 0]),
@@ -304,6 +229,14 @@ function buildSprite(p) {
   const pj = (v) => {
     let x0 = v[0],
       z0 = v[2];
+    // Recline: tilt only the upper body back around the hips (legs stay put), e.g. the slide tackle.
+    if (rc && z0 > hz - 0.1) {
+      const zz = z0 - hz,
+        cc = Math.cos(rc),
+        ss = Math.sin(rc);
+      x0 = v[0] * cc - zz * ss;
+      z0 = v[0] * ss + zz * cc + hz;
+    }
     if (ra) {
       const zz = z0 - hz,
         cc = Math.cos(ra),
@@ -313,7 +246,7 @@ function buildSprite(p) {
     }
     const rx = x0 * cf - v[1] * sf,
       ry = x0 * sf + v[1] * cf,
-      z = z0 + p.z;
+      z = z0 + p.z + hop;
     return [ox + (rx * Rx + ry * Ry) * K, oy - (rx * Ux + ry * Uy + z * Uz) * K, rx * Fx + ry * Fy + z * Fz];
   };
   const quad = (A, B, w, col) => {

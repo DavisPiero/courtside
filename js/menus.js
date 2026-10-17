@@ -161,10 +161,11 @@ function renderModel(cv2, P0, a) {
     L = P0.port.ball;
   if (S && L) {
     // Ball: projected with the same camera, drawn as a pixel disc onto the sprite.
-    const bx = S.ox + (L[0] * Rx + L[1] * Ry) * PK,
-      by = S.oy - (L[0] * Ux + L[1] * Uy + (L[2] + P0.z) * Uz) * PK,
+    const pk = P0.port.k,
+      bx = S.ox + (L[0] * Rx + L[1] * Ry) * pk,
+      by = S.oy - (L[0] * Ux + L[1] * Uy + (L[2] + P0.z) * Uz) * pk,
       g = S.cv.getContext("2d"),
-      br = Math.round(0.55 * PK);
+      br = Math.round(0.55 * pk);
     const disc = (x, y, r, col) => {
       g.fillStyle = col;
       g.beginPath();
@@ -187,7 +188,7 @@ function renderModel(cv2, P0, a) {
   setV();
   if (!S) return;
   // Fit to the canvas: whole-pixel scale, feet on the bottom edge.
-  const hgt = cv2.clientHeight || 400,
+  const hgt = Math.min(cv2.clientHeight || 400, 900), // capped so a canvas can never grow itself
     sc = Math.max(1, Math.ceil((hgt * devicePixelRatio) / PH)),
     w = PW * sc,
     h = PH * sc;
@@ -441,24 +442,107 @@ function chooseDevice(d) {
   show("menu");
 }
 
-// ---------- inventory: buy packs with Court Coins and equip them; the selected pack plays on the preview model
-const INV = { cat: "dunk", sel: "dunk.basic", P0: null };
+// ---------- animation preview: a model performing one animation on a loop (Inventory, pack opening, Lab)
+function previewModel(slot) {
+  const hero = campHero();
+  let P0 = PREV[slot];
+  if (!P0 || P0.key !== hero.key) {
+    P0 = PREV[slot] = portraitPlayer(hero.ti, hero.pi, 10 + Object.keys(PREV).length, -1);
+    P0.key = hero.key;
+    if (hero.team) Object.assign(P0, { team: hero.team, sk: hero.sk, look: hero.look, pos: hero.pos, ht: hero.ht, hair: hero.hair });
+  }
+  return P0;
+}
+const PREV = {};
+// speed: 1 normal, lower for slow motion (Animation Lab).
+function previewAnim(cv, P0, id, speed, angle) {
+  const k = ANIM[id] || { cat: id.split(".")[0], id },
+    port = P0.port,
+    S = bodyScale(P0),
+    t = (P0.lt = (P0.lt || 0) + (P0.lastT ? Math.min(0.05, T - P0.lastT) : 0) * (speed || 1));
+  P0.lastT = T;
+  Object.assign(P0, { z: 0, f: 0, hw: null, hw2: null, mv: null, stt: "", vx: 0, vy: 0 });
+  port.t = t;
+  port.pose = "";
+  port.dk = null;
+  port.mv = null;
+  port.style = { [k.cat]: k.id };
+  // Dunks and layups reach the rim, so draw them smaller to keep the whole jump in view.
+  port.k = k.cat === "dunk" || k.cat === "layup" ? 30 : PK;
+  port.ball = [0.95, -0.6, 0.55 + Math.abs(Math.sin(t * 5.5)) * 2.6];
+  if (k.cat === "cel") {
+    port.pose = "cel";
+    port.ball = null;
+  } else if (k.cat === "shot") {
+    port.pose = "shot";
+    const u = ((t * 0.75) % 1) * 1.15;
+    port.ball = shotBall(P0, Math.min(u, 1));
+    // jump in the preview at the same moment as in the game
+    const J = (SHOTS[k.id] || SHOTS["shot.basic"]).jump,
+      ju = Math.min(u, 1.15);
+    if (ju > J[0]) {
+      const tt2 = ((ju - J[0]) / 0.75) * 0.85 * (J[1] / 10);
+      P0.z = Math.max(0, J[1] * tt2 - 16 * tt2 * tt2);
+    }
+  } else if (k.cat === "dribble") {
+    const mk = k.id.split(".")[1],
+      M = MOVES[mk],
+      cyc = M.d + 0.7,
+      u = (t % cyc) / M.d;
+    if (u <= 1) P0.mv = { k: mk, t: u * M.d, d: M.d, h: -1, mid: 0 };
+    port.mv = P0.mv;
+    if (P0.mv) port.ball = ballLocal(P0);
+    if (mk === "spin" || mk === "tornado") P0.f = u <= 1 ? 6.2832 * sm(u) : 0;
+  } else if (k.cat === "dunk" || k.cat === "layup") {
+    // Gather, take off, rise to the rim, flush or release, land. Same paths as the real thing.
+    const dk = k.cat === "dunk",
+      u = (t % 2.2) / 2.2,
+      Zm = dk ? 3.2 : 2.3;
+    if (u < 0.2) port.dk = { style: k.id, phase: "gather", k: u / 0.2 };
+    else if (u < 0.55) {
+      const kk = (u - 0.2) / 0.35;
+      P0.z = Zm * Math.sin((kk * Math.PI) / 2);
+      port.dk = { style: k.id, phase: "rise", k: kk };
+      const hl = rimHand(k.id, kk, P0.z);
+      P0.hw = [hl[0], hl[1], P0.z + hl[2]];
+      P0.hw2 = kk > 0.55 && ["dunk.twohand", "dunk.360", "dunk.reverse", "dunk.legs"].includes(k.id) ? P0.hw : null;
+      port.ball = [hl[0] + 0.15, hl[1], hl[2] + 0.4];
+      if (k.id === "dunk.360") P0.f = 6.2832 * ease(kk);
+      if (k.id === "dunk.reverse") P0.f = Math.PI;
+      if (k.id === "layup.reverse") P0.f = Math.PI * 0.85;
+    } else if (u < 0.85) {
+      const kk = (u - 0.55) / 0.3;
+      P0.z = Zm * (dk ? (kk < 0.4 ? 1 : Math.max(0, 1 - (kk - 0.4) / 0.6)) : Math.max(0, 1 - kk * 1.25));
+      port.dk = { style: k.id, phase: dk ? "hang" : "fall", k: kk };
+      if (dk && kk < 0.55) P0.hw = [1.45, 0, 10.15];
+      if (k.id === "dunk.reverse") P0.f = Math.PI;
+      port.ball = null;
+    } else port.ball = null;
+  }
+  renderModel(cv, P0, angle || 0.75);
+}
+
+// ---------- inventory: equip the animations you own (get more from packs in the Shop)
+const INV = { cat: "dunk", sel: "dunk.basic" };
 function openInv() {
-  INV.sel = SAVE.equip[INV.cat] || INV.cat + ".basic";
-  if (INV.cat === "dribble") INV.sel = "dribble.hesi";
+  INV.sel = INV.cat === "dribble" ? SAVE.equip.moves[0] || "dribble.cross" : SAVE.equip[INV.cat];
   drawInv();
-  ccShow();
   show("inv");
 }
-function packButton(k) {
-  if (!owns(k.id))
-    return `<button class="btn${SAVE.cc >= k.price ? " pri" : ""}" data-buy="${k.id}"${SAVE.cc >= k.price ? "" : " disabled"}>${k.price} CC</button>`;
-  if (k.cat === "dribble") {
-    const on = SAVE.equip.moves.includes(k.id);
-    return `<button class="btn${on ? " own" : ""}" data-eq="${k.id}">${on ? "ON" : "OFF"}</button>`;
+function animRow(a, sel) {
+  const own = owns(a.id);
+  let btn;
+  if (!own) btn = `<div class="inpk">IN PACKS</div>`;
+  else if (a.cat === "dribble") {
+    const on = SAVE.equip.moves.includes(a.id),
+      full = !on && SAVE.equip.moves.length >= MAX_MOVES;
+    btn = `<button class="btn${on ? " own" : ""}" data-eq="${a.id}"${full ? " disabled" : ""}>${on ? "ON" : "OFF"}</button>`;
+  } else {
+    const on = SAVE.equip[a.cat] === a.id;
+    btn = `<button class="btn${on ? " own" : ""}" data-eq="${a.id}">${on ? "EQUIPPED" : "EQUIP"}</button>`;
   }
-  const on = SAVE.equip[k.cat] === k.id;
-  return `<button class="btn${on ? " own" : ""}" data-eq="${k.id}">${on ? "EQUIPPED" : "EQUIP"}</button>`;
+  return `<div class="pack r-${a.rarity}${own ? "" : " lock"}${a.id === sel ? " sel" : ""}" data-id="${a.id}">
+    <b>${a.name}</b><span class="rtag">${RARITY[a.rarity].name}</span><span>${a.desc}</span>${btn}</div>`;
 }
 function drawInv() {
   $("invTabs").innerHTML = CATS.map(([c, l]) => `<button data-c="${c}" class="${c === INV.cat ? "on" : ""}">${l}</button>`).join("");
@@ -466,95 +550,184 @@ function drawInv() {
     (b) =>
       (b.onclick = () => {
         INV.cat = b.dataset.c;
-        INV.sel = INV.cat === "dribble" ? "dribble.hesi" : SAVE.equip[INV.cat];
+        INV.sel = INV.cat === "dribble" ? SAVE.equip.moves[0] || "dribble.hesi" : SAVE.equip[INV.cat];
         drawInv();
       }),
   );
-  $("invRows").innerHTML = PACKS.filter((k) => k.cat === INV.cat)
-    .map((k) => `<div class="pack${k.id === INV.sel ? " sel" : ""}" data-id="${k.id}"><b>${k.name}</b><span>${k.desc}</span>${packButton(k)}</div>`)
-    .join("");
+  const list = ANIMS.filter((a) => a.cat === INV.cat).sort((a, b) => owns(b.id) - owns(a.id));
+  $("invRows").innerHTML =
+    (INV.cat === "dribble"
+      ? `<p class="mvcount">Crossover, Between the Legs, Behind the Back and Spin are always on. Switch on up to ${MAX_MOVES} more (${SAVE.equip.moves.length}/${MAX_MOVES}).</p>`
+      : "") + list.map((a) => animRow(a, INV.sel)).join("");
   $("invRows").querySelectorAll(".pack").forEach((r) => (r.onclick = () => ((INV.sel = r.dataset.id), drawInv())));
-  $("invRows").querySelectorAll("[data-buy]").forEach(
-    (b) =>
-      (b.onclick = (e) => {
-        e.stopPropagation();
-        INV.sel = b.dataset.buy;
-        if (buyPack(b.dataset.buy)) sfx("green");
-        drawInv();
-      }),
-  );
   $("invRows").querySelectorAll("[data-eq]").forEach(
     (b) =>
       (b.onclick = (e) => {
         e.stopPropagation();
         INV.sel = b.dataset.eq;
-        equipPack(b.dataset.eq);
+        equipAnim(b.dataset.eq);
         drawInv();
       }),
   );
-  $("invName").textContent = PACK[INV.sel] ? PACK[INV.sel].name.toUpperCase() : "";
+  const a = ANIM[INV.sel];
+  $("invName").innerHTML = a ? `${a.name.toUpperCase()}${owns(a.id) ? "" : "<br><small>LOCKED</small>"}` : "";
   $("bInvX").onclick = () => show("menu");
 }
-// Preview: your star performs the selected pack on a loop.
 function invPreview() {
-  if (!$("inv").classList.contains("on")) return;
-  const hero = campHero();
-  if (!INV.P0 || INV.P0.key !== hero.key) {
-    INV.P0 = portraitPlayer(hero.ti, hero.pi, 8, -1);
-    INV.P0.key = hero.key;
-    if (hero.team) Object.assign(INV.P0, { team: hero.team, sk: hero.sk, look: hero.look, pos: hero.pos, ht: hero.ht, hair: hero.hair });
-  }
-  const P0 = INV.P0,
-    k = PACK[INV.sel],
-    port = P0.port,
-    S = bodyScale(P0);
-  Object.assign(P0, { z: 0, f: 0, hw: null, hw2: null, mv: null, stt: "" });
-  port.t = T;
-  port.pose = "";
-  port.style = { [k.cat]: k.id };
-  port.ball = [0.95, -0.6, 0.55 + Math.abs(Math.sin(T * 5.5)) * 2.6];
-  if (k.cat === "cel") {
-    port.pose = "cel";
-    port.ball = null;
-  } else if (k.cat === "shot") {
-    port.pose = "shot";
-    const top = k.id === "shot.high" ? 5.7 : k.id === "shot.set" ? 4.2 : 4.9;
-    port.ball = [0.75, 0, (2.75 + top) * S + 0.35];
-  } else if (k.cat === "dribble") {
-    const M = MOVES[k.id.split(".")[1]],
-      cyc = M.d + 0.6,
-      u = (T % cyc) / M.d;
-    if (u <= 1) P0.mv = { k: k.id.split(".")[1], t: u * M.d, d: M.d, h: -1, mid: 0 };
-    port.mv = P0.mv;
-    if (P0.mv) port.ball = ballLocal(P0);
-  } else if (k.cat === "dunk") {
-    // A dunk on a loop: gather, rise, hang, land. Same arm paths as the real dunk.
-    const u = (T % 1.8) / 1.8,
-      st = k.id;
-    let hw = [0.9, -0.5, 4.2];
-    if (u > 0.25 && u < 0.85) {
-      const kk = (u - 0.25) / 0.6;
-      P0.z = Math.sin(kk * Math.PI) * 2.8;
-      const z = P0.z,
-        sh = [0, 0, z + 5.4];
-      hw = [1.2, 0, z + lp(7.6, 9.2, sm(kk))];
-      if (st === "dunk.tomahawk" && kk < 0.6) hw = [lp(0.6, -1.1, sm(kk / 0.6)), 0, z + lp(7.4, 8.8, kk / 0.6)];
-      if (st === "dunk.windmill" && kk < 0.75) {
-        const ph = (kk / 0.75) * Math.PI * 1.35;
-        hw = [-Math.sin(ph) * 2.3, 0, sh[2] - Math.cos(ph) * 2.3];
-      }
-      if (st === "dunk.360") {
-        P0.f = 6.2832 * sm(cl(kk / 0.7, 0, 1));
-        if (kk < 0.7) hw = [Math.cos(P0.f) * 0.9, Math.sin(P0.f) * 0.9, z + 5.8];
-      }
-      if (st === "dunk.reverse") {
-        P0.f = Math.PI;
-        hw = [lp(-0.2, -1.2, kk), 0, z + lp(7.6, 9.2, kk)];
-      }
-      P0.hw = hw;
-      P0.hw2 = st === "dunk.reverse" || st === "dunk.360" || st === "dunk.basic" ? hw : null;
-      port.ball = [hw[0], hw[1], hw[2] - z + 0.3];
+  labPreview();
+  if ($("inv").classList.contains("on") && INV.sel) previewAnim($("invCv"), previewModel("inv"), INV.sel);
+  if ($("open").classList.contains("on") && OPEN.sel) previewAnim($("openCv"), previewModel("open"), OPEN.sel);
+}
+
+// ---------- shop: packs with odds you can see
+function openShop() {
+  const have = ANIMS.filter((a) => a.rarity !== "starter" && owns(a.id)).length,
+    all = ANIMS.filter((a) => a.rarity !== "starter").length;
+  $("shopColl").textContent = `Collection: ${have} / ${all} animations. Duplicates turn into Court Coins.`;
+  $("shopPacks").innerHTML = SHOP.map(
+    (pk) => `<div class="pk" style="--pc:${pk.col}">
+      <div class="art">${pk.name}<small>${pk.cards} animation${pk.cards > 1 ? "s" : ""}</small></div>
+      <div class="odds">${RARITIES.filter((r) => pk.odds[r] > 0)
+        .map((r) => `<div class="r-${r}">${RARITY[r].name}<span>${pk.odds[r]}%</span><i><b style="width:${pk.odds[r]}%"></b></i></div>`)
+        .join("")}</div>
+      <div class="guar">${pk.min ? `1 guaranteed ${RARITY[pk.min].name}${pk.min === "legendary" ? "" : " or better"}` : ""}</div>
+      <button class="btn${SAVE.cc >= pk.price ? " pri" : ""}" data-pk="${pk.id}"${SAVE.cc >= pk.price ? "" : " disabled"}>${pk.price} CC</button>
+    </div>`,
+  ).join("");
+  $("shopPacks").querySelectorAll("[data-pk]").forEach((b) => (b.onclick = () => openPackScreen(b.dataset.pk)));
+  $("bShopX").onclick = () => show("menu");
+  show("shop");
+}
+// ---------- pack opening: cards face down; tap to flip (they also flip themselves, best one last)
+const OPEN = { pk: null, cards: [], sel: null, timers: [] };
+function openPackScreen(pkId) {
+  const cards = openPack(pkId);
+  if (!cards) return;
+  OPEN.timers.forEach(clearTimeout);
+  const pk = SHOP.find((s) => s.id === pkId);
+  OPEN.pk = pkId;
+  OPEN.cards = cards;
+  OPEN.sel = null;
+  $("openTitle").textContent = pk.name;
+  $("openName").textContent = "TAP A CARD";
+  $("openCards").innerHTML = cards
+    .map(
+      (c, i) => `<div class="card r-${c.a.rarity}" data-i="${i}" style="--pc:${pk.col}"><div class="in">
+        <div class="bk">?</div>
+        <div class="fr"><span class="rtag">${RARITY[c.a.rarity].name}</span><b>${c.a.name}</b><span class="cat">${CATS.find((x) => x[0] === c.a.cat)[1]}</span>
+        <span class="tag${c.dupe ? " dupe" : ""}">${c.dupe ? `DUPLICATE +${c.refund} CC` : "NEW!"}</span></div></div></div>`,
+    )
+    .join("");
+  const flip = (i) => {
+    const el = $("openCards").children[i];
+    if (!el || el.classList.contains("up")) return;
+    el.classList.add("up");
+    const c = cards[i];
+    sfx(c.a.rarity === "legendary" || c.a.rarity === "epic" ? "dunk" : "green");
+    if (c.a.rarity === "legendary") G.flash = 0.5;
+    selectCard(i);
+  };
+  $("openCards").querySelectorAll(".card").forEach((el) => (el.onclick = () => (el.classList.contains("up") ? selectCard(+el.dataset.i) : flip(+el.dataset.i))));
+  cards.forEach((c, i) => OPEN.timers.push(setTimeout(() => flip(i), 900 + i * 900)));
+  const again = $("bOpenAgain");
+  again.disabled = SAVE.cc < pk.price;
+  again.textContent = `OPEN ANOTHER (${pk.price} CC)`;
+  again.onclick = () => openPackScreen(pkId);
+  $("bOpenShop").onclick = openShop;
+  $("bOpenInv").onclick = () => {
+    const c = OPEN.cards[0];
+    INV.cat = c ? c.a.cat : INV.cat;
+    openInv();
+    if (c) {
+      INV.sel = c.a.id;
+      drawInv();
     }
+  };
+  show("open");
+}
+function selectCard(i) {
+  const c = OPEN.cards[i];
+  OPEN.sel = c.a.id;
+  $("openCards").querySelectorAll(".card").forEach((el, j) => el.classList.toggle("sel", j === i));
+  $("openName").textContent = c.a.name.toUpperCase();
+}
+
+// ---------- Animation Lab: every animation, slow motion and from any side, so it can be judged frame by frame
+const CORE_ANIMS = [
+  ["core.idle", "Idle"],
+  ["core.run", "Run"],
+  ["core.sprint", "Sprint"],
+  ["core.dribble", "Dribble"],
+  ["core.def", "Defence slide"],
+  ["core.pass", "Chest pass"],
+  ["core.swipe", "Steal swipe"],
+  ["core.punch", "Punch"],
+  ["core.slide", "Slide tackle"],
+  ["core.rag", "Knocked down"],
+  ["dribble.cross", "Crossover"],
+  ["dribble.legs", "Between the legs"],
+  ["dribble.back", "Behind the back"],
+  ["dribble.spin", "Spin"],
+];
+const LAB = { sel: "shot.basic", speed: 1, angle: 0.75 };
+function openLab() {
+  const seg = (el, opts, key) => {
+    el.innerHTML = opts.map(([v, l]) => `<button class="${LAB[key] === v ? "on" : ""}" data-v="${v}">${l}</button>`).join("");
+    el.querySelectorAll("button").forEach((b) => (b.onclick = () => ((LAB[key] = +b.dataset.v), openLab())));
+  };
+  seg($("labSpeed"), [[1, "1×"], [0.5, "½×"], [0.25, "¼×"]], "speed");
+  seg($("labAngle"), [[0.75, "FRONT"], [1.57, "SIDE"], [2.6, "BACK"]], "angle");
+  const row = (id, name) => `<div class="lrow${LAB.sel === id ? " sel" : ""}" data-id="${id}"><span>${name}</span></div>`;
+  $("labRows").innerHTML =
+    `<div class="lgrp">MOVEMENT AND ACTIONS</div>` +
+    CORE_ANIMS.map(([id, n]) => row(id, n)).join("") +
+    CATS.map(([c, l]) => `<div class="lgrp">${l}</div>` + ANIMS.filter((a) => a.cat === c).map((a) => row(a.id, `${a.name} <span class="rtag r-${a.rarity}">${RARITY[a.rarity].name}</span>`)).join("")).join("");
+  $("labRows").querySelectorAll(".lrow").forEach((r) => (r.onclick = () => ((LAB.sel = r.dataset.id), openLab())));
+  const nm = (CORE_ANIMS.find((c) => c[0] === LAB.sel) || [0, animName(LAB.sel)])[1];
+  $("labName").textContent = nm.toUpperCase();
+  $("bLabX").onclick = () => openSettings(SETUI.back);
+  show("lab");
+}
+function labPreview() {
+  if (!$("lab").classList.contains("on")) return;
+  const P0 = previewModel("lab"),
+    id = LAB.sel;
+  if (!id.startsWith("core.")) {
+    return previewAnim($("labCv"), P0, id, LAB.speed, LAB.angle);
   }
-  renderModel($("invCv"), P0, 0.75);
+  // Core movement: drive the same fields the game does.
+  const dt = (P0.lastT ? Math.min(0.05, T - P0.lastT) : 0) * LAB.speed,
+    t = (P0.lt = (P0.lt || 0) + dt),
+    port = P0.port;
+  P0.lastT = T;
+  Object.assign(P0, { z: 0, f: 0, hw: null, hw2: null, mv: null, stt: "", vx: 0, vy: 0, def: false, pas: 0, swp: 0, pun: 0, sl: null, rag: null });
+  port.pose = "";
+  port.dk = null;
+  port.mv = null;
+  port.style = {};
+  port.t = t;
+  port.k = PK;
+  port.ball = null;
+  const spd = { "core.run": 9, "core.sprint": 17, "core.dribble": 6, "core.def": 6 }[id] || 0;
+  P0.vx = spd;
+  P0.ph = (P0.ph || 0) + spd * dt * 0.8;
+  if (id === "core.dribble") port.ball = [0.9, -0.55, 0.55 + Math.abs(Math.sin(t * 7.5)) * 2.6];
+  if (id === "core.def") {
+    P0.def = true;
+    P0.vx = 0;
+    P0.vy = 6;
+  }
+  const loop = (d) => t % d;
+  if (id === "core.pass") P0.pas = Math.max(0, 0.25 - loop(1.0));
+  if (id === "core.swipe") P0.swp = Math.max(0, 0.25 - loop(1.0));
+  if (id === "core.punch") P0.pun = Math.max(0, 0.34 - loop(1.1));
+  if (id === "core.slide") {
+    const u = loop(1.6);
+    if (u < 1.05) P0.sl = { t: u, d: 1.05 };
+  }
+  if (id === "core.rag") {
+    const u = loop(3.4);
+    if (u < 2.6) P0.rag = { t: u, d: 2.6 };
+  }
+  renderModel($("labCv"), P0, LAB.angle);
 }

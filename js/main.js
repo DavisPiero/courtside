@@ -29,7 +29,9 @@ addEventListener("keydown", (e) => {
   }
   // Escape steps back out of menu screens.
   if (!G.run && e.code === "Escape") {
-    const back = { inv: "menu", camp: "menu", story: "camp", hero: SAVE.name ? "camp" : "menu" };
+    const back = { inv: "menu", shop: "menu", open: "shop", camp: "menu", story: "camp", hero: SAVE.name ? "camp" : "menu" };
+    if ($("open").classList.contains("on")) return openShop();
+    if ($("lab").classList.contains("on")) return $("bLabX").click();
     for (const k in back) if ($(k).classList.contains("on")) return show(back[k]);
   }
   if ($("sets").classList.contains("on")) {
@@ -61,6 +63,8 @@ $("bSet").onclick = () => openSettings("menu");
 $("bStart").onclick = () => startQuick(SEL.pr);
 $("bCamp").onclick = openCamp;
 $("bInv").onclick = openInv;
+$("bShop").onclick = openShop;
+$("bLab").onclick = openLab;
 $("bBack").onclick = () => show("menu");
 $("bRes").onclick = pause;
 $("bPSet").onclick = () => openSettings("pause");

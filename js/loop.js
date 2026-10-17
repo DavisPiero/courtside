@@ -37,6 +37,7 @@ function step(dt) {
     ballUpd(dt);
     if (G.shot) {
       G.shot.t += dt;
+      jumpForShot(G.shot.p, G.shot.t / G.shot.d);
       // The green zone follows the defence live: it shrinks as defenders close in.
       G.shot.zw = lp(G.shot.zw, greenZone(G.shot.p), Math.min(1, dt * 8));
       const m = G.shot.t / G.shot.d,

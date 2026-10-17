@@ -414,6 +414,12 @@ function beginShot(p) {
     return;
   }
   G.shot = { p, t: 0, d: 0.85, zw: greenZone(p) };
+  p.shotJumped = 0;
+  const hop = (SHOTS[styleOf(p, "shot")] || {}).hop;
+  if (hop) {
+    p.vx += Math.cos(p.f) * hop;
+    p.vy += Math.sin(p.f) * hop;
+  }
 }
 function launch(p, q, ai) {
   const b = G.ball,
@@ -455,7 +461,8 @@ function launch(p, q, ai) {
   });
   // Shot forms: the set shot barely leaves the floor; the fadeaway drifts back.
   const form = styleOf(p, "shot");
-  if (p.z < 0.1) p.vz = form === "shot.set" ? 2.5 : form === "shot.high" ? 7 : 6;
+  if (p.z < 0.1 && !p.shotJumped) p.vz = 6;
+  p.shotJumped = 0;
   if (form === "shot.fade") {
     p.vx -= Math.cos(p.f) * 5;
     p.vy -= Math.sin(p.f) * 5;
@@ -474,9 +481,13 @@ function launch(p, q, ai) {
     sfx("green");
   }
 }
+// Dunks and layups play as short cutscenes: approach and gather, take off, rise to the rim, flush or
+// release, hang, land. The hand path and leg pose come from the equipped style (js/anim.js rimHand/airLegs).
 function scripted(p, kind) {
   if (G.cut) return;
-  const dir = p.t ? -1 : 1;
+  const dir = p.t ? -1 : 1,
+    dk = kind === "dunk",
+    style = styleOf(p, dk ? "dunk" : "layup");
   G.shot = null;
   $("meter").classList.remove("on");
   G.cut = {
@@ -487,56 +498,65 @@ function scripted(p, kind) {
     y0: p.y,
     h: HX(p.t),
     dir,
-    d: kind === "dunk" ? 1.3 : 0.8,
+    d: dk ? 1.4 : style === "layup.euro" ? 1.15 : 0.95,
     sc: 0,
     side: Math.random() < 0.5 ? -1 : 1,
-    two: Math.random() < 0.5,
-    nm: ["TOMAHAWK JAM", "TWO-HAND HAMMER", "THE POSTER", "RIM RATTLER"][(Math.random() * 4) | 0],
-    style: styleOf(p, "dunk"), // from your equipped dunk pack
+    style,
+    two: style === "dunk.basic" ? Math.random() < 0.5 : ["dunk.twohand", "dunk.360", "dunk.reverse", "dunk.legs"].includes(style),
+    nm: style.endsWith(".basic")
+      ? ["TOMAHAWK JAM", "TWO-HAND HAMMER", "THE POSTER", "RIM RATTLER"][(Math.random() * 4) | 0]
+      : animName(style).toUpperCase(),
   };
-  if (G.cut.style === "dunk.reverse" || G.cut.style === "dunk.360") G.cut.two = true;
-  if (G.cut.style === "dunk.tomahawk" || G.cut.style === "dunk.windmill") G.cut.two = false;
-  if (G.cut.style !== "dunk.basic") G.cut.nm = PACK[G.cut.style].name.toUpperCase();
-  if (kind === "dunk") document.body.classList.add("cine");
+  if (dk) document.body.classList.add("cine");
 }
 function cutUpd(dt) {
   const c0 = G.cut,
     p = c0.p,
     b = G.ball,
-    dk = c0.kind === "dunk";
+    dk = c0.kind === "dunk",
+    st = c0.style;
   let u = c0.t / c0.d;
   c0.t += dt * (dk && u > 0.3 && u < 0.7 ? 0.7 : 1); // brief slow-mo at the rim
   u = cl(c0.t / c0.d, 0, 1);
-  const A = dk ? 0.3 : 0.25,
-    S = dk ? 0.62 : 0.58,
-    tk = [c0.h - c0.dir * (dk ? 4.4 : 3.2), 25 + (c0.y0 - 25) * 0.3],
-    Zm = dk ? 3 : 2.2,
+  const A = dk ? 0.3 : 0.32,
+    S = dk ? 0.64 : 0.66,
+    rev = st === "layup.reverse",
+    // Take-off spot, and where the body ends up at the top (under the rim, or past it for a reverse layup).
+    tk = [c0.h - c0.dir * (dk ? 4.6 : 3.4), 25 + (c0.y0 - 25) * 0.3],
+    top = [c0.h - c0.dir * (rev ? -0.9 : 1.6), rev ? 25 + c0.side * 0.6 : 25],
+    Zm = dk ? 3.2 : 2.3,
     ox = p.x,
     oy = p.y,
-    f = c0.dir > 0 ? 0 : Math.PI;
+    f = c0.dir > 0 ? 0 : Math.PI; // facing the rim
+  let face = f;
   if (u < A) {
-    const k = sm(u / A);
+    // Approach. The euro step swings out to one side, then back across.
+    const k = sm(u / A),
+      eu = st === "layup.euro" ? Math.sin(k * Math.PI * 2) * 2.4 * c0.side : 0;
     p.x = lp(c0.x0, tk[0], k);
-    p.y = lp(c0.y0, tk[1], k);
+    p.y = lp(c0.y0, tk[1], k) + eu;
     p.z = 0;
+    p.dk = k > 0.6 ? { style: st, phase: "gather", k: (k - 0.6) / 0.4 } : null;
   } else if (u < S) {
     const k = (u - A) / (S - A);
-    p.x = lp(tk[0], c0.h - c0.dir * 1.6, k);
-    p.y = lp(tk[1], 25, k);
+    p.x = lp(tk[0], top[0], ease(k));
+    p.y = lp(tk[1], top[1], ease(k));
     p.z = Zm * Math.sin((k * Math.PI) / 2);
+    p.dk = { style: st, phase: "rise", k };
   } else {
     const k = (u - S) / (1 - S);
-    p.x = c0.h - c0.dir * 1.6;
-    p.y = 25;
-    p.z = Zm * (k < 0.35 ? 1 : Math.max(0, 1 - (k - 0.35) / 0.65));
+    p.x = top[0];
+    p.y = top[1];
+    // Dunks hang on the rim for a beat; layups float down.
+    p.z = Zm * (dk ? (k < 0.4 ? 1 - k * 0.15 : Math.max(0, 0.94 - (k - 0.4) / 0.6)) : Math.max(0, 1 - k * 1.25));
+    p.dk = { style: st, phase: dk ? "hang" : "fall", k };
   }
+  if (st === "dunk.reverse" && u >= A) face = f + Math.PI;
+  if (rev && u >= A) face = f + Math.PI * 0.85 * c0.side;
   p.vx = (p.x - ox) / Math.max(dt, 0.001);
   p.vy = (p.y - oy) / Math.max(dt, 0.001);
-  // Dunk packs change how the body turns: the reverse faces away from the rim, the 360 spins in the air.
-  const rev = dk && c0.style === "dunk.reverse" && u >= A,
-    face = rev ? f + Math.PI : f;
-  p.f += ad(face - p.f) * Math.min(1, dt * (rev ? 14 : 10));
-  if (dk && c0.style === "dunk.360" && u >= A && u < S) p.f = f + 6.2832 * sm((u - A) / (S - A));
+  p.f += ad(face - p.f) * Math.min(1, dt * 14);
+  if (st === "dunk.360" && u >= A && u < S) p.f = f + 6.2832 * ease((u - A) / (S - A));
   p.ph += hy(p.vx, p.vy) * dt * 0.8 * (u < A ? 1 : 0.2);
   p.def = false;
   if (u < A) {
@@ -545,35 +565,24 @@ function cutUpd(dt) {
     b.mode = "held";
     ballUpd(dt);
   } else if (u < S) {
-    const k = sm((u - A) / (S - A));
-    p.hw = [lp(p.x, c0.h, k), lp(p.y, 25, k), lp(p.z + 7.6, 10.8, k)];
-    if (dk) {
-      const dir = c0.dir,
-        sh = [p.x, p.y, p.z + 5.4]; // shoulder height
-      if (c0.style === "dunk.tomahawk" && k < 0.6) {
-        // Ball cocked back behind the head, then whipped forward.
-        const w = k / 0.6;
-        p.hw = [lp(p.x + dir * 0.6, p.x - dir * 1.1, sm(w)), p.y, p.z + lp(7.4, 8.8, w)];
-      } else if (c0.style === "dunk.windmill" && k < 0.75) {
-        // Arm circle: down, back, over the top, forward.
-        const ph = (k / 0.75) * Math.PI * 1.35,
-          R = 2.3;
-        p.hw = [sh[0] - dir * Math.sin(ph) * R, sh[1], sh[2] - Math.cos(ph) * R];
-      } else if (c0.style === "dunk.360" && k < 0.7) {
-        // Ball tucked at the chest while spinning.
-        p.hw = [p.x + Math.cos(p.f) * 0.9, p.y + Math.sin(p.f) * 0.9, p.z + 5.8];
-      }
-    }
-    p.hw2 = c0.two ? p.hw : null;
+    // Rise: the hand follows the style's path, in the rim's frame.
+    const k = (u - A) / (S - A),
+      hl = rimHand(st, k, p.z),
+      cf = Math.cos(f),
+      sf = Math.sin(f);
+    p.hw = [p.x + hl[0] * cf - hl[1] * sf, p.y + hl[0] * sf + hl[1] * cf, p.z + hl[2]];
+    p.hw2 = c0.two && k > 0.55 ? p.hw : null;
     b.own = -1;
     b.mode = "cut";
-    b.x = p.hw[0];
-    b.y = p.hw[1];
-    b.z = p.hw[2] + 0.35;
-    b.spin += dt * 3;
+    b.x = p.hw[0] + Math.cos(f) * 0.15;
+    b.y = p.hw[1] + Math.sin(f) * 0.15;
+    b.z = p.hw[2] + 0.4;
+    b.spin += dt * (dk ? 3 : 8);
   } else {
-    p.hw = u < 0.9 ? [c0.h, 25, 10.3] : null;
-    p.hw2 = c0.two && p.hw ? p.hw : null;
+    // Dunk: hand stays on the rim while hanging. Layup: arm stays up in follow-through.
+    const k = (u - S) / (1 - S);
+    p.hw = dk ? (k < 0.55 ? [c0.h - c0.dir * 0.55, 25, 10.15] : null) : k < 0.5 ? [p.x + Math.cos(f) * 1.0, p.y + Math.sin(f) * 1.0, p.z + 7.4] : null;
+    p.hw2 = dk && c0.two && p.hw ? p.hw : null;
     if (!c0.sc) {
       c0.sc = 1;
       Object.assign(b, {
@@ -598,14 +607,16 @@ function cutUpd(dt) {
         spark(c0.h, 25, 10, 40);
         $("ttl").innerHTML = "SLAM DUNK!<small>" + c0.nm + "</small>";
         $("ttl").className = "on";
-      } else toast("LAYUP", 0.7);
+      } else toast(st.endsWith(".basic") ? "LAYUP" : animName(st).toUpperCase(), 0.7);
     }
     ballUpd(dt);
   }
-  if (u > 0.88) p.stt = "cel";
+  if (u > 0.9) p.stt = "cel";
   if (u >= 1) {
     G.cut = null;
     p.hw = p.hw2 = null;
+    p.dk = null;
+    p.land = 0.18;
     G.dead = 0.4;
     document.body.classList.remove("cine");
     $("ttl").className = "";
@@ -634,10 +645,13 @@ function ballUpd(dt) {
       b.bk = bk;
       if (p.id === G.ctrl) sfx("bounce");
     }
-    if (G.shot && G.shot.p === p) {
-      b.x = p.x + cf * 0.5;
-      b.y = p.y + sf * 0.5;
-      b.z = p.z + 6.4 + G.shot.t * 1.5;
+    const su = G.shot && G.shot.p === p ? G.shot.t / G.shot.d : p.aishot ? (p.aishot.t / p.aishot.d) * 0.72 : -1;
+    if (su >= 0) {
+      // The ball rides in the shooting hand through the dip, rise and set point.
+      const L = shotBall(p, su);
+      b.x = p.x + cf * L[0] - sf * L[1];
+      b.y = p.y + sf * L[0] + cf * L[1];
+      b.z = p.z + L[2];
     } else {
       const L = ballLocal(p);
       b.x = p.x + cf * L[0] - sf * L[1];
@@ -781,7 +795,31 @@ function mv(p, tx, ty, m, dt) {
   p.vx = lp(p.vx, (dx / (d || 1)) * sp, r);
   p.vy = lp(p.vy, (dy / (d || 1)) * sp, r);
 }
+// The AI's shot: same dip-rise-release as yours, released at the top.
+function aiShotStep(p, dt) {
+  const s = p.aishot,
+    b = G.ball;
+  if (b.own !== p.id) return (p.aishot = null);
+  s.t += dt;
+  p.vx *= 0.85;
+  p.vy *= 0.85;
+  p.ft = Math.atan2(25 - p.y, HX(p.t) - p.x);
+  jumpForShot(p, (s.t / s.d) * 0.72);
+  if (s.t >= s.d) {
+    p.aishot = null;
+    launch(p, s.q, 1);
+  }
+}
+// Leave the floor at the right moment of the shot animation.
+function jumpForShot(p, u) {
+  const k = (SHOTS[styleOf(p, "shot")] || SHOTS["shot.basic"]).jump;
+  if (u >= k[0] && p.z === 0 && !p.shotJumped) {
+    p.vz = k[1];
+    p.shotJumped = 1;
+  }
+}
 function handler(p, dt) {
+  if (p.aishot) return aiShotStep(p, dt);
   const h = HX(p.t),
     d = p.t ? -1 : 1,
     dh = hy(h - p.x, 25 - p.y),
@@ -796,7 +834,8 @@ function handler(p, dt) {
   if (p.ai > 1.2 && (G.sc < 4 || (dh < 24 && Math.random() < dt * 0.8))) {
     p.ai = 0;
     p.ft = Math.atan2(25 - p.y, h - p.x);
-    launch(p, cl(0.45 + dk(p).shotQ + (df - 3) * 0.07 + rn(-0.2, 0.2), 0.1, 1), 1);
+    // Wind up the jump shot; it's released in aiShotStep().
+    p.aishot = { t: 0, d: 0.55, q: cl(0.45 + dk(p).shotQ + (df - 3) * 0.07 + rn(-0.2, 0.2), 0.1, 1) };
     return;
   }
   // Under pressure the AI breaks out a dribble move now and then.
@@ -1026,9 +1065,14 @@ const MOVES = {
   legs: { d: 0.38, name: "BETWEEN THE LEGS", push: 6, sw: 1 },
   back: { d: 0.4, name: "BEHIND THE BACK", push: 8, sw: 1 },
   spin: { d: 0.48, name: "SPIN MOVE", push: 8, sw: 1 },
-  hesi: { d: 0.45, name: "HESITATION", push: 12, sw: 0, pack: "dribble.hesi" },
-  snatch: { d: 0.4, name: "SNATCH-BACK", push: 9, sw: 0, pack: "dribble.snatch" },
-  double: { d: 0.55, name: "DOUBLE CROSS", push: 8, sw: 0, pack: "dribble.double" },
+  hesi: { d: 0.45, name: "HESITATION", push: 12, sw: 0 },
+  inout: { d: 0.36, name: "IN-AND-OUT", push: 10, sw: 0 },
+  stutter: { d: 0.55, name: "STUTTER STEP", push: 13, sw: 0 },
+  snatch: { d: 0.4, name: "SNATCH-BACK", push: 9, sw: 0 },
+  double: { d: 0.55, name: "DOUBLE CROSS", push: 8, sw: 0 },
+  killer: { d: 0.38, name: "KILLER CROSSOVER", push: 12, sw: 1, ankle: 1.4 },
+  shammgod: { d: 0.55, name: "SHAMMGOD", push: 11, sw: 1, ankle: 1.5 },
+  tornado: { d: 0.6, name: "TORNADO SPIN", push: 10, sw: 1, ankle: 1.5 },
 };
 const BASE_MOVES = ["cross", "legs", "back", "spin"];
 const movePool = (p) => (p.t === 0 ? BASE_MOVES.concat(SAVE.equip.moves.map((id) => id.split(".")[1])) : BASE_MOVES);
@@ -1045,13 +1089,21 @@ function dribbleMove(p) {
   if (p.t === 0) G.lastMv = k;
   else p.lastMv = k;
   p.mv = { k, t: 0, d: M.d, h, f0: p.f };
-  if (k === "spin") {
+  if (k === "spin" || k === "tornado") {
     p.vx += d.x * M.push;
     p.vy += d.y * M.push;
-  } else if (k === "hesi") {
+  } else if (k === "hesi" || k === "stutter") {
     // Fake stop first; the burst comes halfway through (moveStep).
     p.vx *= 0.25;
     p.vy *= 0.25;
+  } else if (k === "inout") {
+    // Fake toward the other side first; the real burst comes halfway.
+    p.vx += -Math.sin(p.f) * h * 4;
+    p.vy += Math.cos(p.f) * h * 4;
+  } else if (k === "shammgod") {
+    // Lunge forward first; the pull-back across comes halfway.
+    p.vx += d.x * 6;
+    p.vy += d.y * 6;
   } else if (k === "snatch") {
     // Hop backwards, away from the defender.
     p.vx -= d.x * M.push;
@@ -1064,7 +1116,7 @@ function dribbleMove(p) {
   }
   let hit = 0;
   for (const q of G.pl)
-    if (q.t !== p.t && dist(q, p) < 6 && Math.random() < (k === "spin" ? 0.45 : 0.35) * (p.hnd / 82)) {
+    if (q.t !== p.t && dist(q, p) < 6 && Math.random() < (k === "spin" ? 0.45 : 0.35) * (M.ankle || 1) * (p.hnd / 82)) {
       q.stun = 0.8;
       hit = 1;
     }
@@ -1076,22 +1128,28 @@ function moveStep(p, dt) {
   const m = p.mv;
   m.t += dt;
   // The spin turns the body a full circle, away from the ball side.
-  if (m.k === "spin") p.f = m.f0 + -m.h * 6.2832 * sm(cl(m.t / m.d, 0, 1));
+  if (m.k === "spin" || m.k === "tornado") p.f = m.f0 + -m.h * 6.2832 * sm(cl(m.t / m.d, 0, 1));
   // Second half of two-part moves.
   if (!m.mid && m.t >= m.d * 0.45) {
     m.mid = 1;
     const fx = Math.cos(p.f),
       fy = Math.sin(p.f);
-    if (m.k === "hesi") {
-      p.vx += fx * MOVES.hesi.push;
-      p.vy += fy * MOVES.hesi.push;
+    if (m.k === "hesi" || m.k === "stutter") {
+      p.vx += fx * MOVES[m.k].push;
+      p.vy += fy * MOVES[m.k].push;
+    } else if (m.k === "inout") {
+      p.vx += fx * 6 - fy * -m.h * 8; // go the way you faked away from
+      p.vy += fy * 6 + fx * -m.h * 8;
+    } else if (m.k === "shammgod") {
+      p.vx += -fy * -m.h * 12;
+      p.vy += fx * -m.h * 12;
     } else if (m.k === "double") {
       p.vx += -fy * m.h * 14; // back toward the starting side, hard
       p.vy += fx * m.h * 14;
     }
   }
   if (m.t >= m.d || G.ball.own !== p.id) {
-    if (m.k === "spin") p.f = m.f0;
+    if (m.k === "spin" || m.k === "tornado") p.f = m.f0;
     p.hand = MOVES[m.k].sw ? -m.h : m.h;
     // Restart the dribble bounce where the move left the ball.
     G.ball.bph = m.k === "back" ? 0 : Math.PI / 2;

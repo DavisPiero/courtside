@@ -7,15 +7,15 @@ const SAVE = {
   skin: 3, // your hooper's skin tone (0-5) and hair style (0 short, 1 tall top, 2 buzz, 3 bald, 4 afro)
   hair: 0,
   cc: 0,
-  owned: [], // pack ids
-  equip: { dunk: "dunk.basic", cel: "cel.basic", shot: "shot.basic", moves: [] }, // moves: equipped dribble pack ids
+  owned: [], // animation ids you have collected
+  equip: { dunk: "dunk.basic", layup: "layup.basic", cel: "cel.basic", shot: "shot.basic", moves: [] }, // moves: equipped dribble moves
   stars: {}, // campaign game id -> best stars (0-3)
 };
 function loadSave() {
   try {
     const s = JSON.parse(localStorage.getItem(SAVE_GAME_KEY) || "{}");
     for (const k in SAVE) if (k in s) SAVE[k] = s[k];
-    SAVE.equip = Object.assign({ dunk: "dunk.basic", cel: "cel.basic", shot: "shot.basic", moves: [] }, SAVE.equip);
+    SAVE.equip = Object.assign({ dunk: "dunk.basic", layup: "layup.basic", cel: "cel.basic", shot: "shot.basic", moves: [] }, SAVE.equip);
   } catch (e) {
     /* private window or blocked storage: start fresh */
   }

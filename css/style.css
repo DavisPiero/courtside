@@ -232,7 +232,7 @@ body.cine .pnl, body.cine #toast { opacity: 0; }
 .ihead h2 { margin: 0; }
 .ibody { display: grid; grid-template-columns: 240px 1fr; gap: 18px; margin-bottom: 18px; }
 .iprev { background: radial-gradient(circle at 50% 70%, #1d2a5a, #0a0f22 70%); clip-path: var(--notch); display: grid; grid-template-rows: 1fr auto; min-height: 360px; }
-#invCv { width: 100%; height: 330px; object-fit: contain; }
+#invCv, #openCv { width: 100%; height: 330px; object-fit: contain; }
 #invName { text-align: center; font: 400 22px/1 var(--px); padding: 0 8px 12px; color: var(--gold); }
 .pack { display: grid; grid-template-columns: 1fr auto; gap: 4px 14px; align-items: center; padding: 10px 12px; background: rgba(255, 255, 255, 0.03); cursor: pointer; }
 .pack.sel { box-shadow: inset 0 0 0 2px var(--edge-hi); background: rgba(255, 255, 255, 0.07); }
@@ -365,3 +365,60 @@ body.touch .menu-l nav { width: 290px; }
   .hbody { grid-template-columns: 150px 1fr; } #heroCv { height: 190px; }
   #toast { font-size: 34px; }
 }
+
+/* ---------- rarity colours */
+.r-starter { --rc: #8f9cc4; } .r-common { --rc: #c9d1e6; } .r-rare { --rc: #4aa3ff; } .r-epic { --rc: #b46bff; } .r-legendary { --rc: #ffb02e; }
+.rtag { font: 400 15px/1 var(--px); letter-spacing: 0.12em; color: var(--rc); }
+
+/* ---------- shop */
+.box.shopbox { width: min(1040px, 96vw); }
+.coll { color: var(--muted); font-size: 20px; margin: -4px 0 14px; }
+.packs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 18px; }
+.pk { display: grid; gap: 10px; padding: 12px; background: #0a0f22; clip-path: var(--notch); box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.2); align-content: start; }
+.pk .art { height: 92px; display: grid; place-items: center; align-content: center; font: 400 26px/1 var(--px); text-align: center; text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.4); background: repeating-linear-gradient(45deg, var(--pc) 0 10px, color-mix(in srgb, var(--pc) 80%, #000) 10px 20px); clip-path: var(--notch); }
+.pk .art small { display: block; font-size: 16px; opacity: 0.85; margin-top: 4px; }
+.odds { display: grid; gap: 3px; font: 400 16px/1 var(--px); }
+.odds div { display: grid; grid-template-columns: 1fr auto; gap: 6px; align-items: center; color: var(--rc); }
+.odds i { grid-column: 1 / -1; height: 5px; background: rgba(255, 255, 255, 0.08); }
+.odds i b { display: block; height: 100%; background: var(--rc); }
+.guar { font: 400 16px/1.1 var(--px); color: var(--gold); min-height: 18px; }
+.pk .btn { width: 100%; }
+@media (max-width: 900px) { .packs { grid-template-columns: repeat(2, 1fr); } }
+
+/* ---------- pack opening */
+.box.openbox { width: min(940px, 96vw); }
+.obody { display: grid; grid-template-columns: 240px 1fr; gap: 18px; margin-bottom: 18px; }
+.cards { display: flex; gap: 14px; justify-content: center; align-items: center; flex-wrap: wrap; }
+.card { width: 170px; height: 240px; position: relative; cursor: pointer; perspective: 600px; pointer-events: auto; }
+.card .in { position: absolute; inset: 0; transition: transform 0.4s steps(6); transform-style: preserve-3d; }
+.card.up .in { transform: rotateY(180deg); }
+.card .bk, .card .fr { position: absolute; inset: 0; backface-visibility: hidden; clip-path: var(--notch); display: grid; place-items: center; text-align: center; padding: 14px; }
+.card .bk { background: repeating-linear-gradient(45deg, var(--pc) 0 8px, #0a0f22 8px 16px); box-shadow: inset 0 0 0 4px rgba(255, 255, 255, 0.4); font: 400 64px/1 var(--px); }
+.card .fr { transform: rotateY(180deg); background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--rc) 35%, #0a0f22), #0a0f22 75%); box-shadow: inset 0 0 0 4px var(--rc); align-content: center; gap: 10px; }
+.card .fr b { font: 400 26px/1 var(--px); }
+.card .fr .cat { font: 400 15px/1 var(--px); color: var(--muted); letter-spacing: 0.12em; }
+.card .fr .tag { font: 400 17px/1.1 var(--px); color: var(--good); }
+.card .fr .tag.dupe { color: var(--gold); }
+.card.sel .fr { box-shadow: inset 0 0 0 4px var(--rc), inset 0 0 0 7px #fff; }
+.card.up.r-legendary .fr, .card.up.r-epic .fr { animation: glow 0.9s steps(4) infinite alternate; }
+@keyframes glow { to { filter: brightness(1.35); } }
+@media (max-width: 760px), (max-height: 520px) { .obody { grid-template-columns: 1fr; } #openCv, #labCv { height: 190px; } .iprev { min-height: 0 !important; } .card { width: 120px; height: 170px; } .card .fr b { font-size: 20px; } }
+
+/* ---------- inventory (equip only) */
+.pack.lock { opacity: 0.45; cursor: default; }
+.pack .rtag { grid-column: 1; }
+.pack .inpk { grid-row: 1 / span 3; grid-column: 2; font: 400 17px/1 var(--px); color: var(--muted); text-align: right; min-width: 120px; }
+.pack .btn { grid-row: 1 / span 3; }
+.mvcount { color: var(--muted); font-size: 19px; margin: 0 0 8px; }
+
+/* ---------- animation lab */
+.box.labbox { width: min(1000px, 96vw); }
+.labbox .ihead { flex-wrap: wrap; gap: 10px; }
+#labCv { width: 100%; height: 360px; }
+.labbox .iprev { min-height: 390px; }
+.lgrp { font: 400 16px/1 var(--px); letter-spacing: 0.14em; color: var(--muted); margin: 10px 0 2px; }
+.lrow { display: flex; justify-content: space-between; padding: 8px 10px; cursor: pointer; background: rgba(255, 255, 255, 0.03); font: 400 21px/1 var(--px); }
+.lrow:hover { background: rgba(255, 255, 255, 0.08); }
+.lrow.sel { box-shadow: inset 0 0 0 2px var(--edge-hi); }
+
+.pack .rtag { color: var(--rc); }

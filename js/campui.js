@@ -1,7 +1,7 @@
 "use strict";
 // Campaign screens: create your hooper, chapter map, story card, results (also used after Quick Play).
 const CUI = { ch: 0, ci: 0, gi: 0, heroP: null };
-SCREENS.push("hero", "camp", "story", "res", "inv");
+SCREENS.push("hero", "camp", "story", "res", "inv", "shop", "open", "lab");
 
 // ---------- your hooper: name, skin tone, hair
 function openHero(first) {

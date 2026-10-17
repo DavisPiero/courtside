@@ -66,6 +66,7 @@
       <button class="btn pri" id="bCamp">CAMPAIGN</button>
       <button class="btn" id="bPlay">QUICK PLAY</button>
       <button class="btn" id="bPrac">PRACTICE</button>
+      <button class="btn" id="bShop">SHOP</button>
       <button class="btn" id="bInv">INVENTORY</button>
       <button class="btn" id="bSet">SETTINGS</button>
     </nav>
@@ -140,7 +141,41 @@
   </div>
 </div>
 
-<!-- Inventory: buy and equip animation packs -->
+<!-- Shop: open animation packs with Court Coins -->
+<div id="shop" class="scr dim">
+  <div class="pnl box shopbox">
+    <div class="ihead"><h2>SHOP</h2><div class="cc ccbal">0 CC</div></div>
+    <p class="coll" id="shopColl"></p>
+    <div class="packs" id="shopPacks"></div>
+    <button class="btn pri" id="bShopX">BACK</button>
+  </div>
+</div>
+
+<!-- Pack opening: tap the cards to flip them -->
+<div id="open" class="scr dim">
+  <div class="pnl box openbox">
+    <div class="ihead"><h2 id="openTitle">PACK</h2><div class="cc ccbal">0 CC</div></div>
+    <div class="obody">
+      <div class="iprev"><canvas id="openCv"></canvas><div id="openName"></div></div>
+      <div class="cards" id="openCards"></div>
+    </div>
+    <div class="act"><button class="btn" id="bOpenShop">SHOP</button><button class="btn" id="bOpenInv">INVENTORY</button><button class="btn pri" id="bOpenAgain">OPEN ANOTHER</button></div>
+  </div>
+</div>
+
+<!-- Animation Lab: watch any animation slowly, from any side -->
+<div id="lab" class="scr dim">
+  <div class="pnl box labbox">
+    <div class="ihead"><h2>ANIMATION LAB</h2><div class="act"><div class="seg" id="labSpeed"></div><div class="seg" id="labAngle"></div></div></div>
+    <div class="obody">
+      <div class="iprev"><canvas id="labCv"></canvas><div id="labName"></div></div>
+      <div class="rows" id="labRows"></div>
+    </div>
+    <button class="btn pri" id="bLabX">BACK</button>
+  </div>
+</div>
+
+<!-- Inventory: equip the animations you own -->
 <div id="inv" class="scr dim">
   <div class="pnl box inv">
     <div class="ihead"><h2>INVENTORY</h2><div class="cc ccbal">0 CC</div></div>
@@ -173,7 +208,7 @@
     <h2>SETTINGS</h2>
     <div class="tabs" id="setTabs"></div>
     <div class="rows" id="setRows"></div>
-    <button class="btn pri" id="bSetX">BACK</button>
+    <div class="act"><button class="btn pri" id="bSetX">BACK</button><button class="btn" id="bLab">ANIMATION LAB</button></div>
   </div>
 </div>
 
@@ -184,6 +219,7 @@
 <script src="js/core.js"></script>
 <script src="js/projection.js"></script>
 <script src="js/arena.js"></script>
+<script src="js/anim.js"></script>
 <script src="js/players.js"></script>
 <script src="js/render.js"></script>
 <script src="js/camera.js"></script>
