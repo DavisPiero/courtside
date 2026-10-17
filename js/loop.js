@@ -95,15 +95,15 @@ function vmUpd() {
     m = G.mres.m;
     cls = G.mres.g ? "g" : m < 0.65 ? "e" : "l";
   }
-  const q = sp && !G.cut ? P(sp.x, sp.y, sp.z + 4.2) : null;
+  const q = sp && !G.cut && SET.meter ? P(sp.x, sp.y, sp.z + 4.2) : null;
   if (!q) {
     vm.style.display = "none";
     return;
   }
   vm.style.display = "block";
-  vm.style.height = cl((q[3] * 5.2 * H) / RH, 90, 170) + "px";
-  vm.style.left = ((q[0] + q[3] * 1.9) * W) / RW + "px";
-  vm.style.top = (q[1] * H) / RH + "px";
+  vm.style.height = cl(q[3] * 5.2 * PX, 90, 170) + "px";
+  vm.style.left = (q[0] + q[3] * 1.9) * PX + "px";
+  vm.style.top = q[1] * PX + "px";
   $("vf").style.height = m * 100 + "%";
   $("vn").style.bottom = "calc(" + m * 100 + "% - 2px)";
   vm.className = cls;

@@ -470,25 +470,41 @@ function buildSprite(p) {
   if (w < 3 || h < 3) return;
   const im = x.getImageData(x0, y0, w, h),
     d = im.data,
-    o = pc(ST[G.style].o),
-    a = new Uint8Array(w * h);
+    a = new Uint8Array(w * h),
+    rim = SET.lighting === "high";
   for (let i = 0; i < w * h; i++) a[i] = d[i * 4 + 3] >= 100 ? 1 : 0;
+  // Read colours from a copy so the edits below don't feed into each other.
+  const src = new Uint8ClampedArray(d);
   for (let yy = 0; yy < h; yy++)
     for (let xx = 0; xx < w; xx++) {
       const i = yy * w + xx,
         j = i * 4;
-      if (a[i]) d[j + 3] = 255;
-      else if (
-        (xx > 0 && a[i - 1]) ||
-        (xx < w - 1 && a[i + 1]) ||
-        (yy > 0 && a[i - w]) ||
-        (yy < h - 1 && a[i + w])
-      ) {
-        d[j] = o[0];
-        d[j + 1] = o[1];
-        d[j + 2] = o[2];
+      if (a[i]) {
         d[j + 3] = 255;
-      } else d[j + 3] = 0;
+        // Rim light: pixels on the top and left edges catch the court lights.
+        if (rim && ((yy > 0 && !a[i - w]) || (xx > 0 && !a[i - 1]))) {
+          d[j] = src[j] + (255 - src[j]) * 0.32;
+          d[j + 1] = src[j + 1] + (255 - src[j + 1]) * 0.3;
+          d[j + 2] = src[j + 2] + (255 - src[j + 2]) * 0.24;
+        } else if ((yy < h - 1 && !a[i + w]) || (xx < w - 1 && !a[i + 1])) {
+          // Core shadow on the bottom and right edges.
+          d[j] = src[j] * 0.78;
+          d[j + 1] = src[j + 1] * 0.78;
+          d[j + 2] = src[j + 2] * 0.82;
+        }
+        continue;
+      }
+      // Outline pixel: a dark version of the neighbouring colour ("sel-out"), not flat black.
+      const n = xx > 0 && a[i - 1] ? i - 1 : xx < w - 1 && a[i + 1] ? i + 1 : yy > 0 && a[i - w] ? i - w : yy < h - 1 && a[i + w] ? i + w : -1;
+      if (n < 0) {
+        d[j + 3] = 0;
+        continue;
+      }
+      const k2 = n * 4;
+      d[j] = src[k2] * 0.3 + 4;
+      d[j + 1] = src[k2 + 1] * 0.3 + 4;
+      d[j + 2] = src[k2 + 2] * 0.34 + 10;
+      d[j + 3] = 255;
     }
   x.putImageData(im, x0, y0);
   p.spr = { cv: sp.cv, x0, y0, w, h, ox, oy, k };

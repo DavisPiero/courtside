@@ -1,35 +1,70 @@
 "use strict";
 // Team select, starting a game and the tip-off.
 // ---------- screens
-// Only one full-screen layer shows at a time: menu, setup, pause or controls. The HUD shows during play.
+// Only one full-screen layer shows at a time: menu, setup, pause or settings. The HUD shows during play.
 function show(id) {
-  for (const s of ["menu", "setup", "pause", "ctls"]) $(s).classList.toggle("on", s === id);
+  for (const s of ["menu", "setup", "pause", "sets"]) $(s).classList.toggle("on", s === id);
 }
 function hudOn(on) {
   $("hud").style.display = on ? "block" : "none";
 }
-// Controls list, built for the current mode so Clean mode doesn't list punch and slide.
-function openControls(back) {
-  const rows = [
+// ---------- settings screen: tabs of rows; each row is a segmented choice. Changes apply and save at once.
+const SETUI = { tab: "VIDEO", back: "menu" };
+function openSettings(back) {
+  SETUI.back = back;
+  $("bSetX").onclick = () => show(SETUI.back);
+  drawSettings();
+  show("sets");
+}
+function controlRows() {
+  return [
     ["WASD", "Move"],
     ["Shift", "Sprint"],
     ["Space", "Shoot (release in the green) / jump / block"],
     ["Q", "Pass / switch player"],
     ["E", "Dribble move (changes every press)"],
     ["F", "Steal / contest"],
-    ...(mayhem() ? [["Click", "Punch: drops them, takes the ball"], ["L-Ctrl", "Slide: sweeps the ball carrier"]] : []),
-    ["C", "Chase / broadcast camera"],
+    ["Click", "Punch (Mayhem mode)"],
+    ["L-Ctrl", "Slide tackle (Mayhem mode)"],
+    ["C", "Switch camera"],
     ["Enter", "Skip dunk replay"],
-    ["Esc", "Pause"],
     ["M", "Sound on / off"],
+    ["Esc", "Pause"],
   ];
-  $("ctlList").innerHTML = rows.map(([k, t]) => `<div><kbd>${k}</kbd>${t}</div>`).join("");
-  $("bCtlX").onclick = () => show(back);
-  show("ctls");
+}
+function drawSettings() {
+  const tabs = ["VIDEO", "AUDIO", "GAMEPLAY", "CONTROLS"];
+  $("setTabs").innerHTML = tabs.map((t) => `<button data-t="${t}" class="${t === SETUI.tab ? "on" : ""}">${t}</button>`).join("");
+  $("setTabs").querySelectorAll("button").forEach((b) => (b.onclick = () => ((SETUI.tab = b.dataset.t), drawSettings())));
+  if (SETUI.tab === "CONTROLS") {
+    $("setRows").innerHTML = `<div class="keys">${controlRows().map(([k, t]) => `<div><kbd>${k}</kbd>${t}</div>`).join("")}</div>`;
+    return;
+  }
+  $("setRows").innerHTML = SETTINGS.filter((r) => r.tab === SETUI.tab)
+    .map(
+      (r) =>
+        `<div class="row"><span>${r.label}</span><div class="seg" data-k="${r.k}">${r.opts
+          .map(([v, l]) => `<button data-v="${v}" class="${String(SET[r.k]) === String(v) ? "on" : ""}">${l}</button>`)
+          .join("")}</div></div>`,
+    )
+    .join("");
+  $("setRows").querySelectorAll(".seg").forEach((g) =>
+    g.querySelectorAll("button").forEach(
+      (b) =>
+        (b.onclick = () => {
+          const k = g.dataset.k,
+            cur = SET[k];
+          SET[k] = typeof cur === "number" ? +b.dataset.v : b.dataset.v;
+          applySetting(k);
+          saveSettings();
+          drawSettings();
+        }),
+    ),
+  );
 }
 
 // ---------- setup screen: teams side by side (after the reference), then mode, court and difficulty
-const SEL = { a: 0, b: 1, pr: 0 };
+const SEL = { a: DEFAULT_TEAMS[0], b: DEFAULT_TEAMS[1], pr: 0 };
 function openSel(pr) {
   ac();
   SEL.pr = pr;
@@ -108,7 +143,7 @@ function portraits() {
         id: 6 + right,
         team: t,
         look: ti * 3 + i,
-        sk: SK[ti * 3 + i],
+        sk: SK[q[10]],
         pos: q[1],
         x: 0, y: 0, z: 0, vx: 0, vy: 0, f: 0, ph: 0, hand: right ? 1 : -1,
         port: { spr: mkSpr(PW, PH), k: PK, t: 0, ball: [0, 0, 0] },

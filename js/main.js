@@ -23,12 +23,19 @@ addEventListener("keydown", (e) => {
     if (e.code === "Escape") show("menu");
     return;
   }
-  if ($("ctls").classList.contains("on") && e.code === "Escape") return $("bCtlX").click();
+  if ($("sets").classList.contains("on")) {
+    if (e.code === "Escape") $("bSetX").click();
+    return;
+  }
   if (!G.run) return;
   if (e.code === "Enter" || e.code === "Space") e.preventDefault(); // keys are for the game, not focused buttons
   if (e.code === "Escape") pause();
   if (e.code === "KeyR" && !G.cut && !G.dead && !G.tip) setPoss(G.poss);
-  if (e.code === "KeyC") G.cm = G.cm === "c" ? "b" : "c";
+  if (e.code === "KeyC") {
+    SET.camera = SET.camera === "chase" ? "broadcast" : "chase";
+    applySetting("camera");
+    saveSettings();
+  }
   if (e.code === "Enter" && G.cut && G.cut.t < G.cut.d * 0.7) G.cut.t = G.cut.d * 0.7;
 });
 addEventListener("mousedown", (e) => {
@@ -40,15 +47,14 @@ addEventListener("blur", () => keys.clear());
 addEventListener("resize", rs);
 $("bPlay").onclick = () => openSel(0);
 $("bPrac").onclick = () => openSel(1);
-$("bCtl").onclick = () => openControls("menu");
+$("bSet").onclick = () => openSettings("menu");
 $("bStart").onclick = () => {
   setTeams(SEL.a, SEL.b);
   start(SEL.pr);
 };
 $("bBack").onclick = () => show("menu");
 $("bRes").onclick = pause;
-$("bPCtl").onclick = () => openControls("pause");
-$("bSnd").onclick = sndToggle;
+$("bPSet").onclick = () => openSettings("pause");
 $("bQuit").onclick = quitToMenu;
 function quitToMenu() {
   G.run = 0;
@@ -62,10 +68,10 @@ function quitToMenu() {
   show("menu");
 }
 function sndToggle() {
-  AU.mute ^= 1;
-  $("bSnd").textContent = "SOUND: " + (AU.mute ? "OFF" : "ON");
+  SET.sfx = SET.sfx ? 0 : 1;
+  applySetting("sfx");
+  saveSettings();
 }
-$("bSnd").textContent = "SOUND: " + (AU.mute ? "OFF" : "ON");
 document.addEventListener("visibilitychange", () => {
   if (document.hidden && G.run && !G.pause) pause();
 });
@@ -95,7 +101,7 @@ function smoke() {
       for (let diff = 0; diff < 4; diff++) {
         try {
           Object.assign(OPT, { mode, court, diff });
-          setTeams(0, 1);
+          setTeams(...DEFAULT_TEAMS);
           start(0);
           G.tip = null;
           G.auto = 1;

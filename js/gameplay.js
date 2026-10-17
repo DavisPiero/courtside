@@ -27,12 +27,11 @@ function init() {
         z: 0,
         vz: 0,
         ph: rn(0, 6),
-        n: NM[t * 3 + i][3],
         stam: 100,
         sp: t ? DIFF[OPT.diff].sp : 12.6,
         sh: NM[t * 3 + i][2] - 14,
         look: TEAMS.indexOf(TM[t]) * 3 + i,
-        sk: SK[TEAMS.indexOf(TM[t]) * 3 + i],
+        sk: SK[NM[t * 3 + i][10]],
         pos: NM[t * 3 + i][1],
         hand: -1,
       });

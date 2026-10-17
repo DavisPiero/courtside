@@ -18,65 +18,6 @@ const ST = {
   cel: { h: 250, w: ["#e6ab69", "#da9a58"], o: "#070a14", ow: 1.8, l: "#fff", bg: "#151a3c" },
   neon: { h: 210, w: ["#1d2550", "#161c40"], o: "#02030a", ow: 1, l: "#3df2ff", bg: "#03040d" },
 };
-// Rosters are editable: first player starts with the ball, third is the tip-off jumper. Colours only, no logos.
-const TEAMS = [
-  {
-    n: "THUNDER",
-    c: "OKC",
-    city: "OKLAHOMA CITY",
-    j: "#1f6fe0",
-    t: "#ff8a2a",
-    s: "#123b8a",
-    k: "#1f5fd0",
-    p: [
-      ["S. GILGEOUS-ALEXANDER", "SG", 97, 2],
-      ["J. WILLIAMS", "SF", 87, 8],
-      ["C. HOLMGREN", "C", 86, 7],
-    ],
-  },
-  {
-    n: "SPURS",
-    c: "SAS",
-    city: "SAN ANTONIO",
-    j: "#e6eaf0",
-    t: "#22242c",
-    s: "#8f98aa",
-    k: "#4a5468",
-    p: [
-      ["D. FOX", "PG", 87, 4],
-      ["S. CASTLE", "SG", 84, 5],
-      ["V. WEMBANYAMA", "C", 95, 1],
-    ],
-  },
-  {
-    n: "LAKERS",
-    c: "LAL",
-    city: "LOS ANGELES",
-    j: "#6a3fb8",
-    t: "#ffc72c",
-    s: "#3b2275",
-    k: "#552583",
-    p: [
-      ["L. DONCIC", "PG", 96, 77],
-      ["A. REAVES", "SG", 83, 15],
-      ["L. JAMES", "SF", 90, 23],
-    ],
-  },
-  {
-    n: "CELTICS",
-    c: "BOS",
-    city: "BOSTON",
-    j: "#1d8a4f",
-    t: "#ffffff",
-    s: "#0f5430",
-    k: "#0e7a41",
-    p: [
-      ["J. TATUM", "SF", 93, 0],
-      ["D. WHITE", "PG", 85, 9],
-      ["J. BROWN", "SG", 90, 7],
-    ],
-  },
-];
 let TM, KC, NM, KD;
 function setTeams(a, b) {
   TM = [TEAMS[a], TEAMS[b]];
@@ -84,10 +25,10 @@ function setTeams(a, b) {
   KD = KC[0].map((v) => (v * 0.5) | 0);
   NM = [...TM[0].p, ...TM[1].p];
 }
-setTeams(0, 1);
+setTeams(...DEFAULT_TEAMS);
 const lite = (c) => (pc(c).reduce((a, b) => a + b) > 330 ? c : "#ffffff");
-// Skin tones and looks are per roster slot across all teams (team index * 3 + player), so a player always looks the same.
-const SK = ["#8b5a3c", "#b27850", "#5e3a26", "#c58b60", "#7b4b32", "#a96b46", "#e0b08a", "#6b4029", "#d9a074", "#9a6440", "#cf9a70", "#7e4e33"],
+// Skin tones, lightest to darkest. Each player has a tone in js/teams.js.
+const SK = ["#f0c8a0", "#e0b08a", "#c8946a", "#a96b46", "#8b5a3c", "#5e3a26"],
   HX = (t) => (t ? 5.25 : 88.75);
 // Options chosen on the setup screen.
 // mode: "mayhem" (punch, slide, blood) or "clean" (straight basketball). court: "arena" or "street".
@@ -127,7 +68,7 @@ const G = {
   rim: [0, 0],
   st: { pts: 0, reb: 0, ast: 0, stl: 0 },
   fps: 60,
-  cm: "c",
+  cm: SET.camera === "broadcast" ? "b" : "c",
   hype: 0,
   next: 0,
   lock: 0,
@@ -170,12 +111,16 @@ let W = 1,
   wB;
 const keys = new Set(),
   BUF = {};
+// Crisp pixel art: the world renders into a small buffer, then each game pixel becomes an exact PX x PX block
+// of screen pixels. PX comes from the Pixel size setting, raised on very large screens to keep it fast.
+let PX = 3;
 function rs() {
   // The window can briefly report zero size while it opens; never divide by zero.
   W = cv.width = Math.max(1, innerWidth);
   H = cv.height = Math.max(1, innerHeight);
-  RH = ST[G.style].h;
-  RW = Math.round((RH * W) / H);
+  PX = Math.max(SET.pixel, Math.ceil(H / 420));
+  RW = Math.ceil(W / PX);
+  RH = Math.ceil(H / PX);
   buf.width = RW;
   buf.height = RH;
   wA = pc(ST[G.style].w[0]);

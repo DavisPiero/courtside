@@ -146,6 +146,7 @@ const LPS = [15, 47, 79].flatMap((x) => [8, 42].map((y) => [x, y])),
   };
 const clockStr = () => Math.floor(G.time / 60) + ":" + String(Math.floor(G.time % 60)).padStart(2, "0");
 function beams() {
+  if (SET.lighting !== "high") return;
   c.save();
   c.globalCompositeOperation = "lighter";
   for (const l of LPS) {
@@ -218,6 +219,42 @@ function jumbo() {
 const ASPH = [[58, 64, 80], [55, 61, 77]],
   CONC = [84, 87, 95],
   fade = (k) => k.map((v, i) => (v * 0.5 + ASPH[0][i] * 0.5) | 0);
+const FOG = { arena: [26, 30, 58], street: [104, 78, 112] };
+// A haze band over the background (crowd and stands, or the skyline) so the court pops.
+function fogBand() {
+  if (!SET.fog) return;
+  const street = OPT.court === "street",
+    far = P(V.x + Math.cos(V.yaw) * 3000, V.y + Math.sin(V.yaw) * 3000, 0),
+    hz = far ? cl(far[1], -RH, RH * 2) : RH * 0.4,
+    F = street ? FOG.street : FOG.arena,
+    g = c.createLinearGradient(0, hz - RH * 0.55, 0, hz + RH * 0.05);
+  g.addColorStop(0, `rgba(${F},0)`);
+  g.addColorStop(0.7, `rgba(${F},${street ? 0.45 : 0.4})`);
+  g.addColorStop(1, `rgba(${F},${street ? 0.6 : 0.5})`);
+  c.fillStyle = g;
+  c.fillRect(0, 0, RW, RH);
+}
+// Street lamps throw warm pools of light on the asphalt (Dramatic lighting only).
+function lampPools() {
+  if (SET.lighting !== "high") return;
+  c.save();
+  c.globalCompositeOperation = "lighter";
+  for (const [x, y] of [[-5, -5], [99, 55], [-5, 55], [99, -5]]) {
+    const pts = [];
+    for (let i = 0; i < 16; i++) {
+      const t = (i / 16) * 6.2832;
+      pts.push(P(x + Math.cos(t) * 16, y + Math.sin(t) * 16, 0));
+    }
+    if (pts.some((q) => !q)) continue;
+    poly(pts, "rgba(255,170,90,.07)");
+    const inner = pts.map((q, i) => {
+      const t = (i / 16) * 6.2832;
+      return P(x + Math.cos(t) * 8, y + Math.sin(t) * 8, 0);
+    });
+    if (inner.every(Boolean)) poly(inner, "rgba(255,190,120,.08)");
+  }
+  c.restore();
+}
 function floor() {
   const street = OPT.court === "street",
     x0 = -6,
@@ -240,7 +277,9 @@ function floor() {
           ? 0.82 + 0.2 * Math.exp(-((x - cfx) ** 2 + (y - cfy) ** 2) / 900)
           : Math.min(
               1.05,
-              0.5 + 0.55 * Math.exp(-((x - cfx) ** 2 + (y - cfy) ** 2) / 650) * (1 + G.flash * 0.3) + LP(x, y),
+              SET.lighting === "high"
+                ? 0.5 + 0.55 * Math.exp(-((x - cfx) ** 2 + (y - cfy) ** 2) / 650) * (1 + G.flash * 0.3) + LP(x, y)
+                : 0.82 + G.flash * 0.15,
             ),
         key = (x < 19 || x > 75) && y > 17 && y < 33,
         n = street ? 1 + ((((i * 73856093) ^ (j * 19349663)) >>> 0) % 7 - 3) * 0.012 : 1 + (((i * 7 + j * 13) % 5) - 2) * 0.028,
@@ -261,7 +300,10 @@ function floor() {
                 : j & 1
                   ? wA
                   : wB;
-      c.fillStyle = `rgb(${(w[0] * L * n) | 0},${(w[1] * L * n) | 0},${(w[2] * L * n) | 0})`;
+      // Depth fog: far tiles fade toward the haze colour.
+      const fg = SET.fog ? cl((a[2] - 28) / 120, 0, 0.5) : 0,
+        F = street ? FOG.street : FOG.arena;
+      c.fillStyle = `rgb(${lp(w[0] * L * n, F[0], fg) | 0},${lp(w[1] * L * n, F[1], fg) | 0},${lp(w[2] * L * n, F[2], fg) | 0})`;
       c.strokeStyle = c.fillStyle;
       c.lineWidth = 1;
       c.beginPath();

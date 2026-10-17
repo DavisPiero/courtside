@@ -2,7 +2,7 @@
 // Sound effects, synthesised in code. There is no music (removed by David's call, 2026-10-17).
 // Add ?mute to the address (e.g. index.html?mute) to start silent. Used for testing.
 const QUIET = /[?&](mute|smoke)\b/.test(location.search);
-const AU = { x: null, mute: QUIET ? 1 : 0, cg: null };
+const AU = { x: null, mute: QUIET || !SET.sfx ? 1 : 0, cg: null };
 function ac() {
   if (!AU.x) {
     try {
@@ -26,7 +26,7 @@ function tone(ty, f0, f1, d, v) {
   o.frequency.setValueAtTime(f0, t);
   o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + d);
   g.gain.setValueAtTime(0, t);
-  g.gain.linearRampToValueAtTime(v, t + 0.004);
+  g.gain.linearRampToValueAtTime(v * (SET.volume / 100), t + 0.004);
   g.gain.exponentialRampToValueAtTime(0.001, t + d);
   g.gain.linearRampToValueAtTime(0, t + d + 0.02);
   o.connect(g);
@@ -45,7 +45,7 @@ function nz(d, v, f) {
   b.frequency.value = f;
   b.Q.value = 0.8;
   g.gain.setValueAtTime(0, t);
-  g.gain.linearRampToValueAtTime(v, t + 0.004);
+  g.gain.linearRampToValueAtTime(v * (SET.volume / 100), t + 0.004);
   g.gain.exponentialRampToValueAtTime(0.001, t + d);
   g.gain.linearRampToValueAtTime(0, t + d + 0.02);
   s.connect(b);

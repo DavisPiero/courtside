@@ -6,7 +6,7 @@
 <title>Courtside</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;0,800;1,700;1,800&family=Barlow:wght@500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jersey+10&display=swap">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -41,7 +41,7 @@
     <nav>
       <button class="btn pri" id="bPlay">PLAY</button>
       <button class="btn" id="bPrac">PRACTICE</button>
-      <button class="btn" id="bCtl">CONTROLS</button>
+      <button class="btn" id="bSet">SETTINGS</button>
     </nav>
   </div>
 </div>
@@ -68,22 +68,24 @@
     <h2>PAUSED</h2>
     <nav>
       <button class="btn pri" id="bRes">RESUME</button>
-      <button class="btn" id="bPCtl">CONTROLS</button>
-      <button class="btn" id="bSnd">SOUND: ON</button>
+      <button class="btn" id="bPSet">SETTINGS</button>
       <button class="btn" id="bQuit">QUIT TO MENU</button>
     </nav>
   </div>
 </div>
 
-<!-- Controls (from the menu or pause) -->
-<div id="ctls" class="scr dim">
-  <div class="pnl box wide">
-    <h2>CONTROLS</h2>
-    <div class="keys" id="ctlList"></div>
-    <button class="btn pri" id="bCtlX">BACK</button>
+<!-- Settings: video, audio, gameplay, controls -->
+<div id="sets" class="scr dim">
+  <div class="pnl box">
+    <h2>SETTINGS</h2>
+    <div class="tabs" id="setTabs"></div>
+    <div class="rows" id="setRows"></div>
+    <button class="btn pri" id="bSetX">BACK</button>
   </div>
 </div>
 
+<script src="js/teams.js"></script>
+<script src="js/settings.js"></script>
 <script src="js/core.js"></script>
 <script src="js/projection.js"></script>
 <script src="js/arena.js"></script>

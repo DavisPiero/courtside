@@ -136,17 +136,21 @@ function shadow(x, y, r, a) {
 function render() {
   setV();
   c.save();
+  if (G.shake > 0 && !SET.shake) G.shake = 0;
   if (G.shake > 0) {
     c.translate(Math.round(rn(-1, 1) * G.shake * 3), Math.round(rn(-1, 1) * G.shake * 3));
     G.shake = Math.max(0, G.shake - 0.03);
   }
   if (OPT.court === "street") {
     streetBg();
+    fogBand();
     fence();
     floor();
+    lampPools();
   } else {
     arena();
     jumbo();
+    fogBand();
     floor();
     beams();
   }
@@ -189,7 +193,7 @@ function render() {
     c.clip();
   }
   // Reflections on the polished hardwood only.
-  if (OPT.court !== "street") {
+  if (OPT.court !== "street" && SET.reflections) {
     PL.forEach((p) => drawP(p, 1));
     drawBall(1);
   }
@@ -226,44 +230,91 @@ function render() {
   c.restore();
   post();
 }
+// ---------- post-processing: every effect is a setting (js/settings.js)
+const FXC = { bl: document.createElement("canvas"), noise: null };
+function noiseTile() {
+  // A 96x96 tile of grey noise, drawn at game-pixel size for chunky grain.
+  const n = document.createElement("canvas");
+  n.width = n.height = 96;
+  const g = n.getContext("2d"),
+    im = g.createImageData(96, 96);
+  for (let i = 0; i < im.data.length; i += 4) {
+    const v = (Math.random() * 255) | 0;
+    im.data[i] = im.data[i + 1] = im.data[i + 2] = v;
+    im.data[i + 3] = 255;
+  }
+  g.putImageData(im, 0, 0);
+  return n;
+}
 function post() {
-  const st = G.style;
+  const w = RW * PX,
+    h = RH * PX;
   X.globalCompositeOperation = "source-over";
   X.globalAlpha = 1;
-  X.imageSmoothingEnabled = st === "paint";
-  X.drawImage(buf, 0, 0, W, H);
+  X.imageSmoothingEnabled = false;
+  if (SET.grade === "vivid") X.filter = "saturate(1.35) contrast(1.06)";
+  X.drawImage(buf, 0, 0, w, h);
+  X.filter = "none";
   if (G.gl > 0) {
     G.gl -= 0.016;
     for (let i = 0; i < 5; i++) {
-      const y = (Math.random() * H) | 0,
-        h = (8 + Math.random() * 30) | 0;
-      X.drawImage(cv, 0, y, W, h, (Math.random() - 0.5) * 40, y, W, h);
+      const y = ((Math.random() * RH) | 0) * PX,
+        hh = ((3 + Math.random() * 10) | 0) * PX;
+      X.drawImage(cv, 0, y, W, hh, Math.round((Math.random() - 0.5) * 12) * PX, y, W, hh);
     }
   }
-  if (st === "paint" || st === "neon") {
+  // Bloom: a small, high-contrast copy (only bright things survive) blurred by upscaling, added on top.
+  if (SET.bloom) {
+    const bl = FXC.bl,
+      bw = Math.max(1, RW >> 2),
+      bh = Math.max(1, RH >> 2);
+    if (bl.width !== bw || bl.height !== bh) {
+      bl.width = bw;
+      bl.height = bh;
+    }
+    const g = bl.getContext("2d");
+    g.filter = "brightness(0.75) contrast(2.6) saturate(1.3)";
+    g.imageSmoothingEnabled = true;
+    g.clearRect(0, 0, bw, bh);
+    g.drawImage(buf, 0, 0, bw, bh);
+    g.filter = "none";
     X.save();
     X.globalCompositeOperation = "lighter";
-    X.globalAlpha = st === "neon" ? 0.6 : 0.12;
-    X.filter = "blur(" + (st === "neon" ? 10 : 14) + "px)";
-    X.drawImage(buf, 0, 0, W, H);
+    X.globalAlpha = SET.lighting === "high" ? 0.32 : 0.22;
+    X.imageSmoothingEnabled = true;
+    X.drawImage(bl, 0, 0, w, h);
     X.restore();
   }
-  if (st === "paint") {
-    const v = X.createRadialGradient(W / 2, H / 2, H * 0.3, W / 2, H / 2, H * 0.95);
-    v.addColorStop(0, "rgba(255,200,140,0)");
-    v.addColorStop(1, "rgba(20,8,24,.55)");
+  if (SET.grade === "warm" || SET.grade === "cool") {
+    X.save();
+    X.globalCompositeOperation = "soft-light";
+    X.fillStyle = SET.grade === "warm" ? "rgba(255,150,60,.45)" : "rgba(70,130,255,.45)";
+    X.fillRect(0, 0, W, H);
+    X.restore();
+  }
+  if (SET.vignette) {
+    const v = X.createRadialGradient(W / 2, H / 2, H * 0.35, W / 2, H / 2, H * 0.95);
+    v.addColorStop(0, "rgba(10,6,20,0)");
+    v.addColorStop(1, "rgba(10,6,20,.5)");
     X.fillStyle = v;
     X.fillRect(0, 0, W, H);
-    X.globalAlpha = 0.05;
-    for (let i = 0; i < 90; i++) {
-      X.fillStyle = i % 2 ? "#fff" : "#000";
-      X.fillRect(Math.random() * W, Math.random() * H, 2, 2);
-    }
-    X.globalAlpha = 1;
   }
-  if (st === "pixel" || st === "neon") {
-    X.fillStyle = "rgba(0,0,0,.14)";
-    for (let y = 0; y < H; y += 4) X.fillRect(0, y, W, 1);
+  if (SET.grain) {
+    if (!FXC.noise) FXC.noise = noiseTile();
+    X.save();
+    X.globalCompositeOperation = "overlay";
+    X.globalAlpha = 0.09;
+    X.imageSmoothingEnabled = false;
+    const t = 96 * PX,
+      ox = -((Math.random() * 96) | 0) * PX,
+      oy = -((Math.random() * 96) | 0) * PX;
+    for (let y = oy; y < H; y += t) for (let x = ox; x < W; x += t) X.drawImage(FXC.noise, x, y, t, t);
+    X.restore();
+  }
+  if (SET.scanlines) {
+    X.fillStyle = "rgba(0,0,0,.22)";
+    const lh = Math.max(1, PX >> 1);
+    for (let y = PX - lh; y < H; y += PX * 2) X.fillRect(0, y, W, lh);
   }
   if (G.gf > 0) {
     const v = X.createRadialGradient(W / 2, H / 2, H * 0.2, W / 2, H / 2, H * 0.9);
@@ -282,13 +333,13 @@ function post() {
 }
 // The player you control gets their name floating above their head. Nobody else is named.
 function nameTag() {
-  if (!G.run || G.cut || G.tip) return;
+  if (!G.run || G.cut || G.tip || !SET.nameTag) return;
   const p = G.pl[G.ctrl];
   if (!p || p.t !== 0) return;
   const q = P(p.x, p.y, p.z + 7.4);
   if (!q) return;
-  const sx = W / RW,
-    sy = H / RH,
+  const sx = PX,
+    sy = PX,
     x = Math.round(q[0] * sx),
     y = Math.round(q[1] * sy),
     name = NM[p.id][0],
