@@ -1,25 +1,25 @@
 # Hand-off for the next session
 
-_Written 2026-10-17 (session 3). Replace this file at the end of each session; don't add a second one._
+_Written 2026-10-18 (session 4). Replace this file at the end of each session; don't add a second one._
 
 ## State of the repo
-- `main` is the live site. Session 3 was merged and pushed on David's instruction; no open branches.
-- `./tools/smoke.sh` passes (it now loops over every court in `COURT_IDS`).
+- Work is on branch `session4`, uncommitted unless David said to commit. `main` is session 3 and live.
+- `./tools/smoke.sh` passes; it now also plays the 3-point contest, dunk contest and 1-on-1 with the AI.
 
 ## Read first
-1. `CLAUDE.md` (code map now has js/courts.js). 2. `STATE.md` for open questions. 3. `SPEC.md`. 4. `DECISIONS.md`.
+1. `CLAUDE.md` (code map has 5 new files). 2. `STATE.md` for open questions. 3. `SPEC.md` (new Minigames and
+Showtime sections). 4. `DECISIONS.md`.
 
 ## How to work on it
-- Test muted: `http://localhost:8791/?mute` via the `courtside` preview config.
-- The browser pane caches scripts hard: fetch each script with `{cache: "reload"}`, then reload.
-- A hidden pane pauses the game (visibilitychange) and stops requestAnimationFrame. To test gameplay there,
-  set `pause = () => {}` and drive the simulation by hand: `for (...) { step(1/120); T += 1/120; }`.
-- Courts: add one by adding an entry to `COURTS` in js/courts.js (floor/out colours, fog, bg, around) and a
-  button in index.html's court picker. Everything but `arena` gets street pole hoops.
-- NBA career lives at the end of the helpers in js/campaign.js (`nbaOpen`, `offerTier`, `nbaOffers`, `nbaTeam`,
-  `altTeam`, `knoxTeam`); the screens and `payday()` are in js/campui.js. Save fields: `SAVE.nba`, `SAVE.payday`.
-- Back up `localStorage["courtside.save.v1"]` before testing campaign flows and restore it after.
+- Test muted: `http://localhost:8791/?mute&device=pc` via the `courtside` preview config.
+- The browser pane caches scripts hard: fetch every script with `{cache: "reload"}`, then reload.
+- A hidden pane pauses the game: set `pause = () => {}` and drive it by hand: `step(1/120); T += 1/120;`.
+- Back up `localStorage["courtside.save.v1"]` before testing and restore it after (testing writes `SAVE.hooper`).
+- Players can be left out of a game with `p.gone = 1` (minigames, tutorial); `park()` keeps them off court.
+- `G.mg` is the running minigame, `G.win` the win celebration, `G.bb` a live buzzer shot, `G.fire[t]` On Fire.
+- New dunks with special motion go in `RIM_FX` (js/anim.js): high, slow, spin (count), glide, honey, trail, turn.
+- `styleOf()` returns the dunk-contest round's dunk while one is running.
 
 ## What comes next
-- David's answers to STATE.md's open questions.
-- Real iPad/phone check; an outside playtest.
+- David's notes and answers to STATE.md's open questions, then sign-off.
+- Phone/iPad check (the tutorial panel and OOP button on touch especially) and an outside playtest.

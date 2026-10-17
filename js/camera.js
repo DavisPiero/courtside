@@ -30,7 +30,10 @@ function camUpd(dt) {
     cam.fl = 1.1;
   }
   const k = G.cut;
-  if (k && k.kind === "dunk") {
+  // Buzzer shot in the air: lean in a little.
+  G.bbz = lp(G.bbz || 0, G.bb && !G.bb.done ? 1 : 0, Math.min(1, dt * 4));
+  if (G.win) winCam();
+  else if (k && k.kind === "dunk") {
     const u = cl(k.t / k.d, 0, 1),
       w = sm(cl(Math.min(u / 0.12, (1 - u) / 0.1), 0, 1)),
       a0 = Math.atan2(k.side * 9, -k.dir * 11) + (u - 0.5) * 0.5,
@@ -49,7 +52,10 @@ function camUpd(dt) {
     V.yaw = cam.yaw + ad(yw - cam.yaw) * w;
     V.p = lp(cam.p, pt, w);
     V.fl = lp(cam.fl, 1.15 + 0.25 * sm(cl((u - 0.5) * 4, 0, 1)), w);
-  } else Object.assign(V, cam);
+  } else {
+    Object.assign(V, cam);
+    V.fl = cam.fl + 0.3 * G.bbz;
+  }
   camOv();
 }
 function camOv() {

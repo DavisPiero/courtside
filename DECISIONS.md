@@ -68,3 +68,21 @@ One line each, newest last.
 - 2026-10-17 · Knock-down 1.4 s for punch and slide; slide decay 3.2 -> 1.8 (about twice as far).
 - 2026-10-17 · Close layups (inside 6.5 ft) are automatic but can miss when contested, so driving into a crowd isn't a free 2.
 - 2026-10-17 · Shot range: perfect releases certain to 26 ft, then a make chance per difficulty; applies to the AI at Pro.
+- 2026-10-18 · Session 4: a perfect release always goes in from anywhere (David); the shrinking green zone keeps deep shots hard.
+- 2026-10-18 · Contract 200/350/500/750 a day; 1000 CC bonus for every new team signed, none for staying (David).
+- 2026-10-18 · Chapter boss reward is a free All-Star Pack, kept in the save until opened (David).
+- 2026-10-18 · NBA games are 4 × 30 s; goals scaled down (hold 8-10, stats 1-3, margins 3-5, start down 4).
+- 2026-10-18 · Hooper upgrades: 8 stats, +2 a buy, price 50 × 1.1^((v-50)/2); start 50, NBA 75, mid-Street 3 under the next game's recommended rating (David).
+- 2026-10-18 · Your hooper no longer improves from bosses (upgrades replace it); Dex and Lou still do.
+- 2026-10-18 · New stats Range (green zone at distance) and Stamina (sprint drain); Hops = blocking and helps dunking.
+- 2026-10-18 · Rarity order: Common < Rare < Epic < Legendary < Iconic < Mythic < Godlike < Gametime (Gametime purple, David).
+- 2026-10-18 · Sell price is a quarter of the shop price; starters, Gametime and equipped items can't be sold (David: no Gametime).
+- 2026-10-18 · Daily Shop rotates every hour, keeps its name (David); one shoe slot added.
+- 2026-10-18 · 33 real shoes, real names, no logos (David); your whole team wears them (David).
+- 2026-10-18 · Codes stored as FNV-1a hashes so they aren't plain text in the public repo; each works once per save.
+- 2026-10-18 · Held ball drawn inside the player sprite so body parts layer correctly; loose ball collides with board and rim.
+- 2026-10-18 · Win celebration in Quick Play and NBA games only; Street games keep their story scenes.
+- 2026-10-18 · On Fire, alley-oops, buzzer beaters, minigames chosen from the session-4 ideas (David).
+- 2026-10-18 · Alley-oops: teammates cut to the rim on their own; PASS becomes OOP! when one is open (one button, works on touch).
+- 2026-10-18 · Buzzer beaters slow down the shot but have no replay (a replay needs recorded frames: later if wanted).
+- 2026-10-18 · Dunk contest uses each dunk you own in turn, so collecting dunks pays off there.

@@ -2,6 +2,15 @@
 // Fixed-step simulation, HUD updates and the main animation loop.
 function step(dt) {
   dt = Math.min(dt, 0.04);
+  if (G.win) {
+    winUpd(dt);
+    return fxStep(dt);
+  }
+  if (G.bb) {
+    buzzerUpd(dt);
+    if (!G.run || !G.bb) return;
+    dt *= bbSlow();
+  }
   if (G.hs > 0) {
     G.hs -= dt;
     return;
@@ -20,6 +29,7 @@ function step(dt) {
     ballUpd(dt);
     if (G.dead <= 0) {
       G.dead = 0;
+      if (G.mg && G.mg.k !== "1v1") return; // contests carry on by themselves
       // First-to-N games end as soon as someone reaches the target.
       const tg = G.rules.target;
       if (tg && !G.prac && (G.home >= tg || G.away >= tg)) {
@@ -29,12 +39,15 @@ function step(dt) {
       setPoss(G.next);
     }
   } else {
+    if (G.mg) mgUpd(dt);
+    if (!G.run) return;
     ctrlSel(dt);
     human(dt);
     ai(dt);
     G.pl.forEach((p) => integ(p, dt));
     separate();
     ballUpd(dt);
+    fireFx(dt);
     if (G.shot) {
       G.shot.t += dt;
       jumpForShot(G.shot.p, G.shot.t / G.shot.d);
@@ -50,19 +63,14 @@ function step(dt) {
         launch(G.shot.p, q, 0);
       }
     }
-    if (!G.prac) {
+    if (!G.prac && !G.bb) {
       if (!G.rules.target) G.time -= dt; // first-to-N games have no game clock
       G.sc -= dt;
       if (G.time <= 0) {
-        G.q++;
-        if (G.q > G.rules.nq) {
-          end();
-          return;
-        }
-        G.time = G.rules.qlen;
-        toast("END OF Q" + (G.q - 1), 1.5);
-        sfx("buzz");
-        setPoss(G.q % 2 ? 0 : 1);
+        // A shot already in the air still counts (js/showtime.js); otherwise the quarter ends now.
+        G.time = 0;
+        if (!buzzerStart()) quarterEnd();
+        return;
       }
       if (G.sc <= 0) {
         toast("SHOT CLOCK", 0.8);
@@ -70,13 +78,18 @@ function step(dt) {
       }
     }
   }
+  fxStep(dt);
+}
+// Particles, hype, rim wobble, toasts. Runs every step, cutscenes included.
+function fxStep(dt) {
   for (let i = G.fx.length - 1; i >= 0; i--) {
     const s = G.fx[i];
     s.l -= dt;
     s.x += s.vx * dt;
     s.y += s.vy * dt;
     s.z += s.vz * dt;
-    s.vz -= 30 * dt;
+    // confetti floats down, flames rise, everything else falls
+    s.vz -= (s.cf ? 1.2 : s.up ? -4 : 30) * dt;
     if (s.b && s.z < 0 && G.stain.length < 160) G.stain.push([s.x, s.y, Math.random() < 0.5 ? 1 : 2]);
     if (s.l <= 0 || s.z < 0) G.fx.splice(i, 1);
   }
@@ -149,6 +162,7 @@ function hud() {
   $("s2").textContent = G.st.reb;
   $("s3").textContent = G.st.ast;
   $("s4").textContent = G.st.stl;
+  if (G.mg) mgHud();
   $("hc").style.background = accent(TM[0]);
   $("ac").style.background = accent(TM[1]);
 }
@@ -170,6 +184,7 @@ function loop(t) {
     }
     if (n >= 8) acc = 0;
     hud();
+    tutUpd(dt);
   }
   camUpd(dt);
   render();

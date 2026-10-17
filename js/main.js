@@ -2,7 +2,7 @@
 // Input listeners, button wiring and start-up.
 addEventListener("keydown", (e) => {
   if (e.target && e.target.tagName === "INPUT") {
-    if (e.code === "Enter") $("bHeroOk").click();
+    if (e.code === "Enter" && e.target.id === "heroName") $("bHeroOk").click();
     return; // typing a name: keys aren't game controls
   }
   if (e.code === "Space" || e.code.startsWith("Arrow") || (e.ctrlKey && G.run && !G.pause))
@@ -29,7 +29,7 @@ addEventListener("keydown", (e) => {
   }
   // Escape steps back out of menu screens.
   if (!G.run && e.code === "Escape") {
-    const back = { inv: "menu", shop: "menu", open: "shop", campPick: "menu", camp: "campPick", story: "camp", hero: "menu" };
+    const back = { inv: "menu", shop: "menu", open: "shop", campPick: "menu", camp: "campPick", story: "camp", hero: "menu", mini: "menu" };
     if ($("open").classList.contains("on")) return openShop();
     if ($("lab").classList.contains("on")) return $("bLabX").click();
     for (const k in back) if ($(k).classList.contains("on")) return show(back[k]);
@@ -48,13 +48,27 @@ addEventListener("keydown", (e) => {
     saveSettings();
   }
   if (e.code === "Enter" && G.cut && G.cut.t < G.cut.d * 0.7) G.cut.t = G.cut.d * 0.7;
+  if (e.code === "Enter" || e.code === "Space") winSkip();
 });
 addEventListener("mousedown", (e) => {
   ac();
   if (G.touch) return; // touch play punches with its own button
   if (G.run && !G.pause && e.button === 0) G.click = 1;
+  if (G.run && !G.pause) winSkip();
 });
 addEventListener("keyup", (e) => keys.delete(e.code));
+// Every menu button clicks; hovering one ticks (mouse only).
+const UI_BTN = ".btn, .tabs button, .seg button, .dcard, .arr, .tile, .offer, .tpick";
+addEventListener("pointerdown", (e) => {
+  const b = e.target.closest && e.target.closest(UI_BTN);
+  if (b && !b.disabled && (!G.run || G.pause)) (ac(), sfx("click"));
+});
+addEventListener("pointerover", (e) => {
+  const b = e.pointerType === "mouse" && e.target.closest && e.target.closest(UI_BTN);
+  if (b && !b.disabled && (!G.run || G.pause) && b !== UI_LAST.b) sfx("hover");
+  UI_LAST.b = b;
+});
+const UI_LAST = { b: null };
 addEventListener("blur", () => keys.clear());
 addEventListener("resize", rs);
 $("bPlay").onclick = () => openSel(0);
@@ -62,6 +76,8 @@ $("bPrac").onclick = () => openSel(1);
 $("bSet").onclick = () => openSettings("menu");
 $("bStart").onclick = () => startQuick(SEL.pr);
 $("bCamp").onclick = openCamp;
+$("bMini").onclick = openMini;
+$("bTut").onclick = () => openTutorial();
 $("bInv").onclick = openInv;
 $("bShop").onclick = openShop;
 $("bLab").onclick = openLab;
@@ -71,6 +87,9 @@ $("bPSet").onclick = () => openSettings("pause");
 $("bQuit").onclick = quitToMenu;
 function quitToMenu() {
   G.run = 0;
+  G.mg = G.win = G.bb = null;
+  TUT.on = 0;
+  $("tut").className = "";
   G.pause = 0;
   G.cut = G.tip = null;
   document.body.classList.remove("cine", "bars");
@@ -144,6 +163,24 @@ function smoke() {
           out.push(`${mode} ${court} ${DIFF[diff].name}: ERROR ${e.message} ${(e.stack || "").split("\n")[1] || ""}`);
         }
       }
+  // Minigames: the AI plays you in each one until it ends.
+  for (const k of ["three", "dunk", "1v1"]) {
+    try {
+      startMini(k);
+      G.auto = 1;
+      let n = 0;
+      while (G.run && G.mg) {
+        step(1 / 120);
+        T += 1 / 120;
+        if (++n % 60 === 0) (camUpd(1 / 120), render(), hud());
+        if (n > 120 * 300) throw new Error("minigame never ended");
+      }
+      out.push(`minigame ${k.padEnd(6)} ${$("resScore").textContent}`);
+    } catch (e) {
+      ok = false;
+      out.push(`minigame ${k}: ERROR ${e.message} ${(e.stack || "").split("\n")[1] || ""}`);
+    }
+  }
   G.run = 0;
   G.auto = 0;
   const pre = document.createElement("pre");

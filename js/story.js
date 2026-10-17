@@ -80,6 +80,7 @@ function sceneNext() {
     SCN.who[cs.side] = cs;
   }
   SCN.speaker = cs ? cs.side : -1;
+  SCN.pitch = talkPitch(who, cs);
   SCN.t0 = T;
   SCN.typed = 0;
   SCN.full = text.replace(/HERO/g, SAVE.name || "ROOKIE");
@@ -90,6 +91,15 @@ function sceneNext() {
   $("scnWho").style.color = cs ? cs.col : "";
   $("scnText").textContent = "";
   $("scene").dataset.spk = SCN.speaker;
+}
+// Each voice has its own pitch: big players low, Dex quick and high, narration just blips.
+function talkPitch(who, cs) {
+  if (!cs) return 0;
+  const set = { DEX: 520, "BIG LOU": 190, "COACH RAY": 240, ANNOUNCER: 300, TANK: 170, KING: 280, "ZEKE KNOX": 380 };
+  if (set[who]) return set[who];
+  if (who === "HERO") return 400;
+  // Anyone else: from their height (taller = lower).
+  return cl(560 - ((cs.q && cs.q[3]) || 78) * 3.4, 220, 420);
 }
 function sceneTap() {
   if (!$("scene").classList.contains("on")) return;
@@ -118,7 +128,7 @@ function scenePreview() {
   if (SCN.full && SCN.typed < SCN.full.length) {
     const n = Math.min(SCN.full.length, Math.floor((T - SCN.t0) * 48));
     if (n > SCN.typed) {
-      if (n % 3 === 0 && SCN.full[n - 1] !== " ") sfx("blip");
+      if (n % 2 === 0 && SCN.full[n - 1] !== " ") (SCN.pitch ? sfxTalk(SCN.pitch) : sfx("blip"));
       SCN.typed = n;
     }
     $("scnText").textContent = SCN.full.slice(0, SCN.typed);
@@ -165,7 +175,7 @@ const CHAT = {
   drop: { street: [["BIG LOU", "Timber!"], ["DEX", "He's taking a nap."]], nba: [] },
   behind: { street: [["DEX", "We're down. Stay calm. Get a stop."], ["BIG LOU", "Come on, crew. Wake up!"]], nba: [["COACH RAY", "Slow down. Run the play. One stop."], ["COACH RAY", "Don't panic. Play our game."]] },
   ahead: { street: [["DEX", "We're cooking now!"], ["BIG LOU", "Keep it going! Don't let up!"]], nba: [["COACH RAY", "Good. Now don't get comfy."], ["ANNOUNCER", "The rookie's team is pulling away!"]] },
-  close: { street: [["DEX", "Next bucket matters. Big time."]], nba: [["COACH RAY", "Last minute. Every possession."], ["ANNOUNCER", "Down to the wire!"]] },
+  close: { street: [["DEX", "Next bucket matters. Big time."]], nba: [["COACH RAY", "Final seconds. Every possession."], ["ANNOUNCER", "Down to the wire!"]] },
   quarter: { street: [["DEX", "Breathe. We got this."]], nba: [["COACH RAY", "Good quarter. Same again."], ["COACH RAY", "Hydrate. Then go."]] },
   rivalLead: { street: [["TANK", "Too slow, block kid!"], ["KING", "This is what kings look like."]], nba: [["ZEKE KNOX", "Playground's closed!"]] },
 };
@@ -206,7 +216,7 @@ function chatterUpd() {
   } else if (now.home > pv.home && G.home - G.away >= 6 && !CH.said["a" + G.home]) {
     CH.said["a" + G.home] = 1;
     ev = "ahead";
-  } else if (!CH.said.close && Math.abs(G.home - G.away) <= 3 && (tg ? Math.max(G.home, G.away) >= tg - 3 : G.q === G.rules.nq && G.time < 40)) {
+  } else if (!CH.said.close && Math.abs(G.home - G.away) <= 3 && (tg ? Math.max(G.home, G.away) >= tg - 3 : G.q === G.rules.nq && G.time < Math.min(40, G.rules.qlen * 0.6))) {
     CH.said.close = 1;
     ev = "close";
   }

@@ -163,7 +163,7 @@ function render() {
       c.fillRect(q[0] | 0, q[1] | 0, Math.max(1, (q[3] * 0.28 * s[2]) | 0), Math.max(1, (q[3] * 0.2) | 0));
     }
   }
-  PL.forEach((p) => shadow(p.x, p.y, 1.1 - p.z * 0.1, 0.38));
+  PL.forEach((p) => !p.gone && shadow(p.x, p.y, 1.1 - p.z * 0.1, 0.38));
   shadow(b.x, b.y, 0.55 * Math.max(0.3, 1 - b.z * 0.06), 0.3);
   if (G.run && !G.cut && !G.tip) {
     const p = PL[G.ctrl],
@@ -178,7 +178,9 @@ function render() {
   }
   if (b.mode === "shot" || b.mode === "pass")
     ln(G.tr, b.green ? "rgba(60,255,150,.85)" : "rgba(255,205,130,.55)", b.green ? 3 : 2);
-  PL.forEach(buildSprite);
+  G.ballIn = -1; // set by buildSprite when a player's sprite carries the ball
+  PL.forEach((p) => (p.gone ? (p.spr = null) : buildSprite(p)));
+  if (G.ballIn >= 0 && !PL[G.ballIn].spr) G.ballIn = -1;
   const fc = [
     [0, 0],
     [94, 0],
@@ -195,17 +197,18 @@ function render() {
   // Reflections on the polished hardwood only.
   if (!streetish() && SET.reflections) {
     PL.forEach((p) => drawP(p, 1));
-    drawBall(1);
+    if (G.ballIn < 0) drawBall(1);
   }
   c.restore();
   const ob = [];
   PL.forEach((p) => ob.push({ d: dp(p.x, p.y, 2), f: () => drawP(p, 0) }));
-  ob.push({ d: dp(b.x, b.y, b.z), f: () => drawBall(0) });
+  if (G.ballIn < 0) ob.push({ d: dp(b.x, b.y, b.z), f: () => drawBall(0) });
   for (const h of [0, 1]) {
     ob.push({ d: dp(h ? 3.9 : 90.1, 25, 10) + 0.5, f: () => hoopB(h) });
     ob.push({ d: dp(HX(h), 25, 10) - 0.6, f: () => hoopF(h) });
   }
   ob.sort((a, b) => b.d - a.d).forEach((o) => o.f());
+  oopHint();
   if (G.run && !G.cut && b.own === G.ctrl && !G.shot) {
     const q = bestMate(PL[G.ctrl], G.in),
       a = q && P(q.x, q.y, 8.3 + Math.sin(T * 8) * 0.25);
@@ -333,7 +336,7 @@ function post() {
 }
 // The player you control gets their name floating above their head. Nobody else is named.
 function nameTag() {
-  if (!G.run || G.cut || G.tip || !SET.nameTag) return;
+  if (!G.run || G.cut || G.tip || G.win || !SET.nameTag) return;
   const p = G.pl[G.ctrl];
   if (!p || p.t !== 0) return;
   const q = P(p.x, p.y, p.z + 7.2 * bodyScale(p));

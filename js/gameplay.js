@@ -13,6 +13,8 @@ function stats(R, t) {
     hnd: R[7],
     dfn: R[8],
     blk: R[9],
+    rng: R[12] !== undefined ? R[12] : R[5], // range: your hooper has their own; everyone else's follows shooting
+    stm: R[13] !== undefined ? R[13] : 75, // stamina
     sp: (10 + ((R[4] - 60) / 35) * 3) * (t ? DIFF[OPT.diff].sp : 1),
   };
 }
@@ -35,14 +37,18 @@ function greenZone(p) {
   const base = 0.06 + (p.sht / 99) * 0.035,
     squeeze = (p.t === 0 ? DIFF[OPT.diff] : DIFF[1]).squeeze,
     dh = hy(HX(p.t) - p.x, 25 - p.y),
-    range = dh <= RANGE ? 1 : dh <= HALF ? lp(1, 0.45, (dh - RANGE) / (HALF - RANGE)) : 0.25;
-  return Math.max(0.012, base * range * (1 - Math.min(0.85, contest(p) * squeeze)));
+    rk = ((p.rng || 75) - 75) / 25, // range rating: -1 at 50, about +1 at 99
+    R0 = RANGE + rk * 3,
+    range = dh <= R0 ? 1 : dh <= HALF ? lp(1, cl(0.45 + rk * 0.15, 0.3, 0.6), (dh - R0) / (HALF - R0)) : cl(0.25 + rk * 0.08, 0.17, 0.33);
+  const fire = G.fire && G.fire[p.t] ? 1.5 : 1; // on fire: a much bigger green zone
+  return Math.max(0.012, base * range * fire * (1 - Math.min(0.85, contest(p) * squeeze)));
 }
 // Shot range in feet from the hoop: comfortable out to RANGE (just past the 3-point line), HALF is half court.
 const RANGE = 26,
   HALF = 41.75;
-// Chance a shot from dh feet goes in, as a share of what it would be from close range.
-// Perfect releases from inside RANGE always go in; past half court it's about 1 in 10 at Pro.
+// Chance a shot that isn't perfect goes in from dh feet, as a share of what it would be from close range.
+// A perfect release always goes in, from anywhere (David: "THAT SHOT GOES IN"); the green zone shrinking with
+// distance is what makes long ones hard.
 function rangeMake(p, dh) {
   if (dh <= RANGE) return 1;
   const D = p.t === 0 ? DIFF[OPT.diff] : DIFF[1];
@@ -56,7 +62,12 @@ function init() {
   [G.home, G.away] = G.rules.start;
   G.time = G.rules.qlen;
   G.q = 1;
-  G.st = { pts: 0, reb: 0, ast: 0, stl: 0, greens: 0, dunks: 0, ankles: 0, threes: 0, blk: 0, drops: 0, pun: 0 };
+  G.st = { pts: 0, reb: 0, ast: 0, stl: 0, greens: 0, dunks: 0, ankles: 0, threes: 0, blk: 0, drops: 0, pun: 0, oops: 0, bb: 0 };
+  // Showtime (js/showtime.js): baskets in a row and who's on fire, a live buzzer shot, the win celebration.
+  G.streak = [0, 0];
+  G.fire = [0, 0];
+  G.bb = G.win = null;
+  G.winDone = 0;
   G.cut = null;
   G.shot = null;
   G.dead = 0;
@@ -144,6 +155,7 @@ function setPoss(t) {
   });
   G.ctrl = 0;
   $("meter").classList.remove("on");
+  park(); // players left out of a minigame or the tutorial stay off the court
 }
 function toast(m, s = 0.8) {
   const e = $("toast");
@@ -165,6 +177,7 @@ function spark(x, y, z, n, col) {
     });
 }
 function score(t, pts, p, cut) {
+  if (mgScored(t, pts, p)) return; // 3-point and dunk contests keep their own score (js/minigames.js)
   if (t) G.away += pts;
   else G.home += pts;
   const b = G.ball;
@@ -176,6 +189,7 @@ function score(t, pts, p, cut) {
   G.rim[t] = 1;
   G.hype = 1;
   G.next = 1 - t;
+  fireScore(t);
   b.pT = 0;
   p.stt = "cel";
   sfx(cut && G.cut && G.cut.kind === "dunk" ? "dunk" : "swish");
@@ -196,7 +210,7 @@ function bestMate(p, dir) {
   let best = null,
     bs = -1e9;
   G.pl.forEach((q) => {
-    if (q.t !== p.t || q === p) return;
+    if (q.t !== p.t || q === p || q.gone) return;
     const dx = q.x - p.x,
       dy = q.y - p.y,
       d = hy(dx, dy) || 1;
@@ -422,14 +436,23 @@ function doSteal(o) {
 }
 function beginShot(p) {
   if (p.mv) return;
+  // Dunk contest: near the rim it's always a dunk; further out, keep driving.
+  if (G.mg && G.mg.k === "dunk") {
+    const dd = hy(HX(p.t) - p.x, 25 - p.y);
+    if (dd < Math.max(11, rimFx(G.mg.style).glide || 0)) return scripted(p, "dunk");
+    return toast("DRIVE TO THE RIM!", 0.7);
+  }
   const h = HX(p.t),
     dh = hy(h - p.x, 25 - p.y),
     df = minDef(p),
     mv = hy(p.vx, p.vy),
     tw = (p.vx * (h - p.x) + p.vy * (25 - p.y)) / (mv * dh + 0.01);
+  // Some dunks (Moonwalk) take off from way out: sprint at the rim, open, and it's a dunk from there.
+  const glide = rimFx(styleOf(p, "dunk")).glide || 0;
+  if (glide > 10.5 && dh < glide && dh >= 10.5 && df > 5 && mv > 9 && tw > 0.5) return scripted(p, "dunk");
   // Open at the rim = guaranteed bucket. Strong finishers need less space; only big or bouncy players dunk.
   if (dh < 10.5 && df > 4.5 - (p.fin - 75) / 12) {
-    scripted(p, dh < 9 && mv > 5 && tw > 0.3 && p.fin + (p.ht - 76) * 2 >= 74 ? "dunk" : "layup");
+    scripted(p, dh < 9 && mv > 5 && tw > 0.3 && p.fin + (p.ht - 76) * 2 + (p.blk - 70) * 0.4 >= 74 ? "dunk" : "layup");
     return;
   }
   // Right under the rim it's always a layup, never a jump shot. With a defender on you it can rim out,
@@ -466,7 +489,7 @@ function launch(p, q, ai) {
       0.92,
     ),
     rm = rangeMake(p, dh),
-    made = (q > 0.82 && !ai && Math.random() < rm) || Math.random() < ch * rm;
+    made = (q > 0.82 && !ai) || Math.random() < ch * rm;
   const Tm = 0.7 + dh * 0.024,
     z0 = p.z + 7.2,
     tx = hx + (made ? 0 : rn(-0.9, 0.9)),
@@ -514,6 +537,8 @@ function launch(p, q, ai) {
 // miss: a contested layup that rolls off the rim instead of dropping.
 function scripted(p, kind, miss) {
   if (G.cut) return;
+  if (G.mg && G.mg.k === "dunk") (kind = "dunk"), (miss = false); // the dunk contest only has dunks, and they go in
+  mgDunkStart(p);
   const dir = p.t ? -1 : 1,
     dk = kind === "dunk",
     style = styleOf(p, dk ? "dunk" : "layup");
@@ -527,15 +552,12 @@ function scripted(p, kind, miss) {
     y0: p.y,
     h: HX(p.t),
     dir,
-    d: dk ? 1.4 : style === "layup.euro" ? 1.15 : 0.95,
+    d: (dk ? 1.6 : style === "layup.euro" ? 1.15 : 0.95) * (rimFx(style).slow || 1),
     sc: 0,
     side: Math.random() < 0.5 ? -1 : 1,
     style,
     miss: !!miss,
     two: style === "dunk.basic" ? Math.random() < 0.5 : !!rimFx(style).two,
-    nm: style.endsWith(".basic")
-      ? ["TOMAHAWK JAM", "TWO-HAND HAMMER", "THE POSTER", "RIM RATTLER"][(Math.random() * 4) | 0]
-      : animName(style).toUpperCase(),
   };
   if (dk) document.body.classList.add("cine");
 }
@@ -555,7 +577,7 @@ function cutUpd(dt) {
     // Take-off spot, and where the body ends up at the top (under the rim, or past it for a reverse layup).
     tk = [c0.h - c0.dir * (dk ? (fx.glide ? cl(Math.abs(c0.x0 - c0.h), 4.6, fx.glide) : 4.6) : 3.4), 25 + (c0.y0 - 25) * 0.3],
     top = [c0.h - c0.dir * (rev ? -0.9 : 1.6), rev ? 25 + c0.side * 0.6 : 25],
-    Zm = dk ? 3.2 : 2.3,
+    Zm = (dk ? 3.2 : 2.3) * (fx.high || 1),
     ox = p.x,
     oy = p.y,
     f = c0.dir > 0 ? 0 : Math.PI; // facing the rim
@@ -578,23 +600,39 @@ function cutUpd(dt) {
     const k = (u - S) / (1 - S);
     p.x = top[0];
     p.y = top[1];
-    // Dunks hang on the rim for a beat; layups float down.
-    p.z = Zm * (dk ? (k < 0.4 ? 1 - k * 0.15 : Math.max(0, 0.94 - (k - 0.4) / 0.6)) : Math.max(0, 1 - k * 1.25));
+    // Dunks hang on the rim for a beat (the Honey Dip hangs by the elbow for longer); layups float down.
+    const hk = fx.honey ? 0.7 : 0.4;
+    p.z = Zm * (dk ? (k < hk ? 1 - k * 0.15 : Math.max(0, 1 - hk * 0.15 - (k - hk) / (1 - hk))) : Math.max(0, 1 - k * 1.25));
     p.dk = { style: st, phase: dk ? "hang" : "fall", k };
   }
   if (dk && fx.rev && u >= A) face = f + Math.PI;
   if (rev && u >= A) face = f + Math.PI * 0.85 * c0.side;
+  if (fx.turn && u >= A) face = f + fx.turn * c0.side; // side-on (hook layup)
   p.vx = (p.x - ox) / Math.max(dt, 0.001);
   p.vy = (p.y - oy) / Math.max(dt, 0.001);
   p.f += ad(face - p.f) * Math.min(1, dt * 14);
-  if (fx.spin && u >= A && u < S) p.f = f + 6.2832 * ease((u - A) / (S - A));
+  if (fx.spin && u >= A && u < S) p.f = f + 6.2832 * fx.spin * ease((u - A) / (S - A));
+  // Liftoff: a trail of sparks from the feet on the way up.
+  if (fx.trail && u >= A && u < S + 0.05) {
+    for (let i = 0; i < 3; i++)
+      G.fx.push({ x: p.x + rn(-0.4, 0.4), y: p.y + rn(-0.4, 0.4), z: p.z + 0.3, vx: rn(-3, 3), vy: rn(-3, 3), vz: rn(-14, -4), l: rn(0.25, 0.6), c: ["#9d4dff", "#ffcf5c", "#ff7a1a", "#fff"][i % 4] });
+    if (!c0.boom) (c0.boom = 1), sfx("fire");
+  }
   p.ph += hy(p.vx, p.vy) * dt * 0.8 * (u < A ? 1 : 0.2);
   p.def = false;
+  const wC = c0.oop ? u / (A + (S - A) * 0.5) : 1; // alley-oop: the lob arrives halfway up the rise
   if (u < A) {
     p.hw = null;
-    b.own = p.id;
-    b.mode = "held";
-    ballUpd(dt);
+    if (c0.oop) {
+      b.own = -1;
+      b.mode = "cut";
+      [b.x, b.y, b.z] = oopBall(c0, wC, [p.x, p.y, p.z + 7.5]);
+      b.spin += dt * 6;
+    } else {
+      b.own = p.id;
+      b.mode = "held";
+      ballUpd(dt);
+    }
   } else if (u < S) {
     // Rise: the hand follows the style's path, in the rim's frame.
     const k = (u - A) / (S - A),
@@ -608,11 +646,22 @@ function cutUpd(dt) {
     b.x = p.hw[0] + Math.cos(f) * 0.15;
     b.y = p.hw[1] + Math.sin(f) * 0.15;
     b.z = p.hw[2] + 0.4;
+    if (wC < 1) [b.x, b.y, b.z] = oopBall(c0, wC, [b.x, b.y, b.z]);
     b.spin += dt * (dk ? 3 : 8);
   } else {
     // Dunk: hand stays on the rim while hanging. Layup: arm stays up in follow-through.
     const k = (u - S) / (1 - S);
-    p.hw = dk ? (k < 0.55 ? [c0.h - c0.dir * 0.55, 25, 10.15] : null) : k < 0.5 ? [p.x + Math.cos(f) * 1.0, p.y + Math.sin(f) * 1.0, p.z + 7.4] : null;
+    p.hw = dk
+      ? fx.honey
+        ? k < 0.8
+          ? [c0.h - c0.dir * 0.1, 25 - c0.dir * 0.3, 9.0] // right arm through the rim up to the elbow
+          : null
+        : k < 0.55
+          ? [c0.h - c0.dir * 0.55, 25, 10.15]
+          : null
+      : k < 0.5
+        ? [p.x + Math.cos(f) * 1.0, p.y + Math.sin(f) * 1.0, p.z + 7.4]
+        : null;
     p.hw2 = dk && c0.two && p.hw ? p.hw : null;
     if (!c0.sc && c0.miss) {
       // Rolled off the rim: a loose ball, anyone's rebound.
@@ -642,8 +691,6 @@ function cutUpd(dt) {
         G.shake = 1;
         G.hs = 0.12;
         spark(c0.h, 25, 10, 40);
-        $("ttl").innerHTML = "SLAM DUNK!<small>" + c0.nm + "</small>";
-        $("ttl").className = "on";
       } else toast(st.endsWith(".basic") ? "LAYUP" : animName(st).toUpperCase(), 0.7);
     }
     ballUpd(dt);
@@ -789,6 +836,7 @@ function ballUpd(dt) {
       b.vy *= 0.85;
     }
   }
+  hoopHit(b, dt);
   if (b.x < 1 || b.x > 93) {
     b.vx *= -0.6;
     b.x = cl(b.x, 1, 93);
@@ -797,7 +845,7 @@ function ballUpd(dt) {
     b.vy *= -0.6;
     b.y = cl(b.y, 1, 49);
   }
-  if (!b.made && !(G.dead > 0)) {
+  if (!b.made && !(G.dead > 0) && !(G.mg && G.mg.k !== "1v1")) {
     let best = null,
       bd = 1e9;
     for (const p of PL) {
@@ -820,6 +868,53 @@ function ballUpd(dt) {
       G.sc = 24;
       if (best.t === 0 && miss) G.st.reb++;
       toast(miss ? "REBOUND" : "LOOSE BALL", 0.5);
+    }
+  }
+}
+// A loose ball bounces off the backboards and rims instead of passing through them.
+const BALL_R = 0.55;
+function hoopHit(b) {
+  for (const h of [0, 1]) {
+    const bx = h ? 3.9 : 90.1,
+      s = h ? 1 : -1, // +1: the board faces +x
+      hx = HX(h);
+    // Backboard: a 6 ft x 3.5 ft board standing at x = bx.
+    if (b.y > 22 - BALL_R && b.y < 28 + BALL_R && b.z > 8.8 - BALL_R && b.z < 12.3 + BALL_R && (b.x - bx) * s < BALL_R) {
+      if ((b.x - bx) * s > -0.6) {
+        b.x = bx + s * BALL_R;
+        if (b.vx * s < 0) {
+          b.vx = -b.vx * 0.55;
+          sfx("board");
+        }
+      }
+    }
+    // Rim: a ring of radius 0.75 ft at 10 ft. Push the ball out from the nearest point on the ring.
+    const dx = b.x - hx,
+      dy = b.y - 25,
+      rr = hy(dx, dy);
+    if (rr > 2 || Math.abs(b.z - 10) > 1) continue;
+    const kx = rr > 0.01 ? (dx / rr) * 0.75 : 0.75,
+      ky = rr > 0.01 ? (dy / rr) * 0.75 : 0,
+      nx = dx - kx,
+      ny = dy - ky,
+      nz = b.z - 10,
+      d = hy(nx, ny, nz);
+    if (d < BALL_R + 0.05 && d > 0.001) {
+      const ux = nx / d,
+        uy = ny / d,
+        uz = nz / d,
+        vn = b.vx * ux + b.vy * uy + b.vz * uz,
+        push = BALL_R + 0.05 - d;
+      b.x += ux * push;
+      b.y += uy * push;
+      b.z += uz * push;
+      if (vn < 0) {
+        b.vx -= 1.55 * vn * ux;
+        b.vy -= 1.55 * vn * uy;
+        b.vz -= 1.55 * vn * uz;
+        G.rim[h] = Math.max(G.rim[h], 0.6);
+        if (vn < -3) sfx("rim");
+      }
     }
   }
 }
@@ -872,7 +967,14 @@ function handler(p, dt) {
     p.ai = 0;
     p.ft = Math.atan2(25 - p.y, h - p.x);
     // Wind up the jump shot; it's released in aiShotStep().
-    p.aishot = { t: 0, d: 0.55, q: cl(0.45 + dk(p).shotQ + (df - 3) * 0.07 + rn(-0.2, 0.2), 0.1, 1) };
+    p.aishot = { t: 0, d: 0.55, q: cl(0.45 + dk(p).shotQ + (G.fire[p.t] ? 0.15 : 0) + (df - 3) * 0.07 + rn(-0.2, 0.2), 0.1, 1) };
+    return;
+  }
+  // An open teammate cutting to the rim gets the lob.
+  const oq = oopMate(p);
+  if (oq && p.ai > 0.4 && Math.random() < dt * 2.5) {
+    p.ai = 0;
+    alleyOop(p, oq);
     return;
   }
   // Under pressure the AI breaks out a dribble move now and then.
@@ -889,7 +991,7 @@ function ai(dt) {
     bd = [1e9, 1e9];
   if (b.own < 0 && b.mode !== "pass")
     PL.forEach((p, i) => {
-      if (p.rag) return;
+      if (p.rag || p.gone) return;
       const d = dist(p, b);
       if (d < bd[p.t]) {
         bd[p.t] = d;
@@ -898,7 +1000,7 @@ function ai(dt) {
     });
   PL.forEach((p, i) => {
     p.def = false;
-    if (p.rag || p.sl) return;
+    if (p.rag || p.sl || p.gone) return;
     if (i === G.ctrl && !G.auto) return; // G.auto: the smoke test lets the AI play your player too
     const t = p.t,
       d = t ? -1 : 1,
@@ -913,6 +1015,7 @@ function ai(dt) {
       return;
     }
     if (off) {
+      if (oopCut(p, dt)) return;
       const s = [
         [h - d * 24, 25],
         [h - d * 18, 9],
@@ -961,10 +1064,17 @@ function human(dt) {
   G.in = mg ? { x: wx, y: wy } : null;
   const spr = mg && (K("ShiftLeft") || K("ShiftRight") || (G.joy && G.joy.m > 0.92)) && p.stam > 5,
     sp = p.sp * jm * (spr ? 1.5 : 1) * (p.stam < 18 ? 0.8 : 1) * (G.shot ? 0.3 : 1) * (p.stun > 0 ? 0.3 : 1);
-  const kk = 1 - Math.exp(-(mg ? 11 : 16) * dt);
+  const kk = 1 - Math.exp(-(mg ? 11 : 16) * dt),
+    v0 = hy(p.vx, p.vy);
+  // Sneakers squeak on a hard cut at speed.
+  if (mg && v0 > 8 && (p.vx * wx + p.vy * wy) / v0 < 0.2 && T - (G.sqT || 0) > 0.4) {
+    G.sqT = T;
+    sfx("squeak");
+  }
   p.vx += (wx * sp - p.vx) * kk;
   p.vy += (wy * sp - p.vy) * kk;
-  p.stam = cl(p.stam + (spr ? -17 : mg ? 3 : 9) * dt, 0, 100);
+  // Sprinting drains stamina; the stamina rating changes how fast (75 is the usual rate).
+  p.stam = cl(p.stam + (spr ? -17 * cl(1 + (75 - (p.stm || 75)) * 0.012, 0.6, 1.35) : mg ? 3 : 9) * dt, 0, 100);
   if (G.shot) p.ft = Math.atan2(25 - p.y, HX(p.t) - p.x);
   if (spr && Math.random() < 0.5)
     G.fx.push({
@@ -995,13 +1105,17 @@ function human(dt) {
     else if (b.own !== p.id && !p.z) p.vz = 10;
   }
   if (pr("KeyQ")) {
-    if (b.own === p.id && !G.shot) passTo(p, bestMate(p, G.in));
+    if (b.own === p.id && !G.shot) {
+      const oq = oopMate(p);
+      if (oq) alleyOop(p, oq);
+      else passTo(p, bestMate(p, G.in));
+    }
     else {
       let bs = null,
         bd = 1e9;
       for (let i = 0; i < 3; i++) {
         const d = dist(G.pl[i], b);
-        if (i !== G.ctrl && d < bd) {
+        if (i !== G.ctrl && d < bd && !G.pl[i].gone) {
           bd = d;
           bs = i;
         }
@@ -1035,7 +1149,7 @@ function ctrlSel(dt) {
     bd = 1e9;
   for (let i = 0; i < 3; i++) {
     const d = dist(G.pl[i], ref);
-    if (d < bd && !G.pl[i].rag) {
+    if (d < bd && !G.pl[i].rag && !G.pl[i].gone) {
       bd = d;
       best = i;
     }
@@ -1046,6 +1160,7 @@ function ctrlSel(dt) {
   }
 }
 function integ(p, dt) {
+  if (p.gone) return; // not in this game (minigames): parked far off the court
   if (p.rag) {
     const r = p.rag;
     r.t += dt;
@@ -1114,6 +1229,8 @@ const MOVES = {
   tweens: { d: 0.55, name: "TWEEN COMBO", push: 9, sw: 1, ankle: 1.2 },
   curry: { d: 0.62, name: "DOUBLE BEHIND", push: 10, sw: 0, ankle: 1.3 },
   ai: { d: 0.62, name: "THE CROSSOVER", push: 15, sw: 1, ankle: 1.9 },
+  halfspin: { d: 0.55, name: "HALF SPIN", push: 9, sw: 0, ankle: 1.3 },
+  yoyo: { d: 0.75, name: "YO-YO", push: 13, sw: 0, ankle: 1.8 },
 };
 const BASE_MOVES = ["cross", "legs", "back", "spin"];
 const movePool = (p) => (p.t === 0 ? BASE_MOVES.concat(SAVE.equip.moves.map((id) => id.split(".")[1])) : BASE_MOVES);
@@ -1129,11 +1246,12 @@ function dribbleMove(p) {
     d = p.id === G.ctrl && G.in ? G.in : { x: Math.cos(p.f), y: Math.sin(p.f) };
   if (p.t === 0) G.lastMv = k;
   else p.lastMv = k;
+  if (G.mg && G.mg.moves) G.mg.moves.add(k); // the dunk contest judges like a move on the way in
   p.mv = { k, t: 0, d: M.d, h, f0: p.f };
-  if (k === "spin" || k === "tornado") {
+  if (k === "spin" || k === "tornado" || k === "halfspin") {
     p.vx += d.x * M.push;
     p.vy += d.y * M.push;
-  } else if (k === "hesi" || k === "stutter" || k === "ai") {
+  } else if (k === "hesi" || k === "stutter" || k === "ai" || k === "yoyo") {
     // Fake stop first; the burst comes halfway through (moveStep).
     p.vx *= 0.25;
     p.vy *= 0.25;
@@ -1170,12 +1288,13 @@ function moveStep(p, dt) {
   m.t += dt;
   // The spin turns the body a full circle, away from the ball side.
   if (m.k === "spin" || m.k === "tornado") p.f = m.f0 + -m.h * 6.2832 * sm(cl(m.t / m.d, 0, 1));
+  if (m.k === "halfspin") p.f = m.f0 + -m.h * Math.PI * 0.9 * Math.sin(cl(m.t / m.d, 0, 1) * Math.PI); // halfway round and back
   // Second half of two-part moves.
   if (!m.mid && m.t >= m.d * 0.45) {
     m.mid = 1;
     const fx = Math.cos(p.f),
       fy = Math.sin(p.f);
-    if (m.k === "hesi" || m.k === "stutter") {
+    if (m.k === "hesi" || m.k === "stutter" || m.k === "yoyo") {
       p.vx += fx * MOVES[m.k].push;
       p.vy += fy * MOVES[m.k].push;
     } else if (m.k === "inout") {
@@ -1194,7 +1313,7 @@ function moveStep(p, dt) {
     }
   }
   if (m.t >= m.d || G.ball.own !== p.id) {
-    if (m.k === "spin" || m.k === "tornado") p.f = m.f0;
+    if (m.k === "spin" || m.k === "tornado" || m.k === "halfspin") p.f = m.f0;
     p.hand = MOVES[m.k].sw ? -m.h : m.h;
     // Restart the dribble bounce where the move left the ball.
     G.ball.bph = m.k === "back" ? 0 : Math.PI / 2;
@@ -1220,11 +1339,13 @@ function separate() {
     }
 }
 function end() {
+  if (!G.winDone && winsCelebrate()) return startWin();
   G.run = 0;
   $("vm").style.display = "none";
   hudOn(0);
   document.body.classList.remove("cine", "bars");
   if (G.prac) show("menu");
+  else if (G.mg) mgEnd();
   else if (G.camp) campEnd();
   else showResults();
 }

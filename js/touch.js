@@ -118,6 +118,7 @@ G.joy = null;
   $("tSkip").addEventListener("pointerdown", (e) => {
     e.preventDefault();
     if (G.cut && G.cut.t < G.cut.d * 0.7) G.cut.t = G.cut.d * 0.7;
+    winSkip();
   });
 })();
 // Which key a button presses right now: the right-thumb buttons change with possession.
@@ -147,9 +148,10 @@ function touchUpd() {
       if (e.textContent !== t) e.textContent = t;
     };
   lab("main", G.tip ? "TIP" : mine ? (G.shot ? "RELEASE" : "SHOOT") : ours ? "JUMP" : "BLOCK");
-  lab("pass", mine ? "PASS" : "SWITCH");
+  lab("pass", mine ? (oopMate(G.pl[G.ctrl]) ? "OOP!" : "PASS") : "SWITCH");
+  document.querySelector('#touch [data-b="pass"]').classList.toggle("oop", !!(mine && oopMate(G.pl[G.ctrl])));
   lab("move", mine ? "MOVE" : "STEAL");
-  document.body.classList.toggle("tcut", !!G.cut);
+  document.body.classList.toggle("tcut", !!G.cut || !!G.win);
   document.body.classList.toggle("ttip", !!G.tip);
 }
 // Phones held upright get a "turn sideways" prompt during play and menus.

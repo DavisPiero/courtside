@@ -124,7 +124,13 @@ function ballLocal(p) {
       const t = cl((u - 0.35) / 0.3, 0, 1);
       return [0.35 - Math.sin(t * Math.PI) * 0.95, lp(h * 0.85, -h * 0.85, ease(t)), 2.4];
     }
-    return [0.35, h * 0.85, 2.5]; // spin: ball tucked at the hip while the body turns
+    if (m.k === "yoyo") {
+      // Slam it down, it bounces way up over the head, then drops back into the hand.
+      if (u < 0.2) return [1.0, h * 0.55, lp(2.4, 0.55, ease(u / 0.2))];
+      const w = (u - 0.2) / 0.8;
+      return [lp(1.0, 1.1, w), h * 0.55 * (1 - Math.sin(w * Math.PI) * 0.6), 0.55 + Math.sin(w * Math.PI) * 7.6 * (1 - w * 0.3) + w * 1.6];
+    }
+    return [0.35, h * 0.85, 2.5]; // spin and half spin: ball tucked at the hip while the body turns
   }
   return [0.9, h * 0.55, 0.55 + Math.abs(Math.sin(B.bph)) * 2.7];
 }
@@ -197,6 +203,7 @@ function buildSprite(p) {
     guarded: !port && G.pl.length && minDef(p) < 5,
     bph: b.bph,
     dk: port ? port.dk : p.dk,
+    trophy: !port && p.trophy,
   };
   let Q = animPose(p, ctx);
   // Dunk/layup hand from the cutscene path (world feet) overrides the ball hand.
@@ -312,7 +319,8 @@ function buildSprite(p) {
       it.push({ A, B, w: w * K, col, d: (A[2] + B[2]) / 2 - (bias || 0) });
     },
     mid = (a, q, t) => [lp(a[0], q[0], t), lp(a[1], q[1], t), lp(a[2], q[2], t)];
-  const sk = p.sk,
+  const shoe = shoeOf(p),
+    sk = p.sk,
     hr = p.hcol || ["#16100d", "#2a1a10", "#0b0b0b"][look % 3],
     hc = [lean + 0.1, 0, hz + 2.87],
     hs = p.hair !== undefined ? p.hair : HST[look % 12];
@@ -327,10 +335,11 @@ function buildSprite(p) {
     add([h[0], h[1] + sd * 0.55, h[2] + 0.1], [th[0], th[1] + sd * 0.55, th[2]], 0.16, tm.t, 0.3);
     add(kn, cf2, 0.5, sk);
     add(cf2, ft, 0.46, "#f3f3f3");
-    add([ft[0], ft[1], ft[2] + 0.5], [ft[0], ft[1], ft[2] + 0.05], 0.5, tm.j);
-    add(ft, [ft[0] + 0.8, ft[1], ft[2] - 0.02], 0.62, tm.j);
-    add([ft[0], ft[1], ft[2] - 0.28], [ft[0] + 0.8, ft[1], ft[2] - 0.28], 0.16, "#f4f4f4", 0.2);
-    add([ft[0] + 0.15, ft[1], ft[2] + 0.2], [ft[0] + 0.7, ft[1], ft[2] + 0.22], 0.34, tm.t, 0.1);
+    // Shoes: the equipped pair (js/shoes.js) for your team, team colours for everyone else.
+    add([ft[0], ft[1], ft[2] + 0.5], [ft[0], ft[1], ft[2] + 0.05], 0.5, shoe ? shoe.ov : tm.j);
+    add(ft, [ft[0] + 0.8, ft[1], ft[2] - 0.02], 0.62, shoe ? shoe.up : tm.j);
+    add([ft[0], ft[1], ft[2] - 0.28], [ft[0] + 0.8, ft[1], ft[2] - 0.28], 0.16, shoe ? shoe.so : "#f4f4f4", 0.2);
+    add([ft[0] + 0.15, ft[1], ft[2] + 0.2], [ft[0] + 0.7, ft[1], ft[2] + 0.22], 0.34, shoe ? shoe.ac : tm.t, 0.1);
   }
   add([0, 0, hz + 0.3], [0, 0, hz - 0.35], (1.15 + 0.5 * vis) * bw, tm.s);
   add([0, 0, hz + 0.38], [0, 0, hz + 0.24], (1.2 + 0.5 * vis) * bw, tm.t, -0.05);
@@ -443,6 +452,24 @@ function buildSprite(p) {
       if (BND[look % 12]) blk(cx, cy - h * 0.2, w + 2, Math.max(1.5, K * 0.17), tm.t);
     },
   });
+  // The ball, while this player has it, is drawn into the sprite among the body parts, so it really goes
+  // behind the back on a behind-the-back move and sits in the hand (not on top of it) when they shoot.
+  const BW0 = port ? (port.ball ? [port.ball[0], port.ball[1], port.ball[2] + p.z] : null) : heldBall(p);
+  if (BW0) {
+    const bx = BW0[0] / S,
+      by = BW0[1] / S,
+      bz = (BW0[2] - p.z) / S + p.z,
+      B = [ox + (bx * Rx + by * Ry) * K, oy - (bx * Ux + by * Uy + bz * Uz) * K, bx * Fx + by * Fy + bz * Fz],
+      br = Math.max(3, Math.round(0.55 * k));
+    it.push({ d: B[2], fn: () => (ballPix(x, Math.round(B[0]), Math.round(B[1]), br, port ? tt * 6 : b.spin), bb(B, br + 1)) });
+    if (!port) G.ballIn = p.id;
+  }
+  // The winner's trophy, held up over the head (js/showtime.js).
+  if (!port && p.trophy) {
+    const tz = 7.65 + p.z, // the hands, in the same units as the body (see pj)
+      Tp = [ox, oy - tz * Uz * K, tz * Fz];
+    it.push({ d: Tp[2] - 0.6, fn: () => (drawTrophy(x, Tp[0], Tp[1] - (1 - p.trophy) * 0.6 * k, k, G.win && G.win.finals), bb([Tp[0], Tp[1] - 3 * k], k)) });
+  }
   it.sort((a, q) => q.d - a.d);
   for (const q of it) {
     if (q.fn) {
@@ -524,38 +551,55 @@ function drawP(p, m) {
   c.drawImage(q.cv, q.x0, q.y0, q.w, q.h, q.x0 - q.ox, q.y0 - q.oy, q.w, q.h);
   c.restore();
 }
+// The ball's offset from player p in world feet [dx, dy, height], if p is holding it (or dunking it) right now.
+function heldBall(p) {
+  const b = G.ball;
+  if (!b || !(b.own === p.id && b.mode === "held") && !(b.mode === "cut" && G.cut && G.cut.p === p)) return null;
+  return [b.x - p.x, b.y - p.y, b.z];
+}
+// A pixel basketball of radius r at (cx, cy) on context g, seams turned by spin.
+function ballPix(g, cx, cy, r, spin) {
+  const ro = Math.round,
+    disc = (X, Y, R, col) => {
+      g.fillStyle = col;
+      for (let dy = -R; dy <= R; dy++) {
+        const w = Math.floor(Math.sqrt(R * R - dy * dy + R * 0.5));
+        g.fillRect(X - w, Y + dy, 2 * w + 1, 1);
+      }
+    };
+  disc(cx, cy, r + 1, "#2a0f08");
+  disc(cx, cy, r, "#b5521a");
+  disc(cx - 1, cy - 1, Math.max(1, r - 1), "#e8782b");
+  disc(cx - ro(r * 0.3), cy - ro(r * 0.3), Math.max(1, ro(r * 0.55)), "#f59a4a");
+  g.fillStyle = "#2a0f08";
+  for (let t = -r; t <= r; t++)
+    for (const an of [spin, spin + 1.5708]) g.fillRect(cx + ro(Math.cos(an) * t), cy + ro(Math.sin(an) * t), 1, 1);
+  g.fillStyle = "#ffd9a0";
+  g.fillRect(cx - ro(r * 0.45), cy - ro(r * 0.5), 1, 1);
+}
 function drawBall(m) {
   const b = G.ball,
     q = P(b.x, b.y, m ? -b.z : b.z);
   if (!q) return;
   const r = Math.max(3, Math.round(0.55 * q[3])),
     cx = Math.round(q[0]),
-    cy = Math.round(q[1]),
-    ro = Math.round;
-  const disc = (X, Y, R, col) => {
-    c.fillStyle = col;
-    for (let dy = -R; dy <= R; dy++) {
-      const w = Math.floor(Math.sqrt(R * R - dy * dy + R * 0.5));
-      c.fillRect(X - w, Y + dy, 2 * w + 1, 1);
-    }
-  };
+    cy = Math.round(q[1]);
   c.globalAlpha = m ? 0.3 : 1;
-  if (b.green && b.mode === "shot" && !m) {
+  if ((b.green || b.fire) && b.mode === "shot" && !m) {
+    const col = b.fire ? "#ff7a1a" : "#3cff9a";
     c.globalAlpha = 0.3;
-    disc(cx, cy, r + 4, "#3cff9a");
+    disc0(cx, cy, r + 4, col);
     c.globalAlpha = 0.5;
-    disc(cx, cy, r + 2, "#3cff9a");
+    disc0(cx, cy, r + 2, col);
     c.globalAlpha = 1;
   }
-  disc(cx, cy, r + 1, "#2a0f08");
-  disc(cx, cy, r, "#b5521a");
-  disc(cx - 1, cy - 1, Math.max(1, r - 1), "#e8782b");
-  disc(cx - ro(r * 0.3), cy - ro(r * 0.3), Math.max(1, ro(r * 0.55)), "#f59a4a");
-  c.fillStyle = "#2a0f08";
-  for (let t = -r; t <= r; t++)
-    for (const an of [b.spin, b.spin + 1.5708])
-      c.fillRect(cx + ro(Math.cos(an) * t), cy + ro(Math.sin(an) * t), 1, 1);
-  c.fillStyle = "#ffd9a0";
-  c.fillRect(cx - ro(r * 0.45), cy - ro(r * 0.5), 1, 1);
+  ballPix(c, cx, cy, r, b.spin);
   c.globalAlpha = 1;
+}
+function disc0(X, Y, R, col) {
+  c.fillStyle = col;
+  for (let dy = -R; dy <= R; dy++) {
+    const w = Math.floor(Math.sqrt(R * R - dy * dy + R * 0.5));
+    c.fillRect(X - w, Y + dy, 2 * w + 1, 1);
+  }
 }
