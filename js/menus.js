@@ -179,6 +179,7 @@ function start(pr) {
   show(null);
   hudOn(1);
   initTip();
+  hud();
 }
 function initTip() {
   const L = G.pl,

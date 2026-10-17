@@ -99,25 +99,39 @@ function sfx(k) {
   };
   if (m[k]) m[k]();
 }
+// Music: free hip-hop/trap beats by Kevin MacLeod (incompetech.com), licensed CC BY 4.0, streamed from his site.
+// The licence requires the credit, which shows bottom left while a track plays. Full credits in CREDITS.md.
+const INC = "https://incompetech.com/music/royalty-free/mp3-royaltyfree/";
+const TRACKS = [
+  { s: INC + "Lewis%20and%20Dekalb.mp3", n: "Lewis and Dekalb", by: "Kevin MacLeod" },
+  { s: INC + "Basic%20Implosion.mp3", n: "Basic Implosion", by: "Kevin MacLeod" },
+  { s: INC + "MTA.mp3", n: "MTA", by: "Kevin MacLeod" },
+  { s: INC + "Griphop.mp3", n: "Griphop", by: "Kevin MacLeod" },
+  { s: INC + "Rocket%20Power.mp3", n: "Rocket Power", by: "Kevin MacLeod" },
+];
 const MUS = {
   on: QUIET ? 0 : 1,
   a: new Audio(),
   q: [],
   last: "",
-  cur: "",
+  cur: null,
   fail: 0,
   pend: 0,
   started: 0,
-  list: ["BLACK_SKNHEAD", "FAKE_ID", "PASS_OUT", "POSTER_BOY", "RAGING_WOLF"].map((n) => ({
-    s: n + ".mp3",
-    n: n.replace(/_/g, " "),
-  })),
+  list: TRACKS,
 };
 MUS.a.volume = 0.45;
 MUS.a.preload = "auto";
-const musMsg = (t) => {
-  $("np").textContent = t;
-};
+// Bottom-left credit: song name, then artist and licence. Empty when music is off.
+function musShow() {
+  const t = MUS.cur,
+    np = $("np");
+  if (!MUS.on || !t) {
+    np.innerHTML = "";
+    return;
+  }
+  np.innerHTML = `<b>♪ ${t.n}</b>${t.by} · incompetech.com · CC BY 4.0`;
+}
 function musPlay() {
   const p = MUS.a.play();
   if (p && p.catch)
@@ -138,38 +152,36 @@ function musNext() {
   }
   const t = MUS.q.pop();
   MUS.last = t.s;
-  MUS.cur = t.n;
+  MUS.cur = t;
   MUS.a.src = t.s;
-  musMsg("♪ " + t.n);
+  musShow();
   if (MUS.on) musPlay();
 }
 MUS.a.addEventListener("playing", () => {
   MUS.fail = 0;
   MUS.pend = 0;
+  musShow();
 });
 MUS.a.addEventListener("ended", musNext);
 MUS.a.addEventListener("error", () => {
   MUS.fail++;
   if (MUS.fail < MUS.list.length) musNext();
   else {
+    // Offline or the host is down: play on without music.
     MUS.on = 0;
+    MUS.cur = null;
     $("mu").textContent = "MUSIC: OFF";
-    musMsg(
-      "♪ music files not found: keep the MP3s next to the HTML file, or use Load Music in the pause menu",
-    );
+    musShow();
   }
 });
 function musToggle() {
   MUS.on ^= 1;
   $("mu").textContent = "MUSIC: " + (MUS.on ? "ON" : "OFF");
-  if (!MUS.on) {
-    MUS.a.pause();
-    musMsg("♪ music off");
-  } else if (MUS.a.src && !MUS.fail) {
-    musPlay();
-    musMsg("♪ " + MUS.cur);
-  } else {
+  if (!MUS.on) MUS.a.pause();
+  else if (MUS.a.src && !MUS.fail) musPlay();
+  else {
     MUS.fail = 0;
     musNext();
   }
+  musShow();
 }
