@@ -4,8 +4,8 @@ _Written 2026-10-17 (session 2). Replace this file at the end of each session; d
 
 ## State of the repo
 - `main` is the live site and is unchanged this session.
-- Branch `session2` has all of session 2 in four commits (Quick Play + story; Hall of Fame; animations + Shop;
-  docs). Not merged: David reviews first. On sign-off: merge into main, push, delete the branch.
+- Branch `session2` has all of session 2 in three commits (Quick Play + story; Hall of Fame; animations, Shop
+  and docs). Not merged: David reviews first. On sign-off: merge into main, push, delete the branch.
 - `./tools/smoke.sh` passes on the branch.
 
 ## Read first
