@@ -1,8 +1,14 @@
 # Courtside: state
 
-_Updated 2026-10-17 (session 4)._
+_Updated 2026-10-17 (session 5)._
 
 ## Where we are
+Round 4 on branch `animations` (not merged or pushed; David reviews first): keyframe animation
+system with smoother, exaggerated moves (dribble, jumper, dunks, layups, punch, slide, defence),
+37 collectable animations with rarities, Shop packs with visible odds, equip-only Inventory,
+Animation Lab in Settings.
+
+Earlier:
 Branch `overhaul` holds three rounds of David's notes, not merged or pushed. David reviews first,
 then we push. `main` (the live site, https://davispiero.github.io/courtside/) is still v1.0.
 
@@ -25,6 +31,8 @@ at phone (844x390) and iPad (1180x820) sizes. Not tested: a real phone or iPad i
 - First outside playtest, still not done.
 
 ## Open with David (guesses until confirmed)
+0. Pack prices, odds, refunds and the 3× bonus for new animations are first guesses (js/packs.js).
+   Old purchases carried over; a save from round 3 keeps any animations already bought.
 1. Campaign story, opponents, goals and rewards are invented (js/campaign.js).
 2. Pack prices (150-500 CC) and earnings (~60-170 CC a game) are first guesses.
 3. Your crew mates are named Dex and Big Lou.

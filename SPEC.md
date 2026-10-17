@@ -19,12 +19,19 @@ first-to-N, comebacks, Mayhem nights), Summer League, The League, The Finals (NB
 has a story card and 3 stars: win, a twist goal, a style goal. Winning unlocks the next game; boss
 games unlock the next chapter. Your crew (you, Dex, Big Lou) gets better each chapter.
 
-## Court Coins (CC) and animation packs
+## Court Coins (CC), the Shop and the Inventory
 Earn CC for winning and for style (perfect releases, dunks, ankle breakers, threes, steals, blocks),
-plus new stars and first wins in the campaign. Spend them in the Inventory on animation packs:
-dunks (Tomahawk, Reverse, Windmill, 360), dribble moves (Hesitation, Snatch-Back, Double Cross),
-celebrations (Flex, Shh, Too Small, Dance) and shot forms (Set, High Release, Fadeaway). Equip there,
-with a live preview. Saved in the browser; no accounts yet.
+plus new stars and first wins in the campaign. Spend them in the **Shop** on packs that contain
+random animations: Street (150 CC, 1 card), Pro (400, 2, one Rare+), All-Star (900, 3, one Epic+),
+Hall of Fame (2000, 3, one Legendary). Odds are shown on every pack. Duplicates turn into coins.
+37 animations in five categories (dunks, layups, dribble moves, jump shots, celebrations), each
+Common, Rare, Epic or Legendary; better ones are flashier. The **Inventory** only equips what you
+own (one per category, up to 3 extra dribble moves) and shows what's still locked. No real money, ever.
+
+## Animation
+Every move is a keyframed clip with eased timing, blended and smoothed so nothing snaps; moves are
+exaggerated so they read in pixel art. Settings > Animation Lab shows any move at 1×, ½× or ¼× speed
+from the front, side or back.
 
 ## Touch controls
 Floating joystick on the left (edge = sprint), right-thumb cluster: one big button plus two, with

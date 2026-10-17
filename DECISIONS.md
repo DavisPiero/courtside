@@ -30,3 +30,8 @@ One line each, newest last.
 - 2026-10-17 · Packs change real animations, used by your team only; AI keeps the basics.
 - 2026-10-17 · Touch: floating joystick, context-sensitive 3-button cluster, edge-push sprint.
 - 2026-10-17 · Device choice asked every launch; last choice highlighted (David's spec).
+- 2026-10-17 · Third animation note: replaced hand-placed poses with a keyframe system plus an Animation Lab.
+- 2026-10-17 · Shop sells random packs with rarities (David's note); Inventory only equips.
+- 2026-10-17 · Pack odds shown on every pack; guarantees per tier; duplicates refund coins; new items 3× as likely.
+- 2026-10-17 · New Layups category so the most common finish also has collectable styles.
+- 2026-10-17 · AI shoots with the same jump-shot animation; jump happens on the rise, not at release.

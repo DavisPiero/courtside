@@ -27,14 +27,15 @@ where we are.
 - `js/teams.js` all 30 teams, rosters and player ratings (edit freely)
 - `js/settings.js` the settings menu's options and saving them
 - `js/save.js` your save: Court Coins, packs, campaign stars (browser storage only)
-- `js/packs.js` the animation packs: names, prices, descriptions
+- `js/anim.js` the animation system: keyframe clips for every move, blending, smoothing
+- `js/packs.js` collectable animations (rarity, names) and Shop packs (prices, odds)
 - `js/campaign.js` campaign chapters, games, story lines, goals; your crew
 - `js/campui.js` campaign, hooper, story and results screens
 - `js/touch.js` touch controls for Mobile / Tablet
 - `js/core.js` helpers, options and difficulty, global state, screen sizing
 - `js/projection.js` 3D projection and drawing primitives
 - `js/arena.js` arena and street courts (crowd, fences, floors)
-- `js/players.js` player models and animation, ball
+- `js/players.js` player models (drawing; poses come from anim.js), ball
 - `js/render.js` hoops, per-frame render, post effects
 - `js/camera.js` cameras and cutscene cameras
 - `js/gameplay.js` rules, moves, AI, input
@@ -42,6 +43,10 @@ where we are.
 - `js/audio.js` sound effects (no music)
 - `js/menus.js` menus, setup screen, tip-off
 - `js/main.js` input listeners, start-up, smoke-test hook
+
+## Animation
+- Tune moves in `js/anim.js` (keyframes are plain numbers) and check them in Settings >
+  Animation Lab at ¼ speed from front, side and back before calling them done.
 
 ## Out of scope (unless David asks)
 Online accounts (brief only, not until David asks), online play, fouls/free throws, substitutions, seasons, saving progress.
