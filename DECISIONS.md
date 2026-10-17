@@ -40,3 +40,15 @@ One line each, newest last.
 - 2026-10-17 · Old campaign stars migrate: chapters 1-2 to Street, 3-5 to NBA.
 - 2026-10-17 · iOS ignores user-scalable=no: block fast second taps and pinch gestures, reset zoom if it happens.
 - 2026-10-17 · Hand-off note lives in HANDOFF.md, replaced each session.
+- 2026-10-17 · Session 2 (David's notes): High School mode dropped (David's call; real players would be minors).
+- 2026-10-17 · Quick Play quarters 1 minute; every finished Quick Play game pays 100 CC (David's note).
+- 2026-10-17 · Story told in scenes with posed models and typed text, plus in-game chatter (campaign only).
+- 2026-10-17 · Campaign progress reset once (save storyV 2); coins, owned and equipped animations kept.
+- 2026-10-17 · NBA rival Zeke Knox is invented; the 2026 #1 pick (Dybantsa) is real, so Knox goes 7th.
+- 2026-10-17 · Hall of Fame picks: franchise record (titles, MVPs, All-NBA); ties settled for guard/wing/big.
+- 2026-10-17 · Legends can repeat across teams (LeBron CLE+MIA, Dr. J BKN+PHI); Thunder include Sonics.
+- 2026-10-17 · Team grid added (90 teams would be painful with arrows); arrows and A/D still work.
+- 2026-10-17 · Hall of Famer difficulty eased a little (steals, shot quality, defence squeeze).
+- 2026-10-17 · New ICONIC rarity: player signatures only in Player Packs and the Daily Shop, never random packs.
+- 2026-10-17 · Daily Shop seeded by local date so it's the same for everyone that day, no server.
+- 2026-10-17 · Pack odds stay visible; the build-up is presentation only, results are rolled before it starts.

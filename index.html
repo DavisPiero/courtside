@@ -167,27 +167,33 @@
   </div>
 </div>
 
-<!-- Shop: open animation packs with Court Coins -->
+<!-- Shop: Daily Shop (single animations), Packs, Player Packs -->
 <div id="shop" class="scr dim">
   <div class="pnl box shopbox">
     <div class="ihead"><h2>SHOP</h2><div class="cc ccbal">0 CC</div></div>
+    <div class="tabs" id="shopTabs"></div>
     <p class="coll" id="shopColl"></p>
-    <div class="packs" id="shopPacks"></div>
+    <div id="shopBody"></div>
     <button class="btn pri" id="bShopX">BACK</button>
   </div>
 </div>
 
-<!-- Pack opening: tap the cards to flip them -->
-<div id="open" class="scr dim">
-  <div class="pnl box openbox">
-    <div class="ihead"><h2 id="openTitle">PACK</h2><div class="cc ccbal">0 CC</div></div>
-    <div class="obody">
-      <div class="iprev"><canvas id="openCv"></canvas><div id="openName"></div></div>
+<!-- Pack opening: tap the pack, then tap each card -->
+<div id="open" class="scr">
+  <div class="ostage">
+    <div class="ohead"><h2 id="openTitle">PACK</h2><div class="cc ccbal">0 CC</div></div>
+    <div class="otable">
+      <div id="openPack" class="opack"></div>
       <div class="cards" id="openCards"></div>
+      <div id="openHint"></div>
     </div>
-    <div class="act"><button class="btn" id="bOpenShop">SHOP</button><button class="btn" id="bOpenInv">INVENTORY</button><button class="btn pri" id="bOpenAgain">OPEN ANOTHER</button></div>
+    <div id="openInfo" class="oinfo"><canvas id="openCv"></canvas><div id="openName"></div></div>
+    <div class="obtns"><button class="btn" id="bOpenAll">REVEAL ALL</button></div>
+    <div class="act hide" id="openAct"><button class="btn" id="bOpenShop">SHOP</button><button class="btn" id="bOpenInv">INVENTORY</button><button class="btn pri" id="bOpenAgain">OPEN ANOTHER</button></div>
   </div>
+  <div id="openBanner"></div>
 </div>
+<div id="fxFlash"></div><div id="fxLayer"></div>
 
 <!-- Animation Lab: watch any animation slowly, from any side -->
 <div id="lab" class="scr dim">
@@ -257,6 +263,7 @@
 <script src="js/menus.js"></script>
 <script src="js/campui.js"></script>
 <script src="js/story.js"></script>
+<script src="js/shop.js"></script>
 <script src="js/touch.js"></script>
 <script src="js/main.js"></script>
 </body>

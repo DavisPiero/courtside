@@ -549,17 +549,17 @@ function previewAnim(cv, P0, id, speed, angle) {
       port.dk = { style: k.id, phase: "rise", k: kk };
       const hl = rimHand(k.id, kk, P0.z);
       P0.hw = [hl[0], hl[1], P0.z + hl[2]];
-      P0.hw2 = kk > 0.55 && ["dunk.twohand", "dunk.360", "dunk.reverse", "dunk.legs"].includes(k.id) ? P0.hw : null;
+      P0.hw2 = kk > 0.55 && rimFx(k.id).two ? P0.hw : null;
       port.ball = [hl[0] + 0.15, hl[1], hl[2] + 0.4];
-      if (k.id === "dunk.360") P0.f = 6.2832 * ease(kk);
-      if (k.id === "dunk.reverse") P0.f = Math.PI;
+      if (rimFx(k.id).spin) P0.f = 6.2832 * ease(kk);
+      if (dk && rimFx(k.id).rev) P0.f = Math.PI;
       if (k.id === "layup.reverse") P0.f = Math.PI * 0.85;
     } else if (u < 0.85) {
       const kk = (u - 0.55) / 0.3;
       P0.z = Zm * (dk ? (kk < 0.4 ? 1 : Math.max(0, 1 - (kk - 0.4) / 0.6)) : Math.max(0, 1 - kk * 1.25));
       port.dk = { style: k.id, phase: dk ? "hang" : "fall", k: kk };
       if (dk && kk < 0.55) P0.hw = [1.45, 0, 10.15];
-      if (k.id === "dunk.reverse") P0.f = Math.PI;
+      if (dk && rimFx(k.id).rev) P0.f = Math.PI;
       port.ball = null;
     } else port.ball = null;
   }
@@ -576,7 +576,7 @@ function openInv() {
 function animRow(a, sel) {
   const own = owns(a.id);
   let btn;
-  if (!own) btn = `<div class="inpk">IN PACKS</div>`;
+  if (!own) btn = `<div class="inpk">IN THE SHOP</div>`;
   else if (a.cat === "dribble") {
     const on = SAVE.equip.moves.includes(a.id),
       full = !on && SAVE.equip.moves.length >= MAX_MOVES;
@@ -619,82 +619,12 @@ function drawInv() {
 }
 function invPreview() {
   labPreview();
+  shopPreview();
   if ($("inv").classList.contains("on") && INV.sel) previewAnim($("invCv"), previewModel("inv"), INV.sel);
   if ($("open").classList.contains("on") && OPEN.sel) previewAnim($("openCv"), previewModel("open"), OPEN.sel);
 }
 
-// ---------- shop: packs with odds you can see
-function openShop() {
-  const have = ANIMS.filter((a) => a.rarity !== "starter" && owns(a.id)).length,
-    all = ANIMS.filter((a) => a.rarity !== "starter").length;
-  $("shopColl").textContent = `Collection: ${have} / ${all} animations. Duplicates turn into Court Coins.`;
-  $("shopPacks").innerHTML = SHOP.map(
-    (pk) => `<div class="pk" style="--pc:${pk.col}">
-      <div class="art">${pk.name}<small>${pk.cards} animation${pk.cards > 1 ? "s" : ""}</small></div>
-      <div class="odds">${RARITIES.filter((r) => pk.odds[r] > 0)
-        .map((r) => `<div class="r-${r}">${RARITY[r].name}<span>${pk.odds[r]}%</span><i><b style="width:${pk.odds[r]}%"></b></i></div>`)
-        .join("")}</div>
-      <div class="guar">${pk.min ? `1 guaranteed ${RARITY[pk.min].name}${pk.min === "legendary" ? "" : " or better"}` : ""}</div>
-      <button class="btn${SAVE.cc >= pk.price ? " pri" : ""}" data-pk="${pk.id}"${SAVE.cc >= pk.price ? "" : " disabled"}>${pk.price} CC</button>
-    </div>`,
-  ).join("");
-  $("shopPacks").querySelectorAll("[data-pk]").forEach((b) => (b.onclick = () => openPackScreen(b.dataset.pk)));
-  $("bShopX").onclick = () => show("menu");
-  show("shop");
-}
-// ---------- pack opening: cards face down; tap to flip (they also flip themselves, best one last)
-const OPEN = { pk: null, cards: [], sel: null, timers: [] };
-function openPackScreen(pkId) {
-  const cards = openPack(pkId);
-  if (!cards) return;
-  OPEN.timers.forEach(clearTimeout);
-  const pk = SHOP.find((s) => s.id === pkId);
-  OPEN.pk = pkId;
-  OPEN.cards = cards;
-  OPEN.sel = null;
-  $("openTitle").textContent = pk.name;
-  $("openName").textContent = "TAP A CARD";
-  $("openCards").innerHTML = cards
-    .map(
-      (c, i) => `<div class="card r-${c.a.rarity}" data-i="${i}" style="--pc:${pk.col}"><div class="in">
-        <div class="bk">?</div>
-        <div class="fr"><span class="rtag">${RARITY[c.a.rarity].name}</span><b>${c.a.name}</b><span class="cat">${CATS.find((x) => x[0] === c.a.cat)[1]}</span>
-        <span class="tag${c.dupe ? " dupe" : ""}">${c.dupe ? `DUPLICATE +${c.refund} CC` : "NEW!"}</span></div></div></div>`,
-    )
-    .join("");
-  const flip = (i) => {
-    const el = $("openCards").children[i];
-    if (!el || el.classList.contains("up")) return;
-    el.classList.add("up");
-    const c = cards[i];
-    sfx(c.a.rarity === "legendary" || c.a.rarity === "epic" ? "dunk" : "green");
-    if (c.a.rarity === "legendary") G.flash = 0.5;
-    selectCard(i);
-  };
-  $("openCards").querySelectorAll(".card").forEach((el) => (el.onclick = () => (el.classList.contains("up") ? selectCard(+el.dataset.i) : flip(+el.dataset.i))));
-  cards.forEach((c, i) => OPEN.timers.push(setTimeout(() => flip(i), 900 + i * 900)));
-  const again = $("bOpenAgain");
-  again.disabled = SAVE.cc < pk.price;
-  again.textContent = `OPEN ANOTHER (${pk.price} CC)`;
-  again.onclick = () => openPackScreen(pkId);
-  $("bOpenShop").onclick = openShop;
-  $("bOpenInv").onclick = () => {
-    const c = OPEN.cards[0];
-    INV.cat = c ? c.a.cat : INV.cat;
-    openInv();
-    if (c) {
-      INV.sel = c.a.id;
-      drawInv();
-    }
-  };
-  show("open");
-}
-function selectCard(i) {
-  const c = OPEN.cards[i];
-  OPEN.sel = c.a.id;
-  $("openCards").querySelectorAll(".card").forEach((el, j) => el.classList.toggle("sel", j === i));
-  $("openName").textContent = c.a.name.toUpperCase();
-}
+// The Shop and pack opening live in js/shop.js.
 
 // ---------- Animation Lab: every animation, slow motion and from any side, so it can be judged frame by frame
 const CORE_ANIMS = [

@@ -54,6 +54,17 @@ function nz(d, v, f) {
   s.start(t);
   s.stop(t + d + 0.03);
 }
+// Pack opening: a tick that climbs in pitch with each rarity step, and a reveal sound per rarity.
+function sfxTick(k) {
+  if (!AU.x || AU.mute) return;
+  tone("square", 330 * Math.pow(1.26, k), 335 * Math.pow(1.26, k), 0.07, 0.07);
+}
+function sfxReveal(r) {
+  if (!AU.x || AU.mute) return;
+  const notes = { common: [523], rare: [523, 784], epic: [523, 659, 784, 1047], legendary: [392, 523, 659, 784, 1047, 1319], iconic: [392, 523, 659, 784, 1047, 1319, 1568] }[r] || [523];
+  notes.forEach((f, i) => setTimeout(() => !AU.mute && tone("triangle", f, f, 0.22, 0.12), i * 70));
+  if (r === "legendary" || r === "iconic") setTimeout(() => !AU.mute && nz(0.6, 0.35, 900), 60);
+}
 function sfx(k) {
   if (!AU.x || AU.mute) return;
   const m = {

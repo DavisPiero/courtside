@@ -415,11 +415,11 @@ function beginShot(p) {
   }
   G.shot = { p, t: 0, d: 0.85, zw: greenZone(p) };
   p.shotJumped = 0;
-  const hop = (SHOTS[styleOf(p, "shot")] || {}).hop;
-  if (hop) {
-    p.vx += Math.cos(p.f) * hop;
-    p.vy += Math.sin(p.f) * hop;
-  }
+  const SH = SHOTS[styleOf(p, "shot")] || {},
+    hop = SH.hop || 0,
+    side = SH.side ? SH.side * (Math.random() < 0.5 ? -1 : 1) : 0; // side-step goes either way
+  p.vx += Math.cos(p.f) * hop - Math.sin(p.f) * side;
+  p.vy += Math.sin(p.f) * hop + Math.cos(p.f) * side;
 }
 function launch(p, q, ai) {
   const b = G.ball,
@@ -502,7 +502,7 @@ function scripted(p, kind) {
     sc: 0,
     side: Math.random() < 0.5 ? -1 : 1,
     style,
-    two: style === "dunk.basic" ? Math.random() < 0.5 : ["dunk.twohand", "dunk.360", "dunk.reverse", "dunk.legs"].includes(style),
+    two: style === "dunk.basic" ? Math.random() < 0.5 : !!rimFx(style).two,
     nm: style.endsWith(".basic")
       ? ["TOMAHAWK JAM", "TWO-HAND HAMMER", "THE POSTER", "RIM RATTLER"][(Math.random() * 4) | 0]
       : animName(style).toUpperCase(),
@@ -514,7 +514,8 @@ function cutUpd(dt) {
     p = c0.p,
     b = G.ball,
     dk = c0.kind === "dunk",
-    st = c0.style;
+    st = c0.style,
+    fx = rimFx(st);
   let u = c0.t / c0.d;
   c0.t += dt * (dk && u > 0.3 && u < 0.7 ? 0.7 : 1); // brief slow-mo at the rim
   u = cl(c0.t / c0.d, 0, 1);
@@ -522,7 +523,7 @@ function cutUpd(dt) {
     S = dk ? 0.64 : 0.66,
     rev = st === "layup.reverse",
     // Take-off spot, and where the body ends up at the top (under the rim, or past it for a reverse layup).
-    tk = [c0.h - c0.dir * (dk ? 4.6 : 3.4), 25 + (c0.y0 - 25) * 0.3],
+    tk = [c0.h - c0.dir * (dk ? (fx.glide ? cl(Math.abs(c0.x0 - c0.h), 4.6, fx.glide) : 4.6) : 3.4), 25 + (c0.y0 - 25) * 0.3],
     top = [c0.h - c0.dir * (rev ? -0.9 : 1.6), rev ? 25 + c0.side * 0.6 : 25],
     Zm = dk ? 3.2 : 2.3,
     ox = p.x,
@@ -551,12 +552,12 @@ function cutUpd(dt) {
     p.z = Zm * (dk ? (k < 0.4 ? 1 - k * 0.15 : Math.max(0, 0.94 - (k - 0.4) / 0.6)) : Math.max(0, 1 - k * 1.25));
     p.dk = { style: st, phase: dk ? "hang" : "fall", k };
   }
-  if (st === "dunk.reverse" && u >= A) face = f + Math.PI;
+  if (dk && fx.rev && u >= A) face = f + Math.PI;
   if (rev && u >= A) face = f + Math.PI * 0.85 * c0.side;
   p.vx = (p.x - ox) / Math.max(dt, 0.001);
   p.vy = (p.y - oy) / Math.max(dt, 0.001);
   p.f += ad(face - p.f) * Math.min(1, dt * 14);
-  if (st === "dunk.360" && u >= A && u < S) p.f = f + 6.2832 * ease((u - A) / (S - A));
+  if (fx.spin && u >= A && u < S) p.f = f + 6.2832 * ease((u - A) / (S - A));
   p.ph += hy(p.vx, p.vy) * dt * 0.8 * (u < A ? 1 : 0.2);
   p.def = false;
   if (u < A) {
@@ -1073,6 +1074,10 @@ const MOVES = {
   killer: { d: 0.38, name: "KILLER CROSSOVER", push: 12, sw: 1, ankle: 1.4 },
   shammgod: { d: 0.55, name: "SHAMMGOD", push: 11, sw: 1, ankle: 1.5 },
   tornado: { d: 0.6, name: "TORNADO SPIN", push: 10, sw: 1, ankle: 1.5 },
+  combo: { d: 0.6, name: "BETWEEN-BEHIND", push: 9, sw: 0 },
+  tweens: { d: 0.55, name: "TWEEN COMBO", push: 9, sw: 1, ankle: 1.2 },
+  curry: { d: 0.62, name: "DOUBLE BEHIND", push: 10, sw: 0, ankle: 1.3 },
+  ai: { d: 0.62, name: "THE CROSSOVER", push: 15, sw: 1, ankle: 1.9 },
 };
 const BASE_MOVES = ["cross", "legs", "back", "spin"];
 const movePool = (p) => (p.t === 0 ? BASE_MOVES.concat(SAVE.equip.moves.map((id) => id.split(".")[1])) : BASE_MOVES);
@@ -1092,7 +1097,7 @@ function dribbleMove(p) {
   if (k === "spin" || k === "tornado") {
     p.vx += d.x * M.push;
     p.vy += d.y * M.push;
-  } else if (k === "hesi" || k === "stutter") {
+  } else if (k === "hesi" || k === "stutter" || k === "ai") {
     // Fake stop first; the burst comes halfway through (moveStep).
     p.vx *= 0.25;
     p.vy *= 0.25;
@@ -1143,6 +1148,10 @@ function moveStep(p, dt) {
     } else if (m.k === "shammgod") {
       p.vx += -fy * -m.h * 12;
       p.vy += fx * -m.h * 12;
+    } else if (m.k === "ai") {
+      // The hesitation sells it, then a huge burst across.
+      p.vx += -fy * -m.h * MOVES.ai.push;
+      p.vy += fx * -m.h * MOVES.ai.push;
     } else if (m.k === "double") {
       p.vx += -fy * m.h * 14; // back toward the starting side, hard
       p.vy += fx * m.h * 14;
