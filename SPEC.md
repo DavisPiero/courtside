@@ -23,7 +23,7 @@
 - Steals are instant: no steal cutscene. Dunk cutscenes are short (about 1.5 seconds).
 - Dribble moves (E) cycle through crossover, between the legs, behind the back and spin,
   each animated on the model.
-- Music plays free (CC BY) hip-hop/trap beats, with song and artist shown bottom left.
+- No music for now (removed 2026-10-17). Sound effects only.
 
 ## Not building
 Fouls, free throws, out of bounds, substitutions, seasons/franchise, online play, touch

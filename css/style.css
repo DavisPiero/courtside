@@ -208,11 +208,3 @@ kbd {
 #lb2 { bottom: 0; transform: translateY(100%); }
 body.cine #lb1, body.cine #lb2, body.bars #lb1, body.bars #lb2 { transform: none; }
 body.cine .pnl, body.cine #toast { opacity: 0; }
-/* Now playing: song and artist, bottom left */
-#np {
-  position: fixed; left: 16px; bottom: 14px; z-index: 12; pointer-events: none; max-width: 60vw;
-  font: 600 13px/1.25 var(--cond); letter-spacing: 0.08em; color: rgba(255, 255, 255, 0.82);
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
-}
-#np b { display: block; font-size: 15px; color: #fff; letter-spacing: 0.04em; }
-#np:empty { display: none; }

@@ -6,7 +6,6 @@ addEventListener("keydown", (e) => {
   keys.add(e.code);
   if (!e.repeat) BUF[e.code] = T;
   ac();
-  if (e.code === "KeyN" && !e.repeat) musToggle();
   if (e.code === "KeyM" && !e.repeat) {
     sndToggle();
     if (G.run) toast(AU.mute ? "SOUND OFF" : "SOUND ON", 0.6);
@@ -49,7 +48,6 @@ $("bStart").onclick = () => {
 $("bBack").onclick = () => show("menu");
 $("bRes").onclick = pause;
 $("bPCtl").onclick = () => openControls("pause");
-$("mu").onclick = musToggle;
 $("bSnd").onclick = sndToggle;
 $("bQuit").onclick = quitToMenu;
 function quitToMenu() {
@@ -68,7 +66,6 @@ function sndToggle() {
   $("bSnd").textContent = "SOUND: " + (AU.mute ? "OFF" : "ON");
 }
 $("bSnd").textContent = "SOUND: " + (AU.mute ? "OFF" : "ON");
-$("mu").textContent = "MUSIC: " + (MUS.on ? "ON" : "OFF");
 document.addEventListener("visibilitychange", () => {
   if (document.hidden && G.run && !G.pause) pause();
 });

@@ -21,7 +21,6 @@ function openControls(back) {
     ["C", "Chase / broadcast camera"],
     ["Enter", "Skip dunk replay"],
     ["Esc", "Pause"],
-    ["N", "Music on / off"],
     ["M", "Sound on / off"],
   ];
   $("ctlList").innerHTML = rows.map(([k, t]) => `<div><kbd>${k}</kbd>${t}</div>`).join("");

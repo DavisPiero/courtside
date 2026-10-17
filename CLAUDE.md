@@ -9,8 +9,7 @@ where we are.
   (https://davispiero.github.io/courtside/). Plain `<script>` files only, no ES modules
   (they break on `file://`).
 - Everything is drawn in code on one canvas. No image files for players or courts.
-- Music files must be free to redistribute (Creative Commons or similar) and credited
-  on screen, bottom left, while they play. Credits live in `js/audio.js`.
+- No music for now. If it returns, files must be free to redistribute and credited on screen.
 - `Reference/` holds David's reference images. It is git-ignored and never published.
 - Keep it fast: the game must hold 60 fps on a normal laptop.
 - Work on a branch. Merge to `main` only when David signs off; `main` is the live site.
@@ -21,7 +20,7 @@ where we are.
   Always test with `?mute` so no sound plays.
 - Smoke test (loads the game headless, plays every mode/court/difficulty, reports scores):
   `./tools/smoke.sh`
-- Sound: `M` mutes effects, `N` toggles music. Run it muted when testing.
+- Sound: `M` mutes effects. Run it muted when testing.
 
 ## Code map
 - `js/core.js` helpers, teams and rosters, settings, global state
@@ -32,7 +31,7 @@ where we are.
 - `js/camera.js` cameras and cutscene cameras
 - `js/gameplay.js` rules, moves, AI, input
 - `js/loop.js` fixed-step simulation, HUD
-- `js/audio.js` sound effects and music
+- `js/audio.js` sound effects
 - `js/menus.js` menus, setup screen, tip-off
 - `js/main.js` input listeners, start-up, smoke-test hook
 
