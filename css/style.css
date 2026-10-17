@@ -1,0 +1,471 @@
+:root {
+  --p: rgba(7, 13, 34, 0.88);
+  --e: #3d6dff;
+  --g: #ffcf5c;
+}
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #05070d;
+  color: #fff;
+  font:
+    700 14px/1.2 Bahnschrift,
+    Rajdhani,
+    "Arial Narrow",
+    system-ui,
+    sans-serif;
+  user-select: none;
+}
+#g {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.pn {
+  position: absolute;
+  background: var(--p);
+  border: 2px solid var(--e);
+  padding: 8px 14px;
+  transition: opacity 0.3s;
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+  box-shadow: 0 0 18px #3d6dff55;
+}
+#hud {
+  display: none;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+#card {
+  left: 14px;
+  top: 14px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+#num {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: radial-gradient(#ff9f4a, #c44d12);
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+  border: 2px solid #fff4;
+}
+#pn {
+  font-size: 16px;
+  letter-spacing: 0.04em;
+}
+#pp {
+  color: #9db4ff;
+  margin-left: 6px;
+}
+.st {
+  display: flex;
+  gap: 16px;
+  margin-top: 6px;
+  text-align: center;
+}
+.st i {
+  display: block;
+  font: 800 9px sans-serif;
+  color: #9db4ff;
+  letter-spacing: 0.1em;
+}
+.st span {
+  font-size: 20px;
+}
+#sb {
+  right: 14px;
+  top: 14px;
+  display: grid;
+  grid-template-columns: auto 44px auto 64px;
+  gap: 4px 12px;
+  align-items: center;
+  font-size: 22px;
+}
+#sb span {
+  font-size: 11px;
+  color: #9db4ff;
+  letter-spacing: 0.14em;
+}
+#sck {
+  color: #ff4a4a;
+}
+#keys {
+  left: 14px;
+  bottom: 14px;
+  font-size: 12px;
+  line-height: 1.75;
+  color: #cdd8ff;
+}
+kbd {
+  display: inline-block;
+  min-width: 22px;
+  text-align: center;
+  background: #1c2a55;
+  border: 1px solid #5b7bff;
+  border-radius: 4px;
+  padding: 0 5px;
+  margin-right: 6px;
+  font:
+    700 11px ui-monospace,
+    monospace;
+}
+#sty {
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  pointer-events: auto;
+}
+#sty b {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: #9db4ff;
+}
+#sty button {
+  background: #0e1838;
+  color: #aebcf0;
+  border: 1px solid #2b3f86;
+  padding: 5px 12px;
+  font: 700 12px inherit;
+  text-align: left;
+  cursor: pointer;
+}
+#sty button.on {
+  border-color: #fff;
+  color: #fff;
+  background: #24408f;
+}
+#meter {
+  display: none;
+  left: 50%;
+  top: 16%;
+  transform: translateX(-50%);
+  width: min(380px, 70vw);
+  padding: 8px 12px;
+}
+#meter.on {
+  display: block;
+}
+.trk {
+  position: relative;
+  height: 13px;
+  background: linear-gradient(90deg, #b91f2c 0 62%, #27d17a 62% 82%, #b91f2c 82%);
+  border: 1px solid #fff8;
+}
+#nd {
+  position: absolute;
+  top: -4px;
+  width: 4px;
+  height: 21px;
+  background: #fff;
+  box-shadow: 0 0 8px #fff;
+}
+.lb2 {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  margin-top: 6px;
+  color: #cdd8ff;
+}
+#toast {
+  position: absolute;
+  left: 50%;
+  top: 30%;
+  transform: translateX(-50%);
+  font-size: clamp(26px, 5vw, 52px);
+  font-style: italic;
+  font-weight: 900;
+  text-shadow:
+    0 3px 18px #000,
+    3px 3px 0 #1d3fb0;
+  opacity: 0;
+  transition: opacity 0.15s;
+  transition: opacity 0.2s;
+}
+#ttl {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 34%;
+  text-align: center;
+  font-size: clamp(40px, 10vw, 120px);
+  font-style: italic;
+  font-weight: 900;
+  text-shadow:
+    0 0 34px #ff8a2a,
+    5px 5px 0 #ff5a1a;
+  opacity: 0;
+  transform: scale(2.2) skewX(-8deg);
+  z-index: 6;
+}
+#ttl.on {
+  animation: pop 0.45s forwards;
+}
+@keyframes pop {
+  to {
+    opacity: 1;
+    transform: scale(1) skewX(-8deg);
+  }
+}
+#ttl small {
+  display: block;
+  font-size: 0.28em;
+  color: var(--g);
+  letter-spacing: 0.3em;
+}
+#fps {
+  position: absolute;
+  right: 14px;
+  bottom: 10px;
+  font:
+    11px ui-monospace,
+    monospace;
+  color: #9db4ff;
+}
+.lb {
+  position: fixed;
+  left: 0;
+  right: 0;
+  height: 12vh;
+  background: #000;
+  transition: transform 0.5s;
+  z-index: 5;
+  pointer-events: none;
+}
+#lb1 {
+  top: 0;
+  transform: translateY(-100%);
+}
+#lb2 {
+  bottom: 0;
+  transform: translateY(100%);
+}
+body.cine #lb1,
+body.cine #lb2,
+body.bars #lb1,
+body.bars #lb2 {
+  transform: none;
+}
+body.cine .pn,
+body.cine #toast {
+  opacity: 0;
+}
+.ov {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(#0b1230cc, #02030acc);
+  z-index: 9;
+}
+#np {
+  position: fixed;
+  left: 14px;
+  bottom: 10px;
+  z-index: 12;
+  pointer-events: none;
+  max-width: 60vw;
+  font:
+    italic 12px Georgia,
+    serif;
+  color: #9db4ff;
+  opacity: 0.9;
+  text-shadow: 1px 1px 0 #000;
+}
+.mc {
+  width: min(620px, 92vw);
+  padding: 28px 32px;
+}
+.mc h1 {
+  font-size: clamp(40px, 9vw, 84px);
+  font-style: italic;
+  margin: 0;
+  letter-spacing: -0.03em;
+  line-height: 0.9;
+  text-shadow: 4px 4px 0 #1d3fb0;
+}
+.mc h1 small {
+  display: block;
+  font-size: 0.26em;
+  letter-spacing: 0.4em;
+  color: var(--g);
+  text-shadow: none;
+  margin-top: 10px;
+}
+.mc p {
+  color: #b8c4ee;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.cg {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 18px;
+  font-size: 13px;
+  margin: 14px 0 20px;
+}
+.mc button {
+  pointer-events: auto;
+  cursor: pointer;
+  border: 2px solid #fff6;
+  background: #1a2a66;
+  color: #fff;
+  font: 800 15px inherit;
+  padding: 11px 20px;
+  margin-right: 8px;
+  letter-spacing: 0.1em;
+}
+.mc button.pri {
+  background: var(--g);
+  color: #1a1d2b;
+  border-color: #fff;
+}
+.sel {
+  width: min(1000px, 96vw);
+}
+.rw {
+  margin: 14px 0;
+}
+.rw > b {
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  color: #9db4ff;
+}
+.rw > div {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-top: 6px;
+}
+.mc button.tc {
+  margin: 0;
+  text-align: left;
+  padding: 12px;
+  background: linear-gradient(160deg, var(--c), #080d24 85%);
+  border: 2px solid #fff3;
+  border-left: 6px solid var(--a);
+  display: block;
+}
+.mc button.tc.on {
+  border-color: #fff;
+  box-shadow: 0 0 22px var(--a);
+}
+.mc button.tc.dis {
+  opacity: 0.3;
+  pointer-events: none;
+}
+.tc b {
+  display: block;
+  font-size: 22px;
+  font-style: italic;
+  margin-bottom: 6px;
+}
+.tc i {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  font: 600 11px/1.5 system-ui;
+  font-style: normal;
+  color: #dfe6ff;
+}
+.tc u {
+  text-decoration: none;
+  color: var(--a);
+  font-weight: 800;
+  filter: brightness(1.5);
+}
+#vm {
+  position: absolute;
+  display: none;
+  width: 20px;
+  transform: translate(0, -50%);
+  z-index: 3;
+}
+#vm .vt {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #070c20d9;
+  border: 3px solid #cfe0ff;
+}
+#vm .vz {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 65%;
+  height: 14%;
+  background: #22d977;
+  box-shadow: 0 0 10px #22d977;
+}
+#vm .vf {
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  bottom: 0;
+  height: 0;
+  background: #fff;
+}
+#vm .vn {
+  position: absolute;
+  left: -7px;
+  right: -7px;
+  height: 4px;
+  background: #fff;
+  bottom: 0;
+}
+#vm b {
+  position: absolute;
+  left: 30px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+  font-style: italic;
+  white-space: nowrap;
+  text-shadow: 2px 2px 0 #000;
+}
+#vm.g .vt {
+  border-color: #3cff9a;
+  box-shadow:
+    0 0 28px #3cff9a,
+    inset 0 0 14px #3cff9a;
+  animation: gp 0.22s 3;
+}
+#vm.g .vf {
+  background: #3cff9a;
+}
+#vm.g b {
+  color: #3cff9a;
+  font-size: 28px;
+}
+#vm.e b {
+  color: #ffb45c;
+}
+#vm.l b {
+  color: #ff6b6b;
+}
+@keyframes gp {
+  50% {
+    transform: translate(0, -50%) scale(1.18);
+  }
+}
+@media (max-width: 700px) {
+  #keys {
+    display: none;
+  }
+  .rw > div {
+    grid-template-columns: 1fr 1fr;
+  }
+}

@@ -1,0 +1,1010 @@
+"use strict";
+// Game flow: possessions, scoring, passing, shooting, steals, mayhem moves, AI and player input.
+// ---------- game flow
+function init() {
+  G.home = G.away = 0;
+  G.time = 240;
+  G.q = 1;
+  G.st = { pts: 0, reb: 0, ast: 0, stl: 0 };
+  G.cut = null;
+  G.shot = null;
+  G.dead = 0;
+  G.fx = [];
+  G.stain = [];
+  G.pl = [];
+  document.body.classList.remove("cine");
+  for (let t = 0; t < 2; t++)
+    for (let i = 0; i < 3; i++)
+      G.pl.push({
+        id: t * 3 + i,
+        t,
+        i,
+        x: 47,
+        y: 25,
+        vx: 0,
+        vy: 0,
+        f: 0,
+        z: 0,
+        vz: 0,
+        ph: rn(0, 6),
+        n: NM[t * 3 + i][3],
+        stam: 100,
+        sp: t ? 11.8 : 12.6,
+        sh: NM[t * 3 + i][2] - 14,
+        sk: SK[t * 3 + i],
+      });
+  G.ball = { x: 47, y: 25, z: 3, vx: 0, vy: 0, vz: 0, own: 0, mode: "held", spin: 0, bph: 0 };
+  setPoss(0);
+}
+function setPoss(t) {
+  const d = t ? -1 : 1,
+    b = G.ball;
+  G.poss = t;
+  G.sc = 24;
+  G.shot = null;
+  for (let i = 0; i < 3; i++) {
+    const o = G.pl[t * 3 + i],
+      q = G.pl[(1 - t) * 3 + i],
+      ox = 47 - d * (i ? 9 : 17),
+      oy = [25, 12, 38][i];
+    Object.assign(o, {
+      x: ox,
+      y: oy,
+      vx: 0,
+      vy: 0,
+      z: 0,
+      vz: 0,
+      stt: "",
+      hw: null,
+      hw2: null,
+      def: false,
+      f: d > 0 ? 0 : Math.PI,
+      fol: 0,
+      stun: 0,
+    });
+    Object.assign(q, {
+      x: ox + d * 7,
+      y: oy,
+      vx: 0,
+      vy: 0,
+      z: 0,
+      vz: 0,
+      stt: "",
+      hw: null,
+      hw2: null,
+      def: true,
+      f: d > 0 ? Math.PI : 0,
+      fol: 0,
+      stun: 0,
+    });
+  }
+  Object.assign(b, {
+    own: t * 3,
+    mode: "held",
+    made: false,
+    vx: 0,
+    vy: 0,
+    vz: 0,
+    pT: 0,
+    missed: false,
+    last: t,
+  });
+  G.ctrl = 0;
+  $("meter").classList.remove("on");
+}
+function toast(m, s = 0.8) {
+  const e = $("toast");
+  e.textContent = m;
+  e.style.opacity = 1;
+  G.tt = s;
+}
+function spark(x, y, z, n, col) {
+  for (let i = 0; i < n; i++)
+    G.fx.push({
+      x,
+      y,
+      z,
+      vx: rn(-9, 9),
+      vy: rn(-9, 9),
+      vz: rn(2, 14),
+      l: rn(0.5, 1.1),
+      c: col || (Math.random() < 0.5 ? "#ffcf5c" : "#fff"),
+    });
+}
+function score(t, pts, p, cut) {
+  if (t) G.away += pts;
+  else G.home += pts;
+  const b = G.ball;
+  if (t === 0) {
+    G.st.pts += pts;
+    if (b.pT && T - b.pT < 4 && b.from !== undefined && b.from !== p.id && G.pl[b.from].t === 0) G.st.ast++;
+  }
+  G.rim[t] = 1;
+  G.hype = 1;
+  G.next = 1 - t;
+  b.pT = 0;
+  p.stt = "cel";
+  sfx(cut && G.cut && G.cut.kind === "dunk" ? "dunk" : "swish");
+  if (!cut) G.hs = 0.05;
+  if (b.green) {
+    G.gf = 1;
+    spark(HX(t), 25, 10, 40, "#3cff9a");
+  }
+  b.green = false;
+  spark(HX(t), 25, 10, 22);
+  if (!cut) {
+    G.dead = 1.8;
+    G.shake = 0.3;
+    toast(pts === 3 ? "THREE POINTER!" : "BUCKET!", 1);
+  }
+}
+function bestMate(p, dir) {
+  let best = null,
+    bs = -1e9;
+  G.pl.forEach((q) => {
+    if (q.t !== p.t || q === p) return;
+    const dx = q.x - p.x,
+      dy = q.y - p.y,
+      d = hy(dx, dy) || 1;
+    let s = -d * 0.02 + minDef(q) * 0.15;
+    if (dir) s += ((dx * dir.x + dy * dir.y) / d) * 3;
+    if (s > bs) {
+      bs = s;
+      best = q;
+    }
+  });
+  return best;
+}
+function passTo(p, q) {
+  if (!q) return;
+  const b = G.ball,
+    d = dist(p, q);
+  b.own = -1;
+  b.mode = "pass";
+  b.sx = p.x;
+  b.sy = p.y;
+  b.sz = b.z;
+  b.pt = 0;
+  b.pd = Math.max(0.22, d / 42);
+  b.tgt = q.id;
+  b.last = p.t;
+  b.from = p.id;
+  b.pT = T;
+  p.fol = 0.2;
+  sfx("pass");
+  if (p.t === 0) {
+    G.ctrl = q.id;
+    toast("PASS", 0.4);
+  }
+}
+function startSlide(p) {
+  if (p.sl || p.rag || p.z > 0 || p.slcd > 0 || p.pun > 0 || G.shot || G.cut || G.tip || G.dead > 0) return;
+  const sp = hy(p.vx, p.vy);
+  let dx, dy;
+  if (sp > 1.5) {
+    dx = p.vx / sp;
+    dy = p.vy / sp;
+  } else if (G.in) {
+    dx = G.in.x;
+    dy = G.in.y;
+  } else {
+    dx = Math.cos(p.f);
+    dy = Math.sin(p.f);
+  }
+  const v0 = cl(sp * 2.1 + 2, 7, 40);
+  p.sl = { t: 0, d: Math.min(1.05, Math.log(v0 / 1.5) / 3.2 + 0.05), dx, dy, v0 };
+  p.f = Math.atan2(dy, dx);
+  p.stam = Math.max(0, p.stam - 12);
+  sfx("slide");
+}
+function slideStep(p, dt) {
+  const s = p.sl;
+  s.t += dt;
+  const v = s.v0 * Math.exp(-3.2 * s.t);
+  p.vx = s.dx * v;
+  p.vy = s.dy * v;
+  if (Math.random() < dt * 60)
+    G.fx.push({
+      x: p.x,
+      y: p.y,
+      z: 0.3,
+      vx: rn(-2, 2) - s.dx * 3,
+      vy: rn(-2, 2) - s.dy * 3,
+      vz: rn(1, 3),
+      l: 0.45,
+      c: "rgba(235,225,205,.8)",
+    });
+  if (!s.hit && v > 4) slideHit(p);
+  if (s.t >= s.d || v < 1.5) {
+    p.sl = null;
+    p.slcd = 0.3;
+  }
+}
+function slideHit(p) {
+  const b = G.ball,
+    s = p.sl;
+  for (const q of G.pl) {
+    if (q.t === p.t || q.rag || b.own !== q.id) continue;
+    const dx = q.x - p.x,
+      dy = q.y - p.y,
+      d = hy(dx, dy);
+    if (d > 2.9 || (dx * s.dx + dy * s.dy) / (d || 1) < -0.3) continue;
+    s.hit = 1;
+    s.v0 *= 0.45;
+    q.rag = { t: 0, d: 2.8, dx: s.dx, dy: s.dy };
+    q.vx = s.dx * 9;
+    q.vy = s.dy * 9;
+    q.hw = null;
+    q.stt = "";
+    q.def = false;
+    q.sl = null;
+    if (G.shot && G.shot.p === q) G.shot = null;
+    b.own = p.id;
+    b.mode = "held";
+    G.poss = p.t;
+    G.sc = 24;
+    b.made = false;
+    if (p.t === 0) G.st.stl++;
+    for (let i = 0; i < 18; i++)
+      G.fx.push({
+        x: q.x,
+        y: q.y,
+        z: rn(0.3, 2),
+        vx: s.dx * rn(2, 9) + rn(-4, 4),
+        vy: s.dy * rn(2, 9) + rn(-4, 4),
+        vz: rn(2, 8),
+        l: rn(0.4, 0.8),
+        c: i % 2 ? "#fff" : "#e6dcc4",
+      });
+    G.hs = 0.08;
+    G.shake = 0.55;
+    G.hype = 1;
+    toast("SWEPT!", 0.9);
+    sfx("punch");
+    return;
+  }
+}
+function punch(p) {
+  if (p.pun > 0 || p.rag || G.cut || G.tip || G.dead > 0) return;
+  let v = null,
+    bd = 7;
+  for (const q of G.pl)
+    if (q.t !== p.t && !q.rag) {
+      const d = dist(p, q);
+      if (d < bd) {
+        bd = d;
+        v = q;
+      }
+    }
+  const ang = v ? Math.atan2(v.y - p.y, v.x - p.x) : p.f;
+  p.pf = ang;
+  p.f = ang;
+  p.pun = 0.34;
+  p.punT = 0.1;
+  p.vx += Math.cos(ang) * 7;
+  p.vy += Math.sin(ang) * 7;
+  G.shot = null;
+  sfx("whoosh");
+}
+function punchHit(p) {
+  let v = null,
+    bd = 4.4;
+  for (const q of G.pl)
+    if (q.t !== p.t && !q.rag) {
+      const dx = q.x - p.x,
+        dy = q.y - p.y,
+        d = hy(dx, dy);
+      if (d < bd && (dx * Math.cos(p.f) + dy * Math.sin(p.f)) / (d || 1) > 0.2) {
+        bd = d;
+        v = q;
+      }
+    }
+  if (!v) {
+    toast("WHIFF", 0.4);
+    return;
+  }
+  const dx = v.x - p.x,
+    dy = v.y - p.y,
+    L = hy(dx, dy) || 1,
+    b = G.ball;
+  v.rag = { t: 0, d: 2.6, dx: dx / L, dy: dy / L };
+  v.sl = null;
+  v.vx = (dx / L) * 12;
+  v.vy = (dy / L) * 12;
+  v.hw = null;
+  v.stt = "";
+  v.def = false;
+  if (G.shot && G.shot.p === v) G.shot = null;
+  if ((b.own === v.id || b.mode === "loose" || b.mode === "pass") && b.mode !== "cut") {
+    b.own = p.id;
+    b.mode = "held";
+    G.poss = p.t;
+    G.sc = 24;
+    b.made = false;
+    if (p.t === 0) G.st.stl++;
+  }
+  for (let i = 0; i < 26; i++)
+    G.fx.push({
+      x: v.x,
+      y: v.y,
+      z: rn(3.6, 5.4),
+      vx: (dx / L) * rn(2, 10) + rn(-4, 4),
+      vy: (dy / L) * rn(2, 10) + rn(-4, 4),
+      vz: rn(1, 9),
+      l: rn(0.5, 1),
+      c: ["#b3121f", "#7a0a14", "#d42a36", "#5a0710"][i % 4],
+      b: 1,
+    });
+  G.hs = 0.09;
+  G.shake = 0.7;
+  G.hype = 1;
+  G.gl = 0.25;
+  toast("DROPPED!", 0.9);
+  sfx("punch");
+}
+function stealBall(o, v) {
+  if (v && !G.cut && !G.tip && T > G.sCd) {
+    const b = G.ball;
+    G.sCd = T + 7;
+    G.cut = {
+      kind: "steal",
+      p: o,
+      v,
+      t: 0,
+      d: 0.95,
+      bx: b.x,
+      by: b.y,
+      bz: b.z,
+      side: Math.random() < 0.5 ? -1 : 1,
+      sc: 0,
+    };
+    return;
+  }
+  doSteal(o);
+}
+function doSteal(o) {
+  const b = G.ball;
+  b.own = o.id;
+  b.mode = "held";
+  G.poss = o.t;
+  G.sc = 24;
+  if (o.t === 0) G.st.stl++;
+  toast("STEAL!");
+  spark(o.x, o.y, 3, 8);
+  sfx("steal");
+}
+function stealUpd(dt) {
+  const c0 = G.cut,
+    p = c0.p,
+    v = c0.v,
+    b = G.ball;
+  let u = c0.t / c0.d;
+  c0.t += dt * (u > 0.2 && u < 0.6 ? 0.35 : 1);
+  u = cl(c0.t / c0.d, 0, 1);
+  p.vx = p.vy = v.vx = v.vy = 0;
+  p.def = true;
+  p.f += ad(Math.atan2(v.y - p.y, v.x - p.x) - p.f) * 0.3;
+  v.f += ad(Math.atan2(p.y - v.y, p.x - v.x) - v.f) * 0.3;
+  const k = sm(cl((u - 0.2) / 0.5, 0, 1)),
+    ex = p.x + Math.cos(p.f) * 0.9,
+    ey = p.y + Math.sin(p.f) * 0.9;
+  b.own = -1;
+  b.mode = "cut";
+  b.x = lp(c0.bx, ex, k);
+  b.y = lp(c0.by, ey, k);
+  b.z = lp(c0.bz, 3.2, k) + Math.sin(k * Math.PI) * 1.8;
+  b.spin += dt * 14;
+  p.hw = [b.x, b.y, b.z];
+  p.hw2 = null;
+  if (u >= 0.35 && !c0.sc) {
+    c0.sc = 1;
+    G.flash = 0.35;
+    G.shake = 0.5;
+    G.hs = 0.09;
+    spark(b.x, b.y, b.z, 14, "#fff");
+    toast("STEAL!", 0.9);
+    sfx("steal");
+  }
+  if (u >= 1) {
+    G.cut = null;
+    p.hw = null;
+    v.stun = 0.6;
+    doSteal(p);
+  }
+}
+function beginShot(p) {
+  const h = HX(p.t),
+    dh = hy(h - p.x, 25 - p.y),
+    df = minDef(p),
+    mv = hy(p.vx, p.vy),
+    tw = (p.vx * (h - p.x) + p.vy * (25 - p.y)) / (mv * dh + 0.01);
+  if (dh < 10.5 && df > 4.5) {
+    scripted(p, dh < 9 && mv > 5 && tw > 0.3 ? "dunk" : "layup");
+    return;
+  } // open at the rim = guaranteed bucket
+  G.shot = { p, t: 0, d: 0.85 };
+}
+function launch(p, q, ai) {
+  const b = G.ball,
+    h = p.t,
+    hx = HX(h),
+    dh = hy(hx - p.x, 25 - p.y),
+    df = minDef(p);
+  const ch = cl(
+      0.2 +
+        (p.sh - 60) * 0.008 +
+        q * 0.5 -
+        (dh / 94) * 0.3 -
+        (df < 3 ? 0.25 : df < 6 ? 0.1 : 0) +
+        (dh < 12 ? 0.12 : 0) -
+        (100 - p.stam) * 0.0015,
+      0.05,
+      0.92,
+    ),
+    made = (q > 0.82 && !ai) || Math.random() < ch;
+  const Tm = 0.7 + dh * 0.024,
+    z0 = p.z + 7.2,
+    tx = hx + (made ? 0 : rn(-0.9, 0.9)),
+    ty = 25 + (made ? 0 : rn(-0.9, 0.9));
+  Object.assign(b, {
+    own: -1,
+    mode: "shot",
+    x: p.x,
+    y: p.y,
+    z: z0,
+    vx: (tx - p.x) / Tm,
+    vy: (ty - p.y) / Tm,
+    vz: (10 - z0) / Tm + 16 * Tm,
+    h,
+    made,
+    pts: dh > 23.7 ? 3 : 2,
+    shooter: p.id,
+    last: h,
+    missed: !made,
+  });
+  if (p.z < 0.1) p.vz = 6;
+  p.fol = 0.45;
+  G.shot = null;
+  $("meter").classList.remove("on");
+  G.sc = 24;
+  if (!ai) toast(q > 0.82 ? "PERFECT!" : q > 0.6 ? "GOOD" : "RUSHED", 0.6);
+  b.green = !ai && q > 0.82;
+  if (b.green) {
+    G.gf = 1;
+    G.hype = Math.max(G.hype, 0.5);
+    spark(p.x, p.y, 6.5, 26, "#3cff9a");
+    sfx("green");
+  }
+}
+function scripted(p, kind) {
+  if (G.cut) return;
+  const dir = p.t ? -1 : 1;
+  G.shot = null;
+  $("meter").classList.remove("on");
+  G.cut = {
+    p,
+    kind,
+    t: 0,
+    x0: p.x,
+    y0: p.y,
+    h: HX(p.t),
+    dir,
+    d: kind === "dunk" ? 2.6 : 0.95,
+    sc: 0,
+    side: Math.random() < 0.5 ? -1 : 1,
+    two: Math.random() < 0.5,
+    nm: ["TOMAHAWK JAM", "TWO-HAND HAMMER", "THE POSTER", "RIM RATTLER"][(Math.random() * 4) | 0],
+  };
+  if (kind === "dunk") document.body.classList.add("cine");
+}
+function cutUpd(dt) {
+  if (G.cut.kind === "steal") return stealUpd(dt);
+  const c0 = G.cut,
+    p = c0.p,
+    b = G.ball,
+    dk = c0.kind === "dunk";
+  let u = c0.t / c0.d;
+  c0.t += dt * (dk && u > 0.3 && u < 0.7 ? 0.4 : 1);
+  u = cl(c0.t / c0.d, 0, 1);
+  const A = dk ? 0.3 : 0.25,
+    S = dk ? 0.62 : 0.58,
+    tk = [c0.h - c0.dir * (dk ? 4.4 : 3.2), 25 + (c0.y0 - 25) * 0.3],
+    Zm = dk ? 3 : 2.2,
+    ox = p.x,
+    oy = p.y,
+    f = c0.dir > 0 ? 0 : Math.PI;
+  if (u < A) {
+    const k = sm(u / A);
+    p.x = lp(c0.x0, tk[0], k);
+    p.y = lp(c0.y0, tk[1], k);
+    p.z = 0;
+  } else if (u < S) {
+    const k = (u - A) / (S - A);
+    p.x = lp(tk[0], c0.h - c0.dir * 1.6, k);
+    p.y = lp(tk[1], 25, k);
+    p.z = Zm * Math.sin((k * Math.PI) / 2);
+  } else {
+    const k = (u - S) / (1 - S);
+    p.x = c0.h - c0.dir * 1.6;
+    p.y = 25;
+    p.z = Zm * (k < 0.35 ? 1 : Math.max(0, 1 - (k - 0.35) / 0.65));
+  }
+  p.vx = (p.x - ox) / Math.max(dt, 0.001);
+  p.vy = (p.y - oy) / Math.max(dt, 0.001);
+  p.f += ad(f - p.f) * Math.min(1, dt * 10);
+  p.ph += hy(p.vx, p.vy) * dt * 0.8 * (u < A ? 1 : 0.2);
+  p.def = false;
+  if (u < A) {
+    p.hw = null;
+    b.own = p.id;
+    b.mode = "held";
+    ballUpd(dt);
+  } else if (u < S) {
+    const k = sm((u - A) / (S - A));
+    p.hw = [lp(p.x, c0.h, k), lp(p.y, 25, k), lp(p.z + 7.6, 10.8, k)];
+    p.hw2 = c0.two ? p.hw : null;
+    b.own = -1;
+    b.mode = "cut";
+    b.x = p.hw[0];
+    b.y = p.hw[1];
+    b.z = p.hw[2] + 0.35;
+    b.spin += dt * 3;
+  } else {
+    p.hw = u < 0.9 ? [c0.h, 25, 10.3] : null;
+    p.hw2 = c0.two && p.hw ? p.hw : null;
+    if (!c0.sc) {
+      c0.sc = 1;
+      Object.assign(b, {
+        mode: "loose",
+        own: -1,
+        x: c0.h,
+        y: 25,
+        z: 10,
+        vx: 0,
+        vy: 0,
+        vz: -4,
+        made: true,
+        missed: false,
+      });
+      score(p.t, 2, p, 1);
+      G.rim[p.t] = dk ? 2 : 1;
+      if (dk) {
+        G.flash = 0.7;
+        G.shake = 1;
+        G.hs = 0.12;
+        spark(c0.h, 25, 10, 40);
+        $("ttl").innerHTML = "SLAM DUNK!<small>" + c0.nm + "</small>";
+        $("ttl").className = "on";
+      } else toast("LAYUP", 0.7);
+    }
+    ballUpd(dt);
+  }
+  if (u > 0.88) p.stt = "cel";
+  if (u >= 1) {
+    G.cut = null;
+    p.hw = p.hw2 = null;
+    G.dead = 0.7;
+    document.body.classList.remove("cine");
+    $("ttl").className = "";
+  }
+}
+function steal(th, v) {
+  if (Math.random() < 0.4) {
+    v.stun = 0.6;
+    stealBall(th, v);
+  }
+}
+function ballUpd(dt) {
+  const b = G.ball,
+    PL = G.pl;
+  if (b.mode === "cut") return;
+  if (b.own >= 0) {
+    const p = PL[b.own];
+    G.poss = p.t;
+    b.mode = "held";
+    const cf = Math.cos(p.f),
+      sf = Math.sin(p.f);
+    b.bph += dt * (7 + hy(p.vx, p.vy) * 0.45);
+    const bk = (b.bph / Math.PI) | 0;
+    if (bk !== b.bk) {
+      b.bk = bk;
+      if (p.id === G.ctrl) sfx("bounce");
+    }
+    if (G.shot && G.shot.p === p) {
+      b.x = p.x + cf * 0.5;
+      b.y = p.y + sf * 0.5;
+      b.z = p.z + 6.4 + G.shot.t * 1.5;
+    } else {
+      b.x = p.x + cf * 0.9 + sf * 0.55;
+      b.y = p.y + sf * 0.9 - cf * 0.55;
+      b.z = 0.55 + Math.abs(Math.sin(b.bph)) * 2.7 + p.z;
+    }
+    b.vx = b.vy = 0;
+    b.spin += dt * 6;
+    return;
+  }
+  if (b.mode === "pass") {
+    b.pt += dt;
+    const u = cl(b.pt / b.pd, 0, 1),
+      q = PL[b.tgt];
+    b.x = lp(b.sx, q.x + q.vx * 0.12, u);
+    b.y = lp(b.sy, q.y + q.vy * 0.12, u);
+    b.z = lp(b.sz, 4.4, u) + Math.sin(u * Math.PI) * 0.7;
+    b.spin += dt * 12;
+    for (const o of PL)
+      if (o.t !== q.t && dist(o, b) < 2.1 && u > 0.15 && u < 0.95 && !b.tip && Math.random() < dt * 3) {
+        stealBall(o);
+        return;
+      }
+    if (u >= 1) {
+      b.tip = 0;
+      b.own = b.tgt;
+      b.mode = "held";
+      G.poss = q.t;
+      if (q.t === 0) G.ctrl = q.id;
+    }
+    return;
+  }
+  if (b.mode === "shot") {
+    const oz = b.z,
+      h = b.h,
+      hx = HX(h);
+    b.x += b.vx * dt;
+    b.y += b.vy * dt;
+    b.vz -= 32 * dt;
+    b.z += b.vz * dt;
+    b.spin += dt * 9;
+    for (const o of PL)
+      if (
+        o.t !== h &&
+        o.z > 1 &&
+        dist(o, b) < 3 &&
+        b.z < o.z + 8.8 &&
+        b.z > o.z + 4 &&
+        b.vz > -5 &&
+        Math.random() < dt * 14
+      ) {
+        b.mode = "loose";
+        b.vx = rn(-12, 12);
+        b.vy = rn(-12, 12);
+        b.vz = 4;
+        b.made = false;
+        toast("BLOCKED!");
+        return;
+      }
+    if (oz > 10 && b.z <= 10 && b.vz < 0) {
+      if (b.made) {
+        b.x = hx;
+        b.y = 25;
+        b.mode = "loose";
+        b.vx = b.vy = 0;
+        b.vz = -5;
+        score(h, b.pts, PL[b.shooter]);
+      } else if (hy(b.x - hx, b.y - 25) < 1.8) {
+        G.rim[h] = 1;
+        sfx("rim");
+        b.mode = "loose";
+        b.vz = rn(6, 11);
+        b.vx = (h ? 1 : -1) * rn(3, 9);
+        b.vy = rn(-6, 6);
+      }
+    }
+    if (b.z <= 0.5) b.mode = "loose";
+    else if (b.mode === "shot") return;
+  }
+  b.mode = "loose";
+  b.x += b.vx * dt;
+  b.y += b.vy * dt;
+  b.vz -= 32 * dt;
+  b.z += b.vz * dt;
+  b.spin += dt * 8;
+  b.vx *= Math.pow(0.55, dt);
+  b.vy *= Math.pow(0.55, dt);
+  if (b.z < 0.5) {
+    b.z = 0.5;
+    if (b.vz < 0) {
+      b.vz = -b.vz * 0.6;
+      if (b.vz < 3) b.vz = 0;
+      b.vx *= 0.85;
+      b.vy *= 0.85;
+    }
+  }
+  if (b.x < 1 || b.x > 93) {
+    b.vx *= -0.6;
+    b.x = cl(b.x, 1, 93);
+  }
+  if (b.y < 1 || b.y > 49) {
+    b.vy *= -0.6;
+    b.y = cl(b.y, 1, 49);
+  }
+  if (!b.made && !(G.dead > 0)) {
+    let best = null,
+      bd = 1e9;
+    for (const p of PL) {
+      const d = dist(p, b);
+      if (d < bd && p.z + 8 > b.z && !p.rag) {
+        bd = d;
+        best = p;
+      }
+    }
+    b.lt = (b.lt || 0) + dt;
+    if (best && bd < 2.1 + Math.min(3, b.lt * 2.5) && b.z < 7.5 && hy(b.vx, b.vy) < 30) {
+      b.lt = 0;
+      const miss = b.missed;
+      b.own = best.id;
+      b.mode = "held";
+      b.missed = false;
+      G.poss = best.t;
+      G.sc = 24;
+      if (best.t === 0 && miss) G.st.reb++;
+      toast(miss ? "REBOUND" : "LOOSE BALL", 0.5);
+    }
+  }
+}
+function mv(p, tx, ty, m, dt) {
+  const dx = tx - p.x,
+    dy = ty - p.y,
+    d = hy(dx, dy),
+    sp = p.sp * m * (p.stun > 0 ? 0.2 : 1) * (d < 1.5 ? d / 1.5 : 1);
+  p.vx = lp(p.vx, (dx / (d || 1)) * sp, Math.min(1, dt * 6));
+  p.vy = lp(p.vy, (dy / (d || 1)) * sp, Math.min(1, dt * 6));
+}
+function handler(p, dt) {
+  const h = HX(p.t),
+    d = p.t ? -1 : 1,
+    dh = hy(h - p.x, 25 - p.y),
+    df = minDef(p);
+  p.ai = (p.ai || 0) + dt;
+  mv(p, h - d * 3, 25 + Math.sin(T * 1.4 + p.id) * 6, 0.92, dt);
+  if (dh < 10 && df > 4 && p.ai > 0.5) {
+    p.ai = 0;
+    scripted(p, Math.random() < 0.55 ? "dunk" : "layup");
+    return;
+  }
+  if (p.ai > 1.2 && (G.sc < 4 || (dh < 24 && Math.random() < dt * 0.8))) {
+    p.ai = 0;
+    p.ft = Math.atan2(25 - p.y, h - p.x);
+    launch(p, cl(0.45 + (df - 3) * 0.07 + rn(-0.2, 0.2), 0.1, 1), 1);
+    return;
+  }
+  if (p.ai > 0.8 && df < 3.2 && Math.random() < dt * 1.2) {
+    p.ai = 0;
+    passTo(p, bestMate(p, null));
+  }
+}
+function ai(dt) {
+  const b = G.ball,
+    PL = G.pl,
+    ch = [-1, -1],
+    bd = [1e9, 1e9];
+  if (b.own < 0 && b.mode !== "pass")
+    PL.forEach((p, i) => {
+      if (p.rag) return;
+      const d = dist(p, b);
+      if (d < bd[p.t]) {
+        bd[p.t] = d;
+        ch[p.t] = i;
+      }
+    });
+  PL.forEach((p, i) => {
+    p.def = false;
+    if (p.rag || p.sl) return;
+    if (i === G.ctrl) return;
+    const t = p.t,
+      d = t ? -1 : 1,
+      h = HX(t),
+      off = b.own >= 0 ? PL[b.own].t === t : b.mode === "pass" ? PL[b.tgt].t === t : b.last === t;
+    if (ch[t] === i) {
+      mv(p, b.x, b.y, 1, dt);
+      return;
+    }
+    if (b.own === i) {
+      handler(p, dt);
+      return;
+    }
+    if (off) {
+      const s = [
+        [h - d * 24, 25],
+        [h - d * 18, 9],
+        [h - d * 18, 41],
+      ][p.i];
+      mv(p, s[0] + Math.sin(T * 0.8 + i) * 2, s[1] + Math.cos(T * 0.7 + i) * 2, 0.8, dt);
+      p.ft = Math.atan2(b.y - p.y, b.x - p.x);
+    } else {
+      const o = PL[(1 - t) * 3 + p.i],
+        hh = HX(1 - t),
+        dx = hh - o.x,
+        dy = 25 - o.y,
+        dl = hy(dx, dy) || 1,
+        g = b.own === o.id ? 2.6 : 3.6;
+      mv(p, o.x + (dx / dl) * g, o.y + (dy / dl) * g, 1, dt);
+      p.def = true;
+      p.ft = Math.atan2(o.y - p.y, o.x - p.x);
+      if (b.own === o.id && dist(p, o) < 3.4 && !G.shot && Math.random() < dt * 0.22) steal(p, o);
+    }
+  });
+}
+function human(dt) {
+  const p = G.pl[G.ctrl],
+    b = G.ball,
+    K = (k) => keys.has(k);
+  if (p.rag || p.sl) {
+    G.click = 0;
+    return;
+  }
+  let ix = (K("KeyD") || K("ArrowRight") ? 1 : 0) - (K("KeyA") || K("ArrowLeft") ? 1 : 0),
+    iy = (K("KeyW") || K("ArrowUp") ? 1 : 0) - (K("KeyS") || K("ArrowDown") ? 1 : 0);
+  const mg = ix || iy;
+  lyaw = V.yaw;
+  const l = hy(ix, iy) || 1;
+  ix /= l;
+  iy /= l;
+  const wx = Math.cos(lyaw) * iy + Math.sin(lyaw) * ix,
+    wy = Math.sin(lyaw) * iy - Math.cos(lyaw) * ix;
+  G.in = mg ? { x: wx, y: wy } : null;
+  const spr = mg && (K("ShiftLeft") || K("ShiftRight")) && p.stam > 5,
+    sp = p.sp * (spr ? 1.5 : 1) * (p.stam < 18 ? 0.8 : 1) * (G.shot ? 0.3 : 1) * (p.stun > 0 ? 0.3 : 1);
+  const kk = 1 - Math.exp(-(mg ? 11 : 16) * dt);
+  p.vx += (wx * sp - p.vx) * kk;
+  p.vy += (wy * sp - p.vy) * kk;
+  p.stam = cl(p.stam + (spr ? -17 : mg ? 3 : 9) * dt, 0, 100);
+  if (G.shot) p.ft = Math.atan2(25 - p.y, HX(p.t) - p.x);
+  if (spr && Math.random() < 0.5)
+    G.fx.push({
+      x: p.x,
+      y: p.y,
+      z: 0.2,
+      vx: rn(-2, 2),
+      vy: rn(-2, 2),
+      vz: rn(1, 3),
+      l: 0.4,
+      c: "rgba(255,240,220,.8)",
+    });
+  const pr = (k) => {
+    if (T - (BUF[k] || -9) < 0.14) {
+      BUF[k] = -9;
+      return true;
+    }
+    return false;
+  };
+  if (pr("ControlLeft")) startSlide(p);
+  if (G.click) {
+    G.click = 0;
+    punch(p);
+  }
+  if (pr("Space")) {
+    if (b.own === p.id && !G.shot) beginShot(p);
+    else if (b.own !== p.id && !p.z) p.vz = 10;
+  }
+  if (pr("KeyQ")) {
+    if (b.own === p.id && !G.shot) passTo(p, bestMate(p, G.in));
+    else {
+      let bs = null,
+        bd = 1e9;
+      for (let i = 0; i < 3; i++) {
+        const d = dist(G.pl[i], b);
+        if (i !== G.ctrl && d < bd) {
+          bd = d;
+          bs = i;
+        }
+      }
+      G.ctrl = bs;
+      G.lock = 1.5;
+    }
+  }
+  if (pr("KeyE") && b.own === p.id) {
+    const d = G.in || { x: Math.cos(p.f), y: Math.sin(p.f) },
+      sd = Math.random() < 0.5 ? 1 : -1;
+    p.vx += -d.y * sd * 9;
+    p.vy += d.x * sd * 9;
+    let hit = 0;
+    for (const q of G.pl)
+      if (q.t !== p.t && dist(q, p) < 6 && Math.random() < 0.5) {
+        q.stun = 0.8;
+        hit = 1;
+      }
+    toast(hit ? "ANKLE BREAKER" : "CROSSOVER", 0.6);
+  }
+  if (pr("KeyF") && b.own >= 0 && G.pl[b.own].t !== p.t) {
+    const o = G.pl[b.own];
+    if (dist(p, o) < 4.2) {
+      if (Math.random() < 0.32) stealBall(p, o);
+      else toast("CONTEST", 0.4);
+    } else toast("HANDS UP", 0.4);
+  }
+}
+function ctrlSel(dt) {
+  const b = G.ball;
+  G.lock = Math.max(0, G.lock - dt);
+  if (b.mode === "pass" && G.pl[b.tgt].t === 0) return;
+  if (b.mode === "shot" && G.pl[b.shooter].t === 0) return;
+  if (b.own >= 0 && b.own < 3) {
+    G.ctrl = b.own;
+    return;
+  }
+  if (G.lock > 0) return;
+  const ref = b.own >= 0 ? G.pl[b.own] : b;
+  let best = 0,
+    bd = 1e9;
+  for (let i = 0; i < 3; i++) {
+    const d = dist(G.pl[i], ref);
+    if (d < bd && !G.pl[i].rag) {
+      bd = d;
+      best = i;
+    }
+  }
+  if (best !== G.ctrl && (G.pl[G.ctrl].rag || (bd < dist(G.pl[G.ctrl], ref) - 2.5 && T > G.swT))) {
+    G.ctrl = best;
+    G.swT = T + 0.45;
+  }
+}
+function integ(p, dt) {
+  if (p.rag) {
+    const r = p.rag;
+    r.t += dt;
+    const k = Math.exp(-3.2 * r.t);
+    p.vx = r.dx * 12 * k;
+    p.vy = r.dy * 12 * k;
+    if (r.t >= r.d) p.rag = null;
+  }
+  if (p.sl) slideStep(p, dt);
+  if (p.slcd > 0) p.slcd -= dt;
+  if (p.pun > 0) {
+    p.pun -= dt;
+    if (p.punT > 0) {
+      p.punT -= dt;
+      if (p.punT <= 0) punchHit(p);
+    }
+  }
+  const sp = hy(p.vx, p.vy);
+  p.x = cl(p.x + p.vx * dt, 1, 93);
+  p.y = cl(p.y + p.vy * dt, 1, 49);
+  p.ph += sp * dt * 0.8;
+  if (p.z > 0 || p.vz) {
+    p.vz -= 32 * dt;
+    p.z += p.vz * dt;
+    if (p.z <= 0) {
+      p.z = 0;
+      p.vz = 0;
+    }
+  }
+  if (p.fol > 0) p.fol -= dt;
+  if (p.stun > 0) p.stun -= dt;
+  const ta =
+    p.rag || p.sl
+      ? p.f
+      : p.pun > 0
+        ? p.pf
+        : p.ft !== undefined
+          ? p.ft
+          : sp > 1.5
+            ? Math.atan2(p.vy, p.vx)
+            : p.f;
+  p.f += ad(ta - p.f) * Math.min(1, dt * 9);
+  p.ft = undefined;
+}
+function separate() {
+  const L = G.pl;
+  for (let i = 0; i < 6; i++)
+    for (let j = i + 1; j < 6; j++) {
+      const a = L[i],
+        b = L[j],
+        d = dist(a, b);
+      if (d < 1.8 && d > 0.01 && !a.sl && !b.sl) {
+        const k = (1.8 - d) / 2 / d;
+        const dx = (a.x - b.x) * k,
+          dy = (a.y - b.y) * k;
+        a.x += dx;
+        a.y += dy;
+        b.x -= dx;
+        b.y -= dy;
+      }
+    }
+}
+function end() {
+  G.run = 0;
+  $("vm").style.display = "none";
+  $("hud").style.display = "none";
+  $("menu").style.display = "grid";
+  $("mt").textContent = `FINAL  ${TM[0].n} ${G.home} – ${G.away} ${TM[1].n}`;
+}
