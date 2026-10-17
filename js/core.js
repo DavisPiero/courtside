@@ -35,18 +35,23 @@ const lite = (c) => (pc(c).reduce((a, b) => a + b) > 330 ? c : "#ffffff");
 const SK = ["#f0c8a0", "#e0b08a", "#c8946a", "#a96b46", "#8b5a3c", "#5e3a26"],
   HX = (t) => (t ? 5.25 : 88.75);
 // Options chosen on the setup screen.
-// mode: "mayhem" (punch, slide, blood) or "clean" (straight basketball). court: "arena" or "street".
+// mode: "mayhem" (punch, slide, blood) or "clean" (straight basketball). court: an id in COURTS (js/courts.js): arena, street, roof, beach, cage.
 const OPT = { mode: "clean", court: "arena", diff: 1 };
+// Every court but the arena is outdoors: pole hoops, no crowd (see js/courts.js).
+const streetish = () => OPT.court !== "arena";
 // Difficulty for the opposing team's AI. Pro is how the game originally played.
 // sp: run-speed multiplier on each player's own speed, stealRate: steal attempts per second when guarding the ball,
 // stealWin: chance an attempt works, gap: extra distance they give you on defence (feet), shotQ: shot quality bonus,
 // pick: pass interceptions, react: how quickly they change direction,
 // squeeze: how much their defence shrinks your green zone (0 none, 1 can close it almost shut).
+// Long shots (your shots only; the AI always uses Pro): a perfect release goes in every time out to just past
+// the 3-point line, then less and less: half (chance right at half court), deep (just past half court),
+// full (from the far baseline). layup: how often a contested close layup rims out.
 const DIFF = [
-  { name: "ROOKIE", sp: 0.84, stealRate: 0.08, stealWin: 0.25, gap: 1.4, shotQ: -0.18, pick: 0.4, react: 4, squeeze: 0.25 },
-  { name: "PRO", sp: 0.94, stealRate: 0.22, stealWin: 0.4, gap: 0, shotQ: 0, pick: 1, react: 6, squeeze: 0.45 },
-  { name: "ALL-STAR", sp: 1.0, stealRate: 0.4, stealWin: 0.5, gap: -0.4, shotQ: 0.1, pick: 1.5, react: 8, squeeze: 0.65 },
-  { name: "HALL OF FAMER", sp: 1.03, stealRate: 0.55, stealWin: 0.55, gap: -0.6, shotQ: 0.16, pick: 1.9, react: 10, squeeze: 0.8 },
+  { name: "ROOKIE", sp: 0.84, stealRate: 0.08, stealWin: 0.25, gap: 1.4, shotQ: -0.18, pick: 0.4, react: 4, squeeze: 0.25, half: 0.45, deep: 0.17, full: 0.04, layup: 0.25 },
+  { name: "PRO", sp: 0.94, stealRate: 0.22, stealWin: 0.4, gap: 0, shotQ: 0, pick: 1, react: 6, squeeze: 0.45, half: 0.3, deep: 0.1, full: 0.02, layup: 0.35 },
+  { name: "ALL-STAR", sp: 1.0, stealRate: 0.4, stealWin: 0.5, gap: -0.4, shotQ: 0.1, pick: 1.5, react: 8, squeeze: 0.65, half: 0.22, deep: 0.067, full: 0.012, layup: 0.45 },
+  { name: "HALL OF FAMER", sp: 1.03, stealRate: 0.55, stealWin: 0.55, gap: -0.6, shotQ: 0.16, pick: 1.9, react: 10, squeeze: 0.8, half: 0.16, deep: 0.04, full: 0.008, layup: 0.55 },
 ];
 // Your AI teammates always play at Pro; the opponents play at the chosen level.
 const dk = (p) => (p.t === 1 ? DIFF[OPT.diff] : DIFF[1]);

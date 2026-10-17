@@ -60,6 +60,7 @@
 <!-- Main menu -->
 <div id="menu" class="scr">
   <div class="cc ccbal top">0 CC</div>
+  <div class="payday" id="payday"></div>
   <div class="menu-l">
     <div class="brand">COURT<em>SIDE</em></div>
     <p id="mt">Full-court 3-on-3. Drive to an open rim and the bucket is yours.</p>
@@ -85,7 +86,7 @@
   <div id="grid"><div class="gbox pnl"><div class="ghead"><b id="gridTitle"></b><button class="btn" id="gridX">CLOSE</button></div><div class="gtiles" id="gridTiles"></div></div></div>
   <footer class="su-bot">
     <div class="opt"><i>MODE</i><div class="seg" data-k="mode"><button data-v="clean" data-tip="Straight basketball: dribble, pass, shoot, steal and block. No punches or slides.">CLEAN</button><button data-v="mayhem" data-tip="No rules: punch to drop players and steal the ball, slide-tackle the ball carrier. Chaos!">MAYHEM</button></div></div>
-    <div class="opt"><i>COURT</i><div class="seg" data-k="court"><button data-v="arena">ARENA</button><button data-v="street">STREET</button></div></div>
+    <div class="opt"><i>COURT</i><div class="seg" data-k="court"><button data-v="arena" data-tip="The official indoor court: crowd, jumbotron, hardwood.">ARENA</button><button data-v="street" data-tip="Asphalt at dusk, chain-link fences, chain nets.">STREET</button><button data-v="roof" data-tip="A painted court on top of a tower at night. The whole city below you.">ROOFTOP</button><button data-v="beach" data-tip="A boardwalk court at sunset: sand, palms, the ocean behind the hoop.">BEACH</button><button data-v="cage" data-tip="Under the highway bridge: a tall fence, graffiti walls, orange street lights.">CAGE</button></div></div>
     <div class="opt"><i>DIFFICULTY</i><div class="seg" data-k="diff"><button data-v="0">ROOKIE</button><button data-v="1">PRO</button><button data-v="2">ALL-STAR</button><button data-v="3">HALL OF FAMER</button></div></div>
     <div class="act"><button class="btn" id="bBack">BACK</button><button class="btn pri" id="bStart">START GAME</button></div>
   </footer>
@@ -131,8 +132,19 @@
       <button class="arr" id="chNext" aria-label="Next chapter">›</button>
     </div>
     <div class="reward" id="chReward"></div>
+    <div class="contract" id="chContract"></div>
     <div class="rows" id="campRows"></div>
     <div class="act"><button class="btn" id="bCampX">BACK</button><button class="btn" id="bCampStory">▶ CHAPTER STORY</button></div>
+  </div>
+</div>
+
+<!-- NBA career: choose a team (after the Street campaign) and re-sign after each NBA chapter -->
+<div id="sign" class="scr dim">
+  <div class="pnl box sign">
+    <div class="ihead"><h2 id="signTitle">CHOOSE YOUR TEAM</h2><div class="cc ccbal">0 CC</div></div>
+    <p class="signsub" id="signSub"></p>
+    <div class="offers" id="signOffers"></div>
+    <div class="act"><button class="btn" id="bSignX">BACK</button></div>
   </div>
 </div>
 
@@ -252,6 +264,7 @@
 <script src="js/core.js"></script>
 <script src="js/projection.js"></script>
 <script src="js/arena.js"></script>
+<script src="js/courts.js"></script>
 <script src="js/anim.js"></script>
 <script src="js/players.js"></script>
 <script src="js/render.js"></script>

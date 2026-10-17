@@ -32,16 +32,17 @@ function castFor(who) {
   if (!who) return null;
   const c = CHARS[who];
   if (c && c.crew !== undefined) {
-    const T0 = crewTeam(),
+    // In the NBA you wear your team's colours; Dex and Lou are in the stands in the crew's.
+    const T0 = c.crew === 0 && SCN.cid === "nba" && SAVE.nba.team ? nbaTeam() : crewTeam(),
       q = T0.p[c.crew];
-    return { key: who + q[10] + q[11] + (SAVE.name || ""), side: 0, team: T0, q, ball: 1, col: c.col, name: c.crew === 0 ? SAVE.name || "ROOKIE" : who };
+    return { key: who + T0.c + q[10] + q[11] + (SAVE.name || ""), side: 0, team: T0, q, ball: 1, col: c.col, name: c.crew === 0 ? SAVE.name || "ROOKIE" : who };
   }
   // Someone on the team we're about to play (or just played).
   const opp = SCN.opp,
     q = opp && opp.p.find((r) => r[0] === who || (who === "ZEKE KNOX" && r[0] === KNOX[0]));
   if (q) return { key: who + opp.c, side: 1, team: opp, q, ball: 1, col: (c && c.col) || lite(opp.t), name: who };
   if (c) {
-    const team = c.knox ? NBA(SCN.ci >= 2 ? "OKC" : "WAS") : CAST_TEAMS[c.team];
+    const team = c.knox ? NBA(knoxTeam(SCN.ci)) : CAST_TEAMS[c.team];
     return { key: who + team.c, side: c.side, team, q: [who, c.pos, 80, c.ht, 0, 0, 0, 0, 0, 0, c.skin, c.hair], hcol: c.hcol, ball: c.ball, col: c.col, name: who };
   }
   // Anyone else: a stranger in grey.
@@ -57,7 +58,7 @@ function castModel(cs, slot) {
 // Play a scene, then call done(). opp: the opposing team (so its players can talk). ci: chapter index.
 function playScene(lines, done, opp, ci, chapTitle) {
   if (!lines || !lines.length) return done();
-  Object.assign(SCN, { lines, i: -1, done, opp: opp || null, ci: ci || 0, m: [null, null], who: [null, null] });
+  Object.assign(SCN, { lines, i: -1, done, opp: opp || null, ci: ci || 0, cid: CUI.cid, m: [null, null], who: [null, null] });
   $("scnChap").innerHTML = chapTitle ? `<i>${chapTitle[0]}</i><b>${chapTitle[1]}</b>` : "";
   $("scnChap").classList.toggle("on", !!chapTitle);
   $("scene").classList.toggle("haschap", !!chapTitle);
@@ -163,7 +164,7 @@ const CHAT = {
   block: { street: [["BIG LOU", "GET THAT OUTTA HERE!"]], nba: [["ANNOUNCER", "REJECTED!"]] },
   drop: { street: [["BIG LOU", "Timber!"], ["DEX", "He's taking a nap."]], nba: [] },
   behind: { street: [["DEX", "We're down. Stay calm. Get a stop."], ["BIG LOU", "Come on, crew. Wake up!"]], nba: [["COACH RAY", "Slow down. Run the play. One stop."], ["COACH RAY", "Don't panic. Play our game."]] },
-  ahead: { street: [["DEX", "We're cooking now!"], ["BIG LOU", "Keep it going! Don't let up!"]], nba: [["COACH RAY", "Good. Now don't get comfy."], ["ANNOUNCER", "The rookies are pulling away!"]] },
+  ahead: { street: [["DEX", "We're cooking now!"], ["BIG LOU", "Keep it going! Don't let up!"]], nba: [["COACH RAY", "Good. Now don't get comfy."], ["ANNOUNCER", "The rookie's team is pulling away!"]] },
   close: { street: [["DEX", "Next bucket matters. Big time."]], nba: [["COACH RAY", "Last minute. Every possession."], ["ANNOUNCER", "Down to the wire!"]] },
   quarter: { street: [["DEX", "Breathe. We got this."]], nba: [["COACH RAY", "Good quarter. Same again."], ["COACH RAY", "Hydrate. Then go."]] },
   rivalLead: { street: [["TANK", "Too slow, block kid!"], ["KING", "This is what kings look like."]], nba: [["ZEKE KNOX", "Playground's closed!"]] },

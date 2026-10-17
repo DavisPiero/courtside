@@ -12,6 +12,10 @@ const SAVE = {
   stars: {}, // campaign game id -> best stars (0-3)
   seen: {}, // story scenes already watched (chapter openings play once by themselves)
   storyV: 0, // story version this save's campaign progress belongs to
+  // NBA career: team code you signed with, the offer tier you last answered, current offers, and the last
+  // day (yyyymmdd) your contract paid out (0 = not yet).
+  nba: { team: "", tier: 0, offers: [], offerTier: -1 },
+  payday: 0,
 };
 // The story was rewritten in session 2 (2026-10-17), so campaign progress starts again once.
 // Coins, animations and what you have equipped are kept.
@@ -30,6 +34,7 @@ function loadSave() {
   try {
     const s = JSON.parse(localStorage.getItem(SAVE_GAME_KEY) || "{}");
     for (const k in SAVE) if (k in s) SAVE[k] = s[k];
+    SAVE.nba = Object.assign({ team: "", tier: 0, offers: [], offerTier: -1 }, SAVE.nba);
     SAVE.equip = Object.assign({ dunk: "dunk.basic", layup: "layup.basic", cel: "cel.basic", shot: "shot.basic", moves: [] }, SAVE.equip);
   } catch (e) {
     /* private window or blocked storage: start fresh */
@@ -64,12 +69,23 @@ const STYLE_PAY = [
   ["Steals", "stl", 3],
   ["Blocks", "blk", 4],
 ];
+// Mayhem's punch is strong, so it costs you: every punch thrown takes PUNCH_CUT % off the game's coins,
+// up to PUNCH_CAP %. free: punches a campaign goal asks for (they don't count).
+const PUNCH_CUT = 6,
+  PUNCH_CAP = 50;
 // Coins for a finished game. extra: [label, coins] rows from the campaign (stars, first clear).
-function payout(won, extra) {
+function payout(won, extra, free) {
   const rows = [[won ? "Win" : "Played", won ? 30 : 10]];
   for (const [label, k, each] of STYLE_PAY) if (G.st[k]) rows.push([`${label} ×${G.st[k]}`, G.st[k] * each]);
   for (const r of extra || []) rows.push(r);
-  const total = rows.reduce((a, r) => a + r[1], 0);
+  let total = rows.reduce((a, r) => a + r[1], 0);
+  const n = Math.max(0, (G.st.pun || 0) - (free || 0)),
+    pct = Math.min(PUNCH_CAP, n * PUNCH_CUT);
+  if (pct) {
+    const cut = Math.round((total * pct) / 100);
+    rows.push([`Punches ×${n} (−${pct}%)`, -cut]);
+    total -= cut;
+  }
   SAVE.cc += total;
   writeSave();
   return { rows, total };

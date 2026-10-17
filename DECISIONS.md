@@ -52,3 +52,19 @@ One line each, newest last.
 - 2026-10-17 · New ICONIC rarity: player signatures only in Player Packs and the Daily Shop, never random packs.
 - 2026-10-17 · Daily Shop seeded by local date so it's the same for everyone that day, no server.
 - 2026-10-17 · Pack odds stay visible; the build-up is presentation only, results are rolled before it starts.
+- 2026-10-17 · Session 3: Hall of Fame close calls settled by popularity (David's call): Pierce, Carmelo, DeRozan, Kidd (Mavs), LaMelo, CP3 (Pelicans).
+- 2026-10-17 · Hall of Famer difficulty not eased further: the top level should be hard; the campaign ramp gives the gentle start.
+- 2026-10-17 · Shop prices and the near-miss flicker kept as they are.
+- 2026-10-17 · League switch bug: the generic option-button code overwrote its click handler; option rows now need data-k.
+- 2026-10-17 · Hall of Fame teams: gold trim on jerseys plus a gold team-select screen, team base colours kept.
+- 2026-10-17 · Three new outdoor courts (Rooftop, Beach, The Cage), in js/courts.js; all use the street pole hoops.
+- 2026-10-17 · NBA campaign locked behind the Summer Jam; saves with NBA stars from before stay open.
+- 2026-10-17 · NBA: you sign with a team and play with its two best players; Dex and Lou move to the stands; Coach Ray becomes a scout.
+- 2026-10-17 · Team tiers ranked by the two players you'd join, not the roster average (the Lakers came out bottom ten otherwise).
+- 2026-10-17 · Contract pays the same for every team in a tier (60/120/200/300 a day); better teams mean better teammates, not more coins.
+- 2026-10-17 · Payday on first menu open each day; missed days stack to a week so a week away still pays, farming doesn't.
+- 2026-10-17 · Your own team on the schedule is swapped for a neighbour in the rankings, with a generic Coach Ray line.
+- 2026-10-17 · Punch penalty counts punches thrown, not landed (David: "how much you punched"); drop goals get 2 free per drop.
+- 2026-10-17 · Knock-down 1.4 s for punch and slide; slide decay 3.2 -> 1.8 (about twice as far).
+- 2026-10-17 · Close layups (inside 6.5 ft) are automatic but can miss when contested, so driving into a crowd isn't a free 2.
+- 2026-10-17 · Shot range: perfect releases certain to 26 ft, then a make chance per difficulty; applies to the AI at Pro.

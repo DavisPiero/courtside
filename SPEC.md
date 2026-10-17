@@ -15,12 +15,21 @@ Inventory, Settings, plus your Court Coins.
 
 ## Campaigns
 Create your hooper (name, skin, hair), then choose your road:
-- **STREET, "King of the Courts"**: street courts, Mayhem games allowed. You're the new kid on the block;
+- **STREET, "King of the Courts"**: outdoor courts (Street, The Cage, Rooftop, Beach), Mayhem games allowed. You're the new kid on the block;
   Dex and Big Lou are your crew. The Block, The City, The Summer Jam. Rivals: Tank (becomes a friend), then
   King and the Kings, who try to poach Dex.
-- **NBA, "Road to the Ring"**: arenas and NBA teams, professional rules only (never Mayhem). Undrafted;
-  Coach Ray (never won a ring) gives you a tryout. Summer League, The League, The Finals. Rival: Zeke Knox,
-  a made-up lottery pick (Washington, then traded to OKC for the Finals).
+- **NBA, "Road to the Ring"**: locked until you win the Summer Jam (the Street campaign's last boss). Arenas,
+  professional rules only (never Mayhem). Coach Ray (coached twenty years, never won a ring, now a scout) finds
+  you at the Summer Jam. **You choose your team** from three offers from the league's ten worst teams (ranked by
+  the two players you'd join) and play as yourself plus that team's two best players. Dex and Big Lou cheer from
+  the stands. After each NBA chapter you get offers from better teams (middle ten, then top ten): stay or move.
+  If you'd play your own team, a team close to it in the rankings plays instead. Summer League, The League, The
+  Finals. Rival: Zeke Knox, a made-up lottery pick (Washington, then traded to the champs, OKC, for the Finals;
+  another team if you play for one of those).
+- **Contract**: signing pays Court Coins once a day, the first time the menu opens that day ("PAYDAY!"):
+  60 a day, 120 after NBA chapter 1, 200 after chapter 2, 300 as champion. Missed days add up to a week.
+- **Getting harder**: Street runs Rookie to All-Star with Hall of Famer only for its last two games; NBA runs
+  Pro/All-Star to Hall of Famer. You (and your street crew) improve with every boss beaten, up to six times.
 Each has 3 chapters x 6 games with 3 stars (win, twist goal, style goal). Winning unlocks the next game.
 **The story is told in scenes**: two characters on screen, the speaker steps forward in a pose that fits the
 line, text types out, tap to go on, SKIP to jump. Each chapter opens with a title card and scene (once; replay
@@ -63,8 +72,11 @@ page snaps back if a browser zooms anyway.
 ## Modes and options (chosen on the setup screen)
 - **Mode:** (starts on Clean; hover or tap for a description) Mayhem (punch, slide, blood) or Clean (no punch, slide or blood: just dribble,
   pass, shoot, steal, block). Ankle-breaker stuns from dribble moves stay in both.
-- **Court:** Arena (official indoor court, crowd, jumbotron) or Street (asphalt, chain-link
-  fences, pole hoops, chain nets, no crowd).
+- **Court:** Arena (official indoor court, crowd, jumbotron), Street (asphalt at dusk, chain-link
+  fences, pole hoops, chain nets, no crowd), Rooftop (a painted court on a tower at night, the city below,
+  a parapet with a railing, a water tower), Beach (boardwalk court at sunset, sand, palms, string lights, the
+  ocean and a lifeguard tower) or The Cage (under a highway bridge, graffiti wall, tall fence, orange lights).
+  All outdoor courts use pole hoops. Drawn in js/courts.js.
 - **Difficulty:** Rookie (easy), Pro (normal), All-Star (hard), Hall of Famer (expert).
   Changes opponent speed, shooting, steal attempts, defensive tightness and decisions.
 - **League:** a switch at the top: NBA (today's teams) or HALL OF FAME (each franchise's three best players
@@ -75,6 +87,16 @@ page snaps back if a browser zooms anyway.
   shape how they play.
 - **Shooting:** the shot meter's green zone shrinks as defenders close in, more on harder difficulties.
   The AI doesn't block your jump shots; tall players are hard to block.
+- **Range:** a perfect release always goes in out to 26 ft (just past the 3-point line). Further out the
+  green zone shrinks (under half by half court, a sliver past it) and even a perfect release can miss: at Pro
+  about 1 in 3 at half court, 1 in 10 just past it, 1 in 50 from the far baseline (Rookie kinder, All-Star and
+  Hall of Famer harsher). Other releases fall off faster. Numbers in js/core.js (DIFF half/deep/full).
+- **Close to the rim:** inside about 6 ft you always get a layup (or a dunk when open and you can dunk), never
+  a jump shot. With a defender on you a close layup can roll off the rim, more often on harder levels.
+- **Mayhem balance:** every punch you throw cuts that game's coins by 6% (up to half), shown on the results;
+  punches a "drop N players" goal needs are free. The slide carries about twice as far as before. Anyone
+  knocked down by a punch or slide is up after about 1.4 seconds.
+- **Hall of Fame league** teams wear gold trim, and the team select screen turns gold.
 - **Settings:** video (pixel size, lighting, fog, bloom, reflections, colour grade, vignette, scanlines,
   grain, shake), audio, gameplay (camera, name tag, shot meter), controls. Saved in the browser.
 

@@ -6,6 +6,7 @@ const SCREENS = ["load", "device", "menu", "setup", "pause", "sets"];
 function show(id) {
   for (const s of SCREENS) $(s) && $(s).classList.toggle("on", s === id);
   if (typeof ccShow === "function") ccShow();
+  if (id === "menu" && typeof payday === "function") payday();
 }
 function hudOn(on) {
   $("hud").style.display = on ? "block" : "none";
@@ -128,7 +129,7 @@ function drawSel() {
   $("roster").innerHTML =
     `<div class="ra">${A.map((q) => `${q[0]} <u>${q[2]}</u><span>${q[1]}</span>`).join("<br>")}</div><i class="sep"></i>` +
     `<div>${B.map((q) => `<span>${q[1]}</span><u>${q[2]}</u> ${q[0]}`).join("<br>")}</div>`;
-  document.querySelectorAll("#setup .seg").forEach((g) =>
+  document.querySelectorAll("#setup .seg[data-k]").forEach((g) =>
     g.querySelectorAll("button").forEach((b) => {
       b.classList.toggle("on", String(OPT[g.dataset.k]) === b.dataset.v);
       b.onclick = () => {
@@ -169,6 +170,7 @@ function openGrid(right) {
       }),
   );
   $("gridX").onclick = closeGrid;
+  $("grid").classList.toggle("hof", SEL.lg === "hof");
   $("grid").classList.add("on");
 }
 function closeGrid() {
