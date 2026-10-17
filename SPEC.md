@@ -15,9 +15,17 @@
   fences, pole hoops, chain nets, no crowd).
 - **Difficulty:** Rookie (easy), Pro (normal), All-Star (hard), Hall of Famer (expert).
   Changes opponent speed, shooting, steal attempts, defensive tightness and decisions.
-- **Teams:** four real NBA teams, three players each, split-screen select (see `Reference/`).
+- **Teams:** all 30 NBA teams (2026-27), each team's three most popular players, split-screen select
+  (see `Reference/`). Each player's height, speed, shooting, finishing, handling, defence and blocking
+  shape how they play.
+- **Shooting:** the shot meter's green zone shrinks as defenders close in, more on harder difficulties.
+  The AI doesn't block your jump shots; tall players are hard to block.
+- **Settings:** video (pixel size, lighting, fog, bloom, reflections, colour grade, vignette, scanlines,
+  grain, shake), audio, gameplay (camera, name tag, shot meter), controls. Saved in the browser.
 
 ## Presentation rules
+- Crisp, high-res pixel art: the world renders at low resolution and scales by whole pixels. Pixel UI
+  type (Jersey 10) that stays readable. Realistic body proportions, scaled by each player's real height.
 - Only the player you control has a name, floating above their head. No names or numbers
   on any jersey.
 - Steals are instant: no steal cutscene. Dunk cutscenes are short (about 1.5 seconds).

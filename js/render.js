@@ -336,7 +336,7 @@ function nameTag() {
   if (!G.run || G.cut || G.tip || !SET.nameTag) return;
   const p = G.pl[G.ctrl];
   if (!p || p.t !== 0) return;
-  const q = P(p.x, p.y, p.z + 7.4);
+  const q = P(p.x, p.y, p.z + 7.2 * bodyScale(p));
   if (!q) return;
   const sx = PX,
     sy = PX,

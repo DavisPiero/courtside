@@ -146,6 +146,7 @@ function portraits() {
         look: ti * 3 + i,
         sk: SK[q[10]],
         pos: q[1],
+        ht: q[3],
         x: 0, y: 0, z: 0, vx: 0, vy: 0, f: 0, ph: 0, hand: right ? 1 : -1,
         port: { spr: mkSpr(PW, PH), k: PK, t: 0, ball: [0, 0, 0] },
       };
@@ -164,7 +165,7 @@ function portraits() {
     if (!S) continue;
     // Ball: projected with the same camera, drawn as a pixel disc onto the sprite.
     const L = P0.port.ball,
-      K = PK * (BODY[P0.pos] || [1])[0],
+      K = PK * bodyScale(P0),
       bx = S.ox + (L[0] * Rx + L[1] * Ry) * K,
       by = S.oy - (L[0] * Ux + L[1] * Uy + L[2] * Uz) * K,
       g = S.cv.getContext("2d"),

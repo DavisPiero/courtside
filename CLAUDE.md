@@ -23,7 +23,9 @@ where we are.
 - Sound: `M` mutes effects. Run it muted when testing.
 
 ## Code map
-- `js/core.js` helpers, teams and rosters, settings, global state
+- `js/teams.js` all 30 teams, rosters and player ratings (edit freely)
+- `js/settings.js` the settings menu's options and saving them
+- `js/core.js` helpers, options and difficulty, global state, screen sizing
 - `js/projection.js` 3D projection and drawing primitives
 - `js/arena.js` arena and street courts (crowd, fences, floors)
 - `js/players.js` player models and animation, ball
@@ -31,7 +33,7 @@ where we are.
 - `js/camera.js` cameras and cutscene cameras
 - `js/gameplay.js` rules, moves, AI, input
 - `js/loop.js` fixed-step simulation, HUD
-- `js/audio.js` sound effects
+- `js/audio.js` sound effects (no music)
 - `js/menus.js` menus, setup screen, tip-off
 - `js/main.js` input listeners, start-up, smoke-test hook
 

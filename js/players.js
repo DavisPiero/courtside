@@ -35,7 +35,7 @@ function shade(h, a) {
   );
 }
 // Per-look hair style (0 short, 1 tall top, 2 shaved), beard, headband and arm sleeve.
-const HST = [1, 0, 2, 1, 2, 0, 0, 2, 1, 0, 1, 2],
+const HST = [1, 0, 2, 3, 4, 0, 2, 0, 1, 3, 4, 2],
   BRD = [0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1],
   BND = [1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0],
   SLV = [0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1];
@@ -58,7 +58,10 @@ function hull(pts) {
   return lo.concat(up);
 }
 // Body size by position: guards are smaller, centres taller and broader.
-const BODY = { PG: [0.95, 0.95], SG: [0.98, 0.97], SF: [1.02, 1.0], PF: [1.04, 1.05], C: [1.07, 1.1] };
+// Realistic proportions for a 6'6" player, in feet. Everyone is scaled by their real height (js/teams.js),
+// and bigs are a little broader than guards.
+const BW = { PG: 0.94, SG: 0.96, SF: 1, PF: 1.06, C: 1.1 };
+const bodyScale = (p) => (p.ht || 78) / 78;
 const mkSpr = (w, h) => {
   const v = document.createElement("canvas");
   v.width = w;
@@ -103,8 +106,9 @@ function buildSprite(p) {
     if (!g || g[2] < 6) return;
     k = Math.round(cl(g[3], 7, 15));
   }
-  const [bh, bw] = BODY[p.pos] || [1, 1],
-    K = k * bh, // drawing scale for this body
+  const S = bodyScale(p),
+    bw = BW[p.pos] || 1,
+    K = k * S, // drawing scale for this body
     ox = sp.w >> 1,
     oy = sp.h - 24,
     f = p.f,
@@ -133,9 +137,9 @@ function buildSprite(p) {
   const idle = 1 - cl(run * 3, 0, 1),
     breathe = Math.sin(tt * 2.4 + look) * 0.05 * idle,
     hz =
-      3 -
+      3.25 -
       (p.def ? 0.55 : 0) -
-      (shooting ? 0.3 : 0) -
+      (shooting ? 0.25 + 0.45 * (1 - cl(G.shot.t / G.shot.d / 0.6, 0, 1)) : 0) - // jump-shot dip, then rise
       (hold && !shooting ? 0.2 : 0) -
       (mvv ? 0.35 : 0) -
       land * 0.5 +
@@ -154,8 +158,9 @@ function buildSprite(p) {
     fR = [-0.15, -0.6, 0];
   }
   if (p.def) {
-    fL = [0.2 + s1 * 0.3 * run, 1.3, 0];
-    fR = [-0.2 - s1 * 0.3 * run, -1.3, 0];
+    // Defensive slide: feet stay wide and shuffle sideways instead of running.
+    fL = [0.2, 1.25 + Math.max(0, s1) * 0.35 * run, Math.max(0, c1) * 0.25 * run];
+    fR = [-0.2, -1.25 - Math.max(0, -s1) * 0.35 * run, Math.max(0, -c1) * 0.25 * run];
   }
   if (mvv) {
     const h = mvv.h;
@@ -176,10 +181,10 @@ function buildSprite(p) {
     fL = [0.6, 0.5, 1.2];
     fR = [-0.4, -0.5, 0.6];
   }
-  const hL = [0, 0.45 * bw, hz],
-    hR = [0, -0.45 * bw, hz],
-    sL = [lean - twist, 0.95 * bw, hz + 2.2],
-    sR = [lean + twist, -0.95 * bw, hz + 2.2];
+  const hL = [0, 0.4 * bw, hz],
+    hR = [0, -0.4 * bw, hz],
+    sL = [lean - twist, 0.78 * bw, hz + 2.15],
+    sR = [lean + twist, -0.78 * bw, hz + 2.15];
   // Arms: swing against the legs by default.
   let aL = [-s1 * stride * 0.9, 1.15 * bw, hz + 0.2 + run * 0.8 + idle * 0.1],
     aR = [s1 * stride * 0.9, -1.15 * bw, hz + 0.2 + run * 0.8 + idle * 0.1];
@@ -200,6 +205,7 @@ function buildSprite(p) {
           dy = b.y - p.y;
         L = [dx * cf + dy * sf, -dx * sf + dy * cf, b.z - p.z];
       }
+      L = L.map((v) => v / S); // world feet to this body's model feet
       const hand = [L[0], L[1], Math.min(L[2] + 0.3, hz + 2.6)];
       if (L[1] >= 0) {
         aL = hand;
@@ -245,10 +251,10 @@ function buildSprite(p) {
     aR = [dx * cf + dy * sf, -dx * sf + dy * cf, p.hw[2] - p.z];
     aL = p.hw2 ? [aR[0], aR[1] + 0.35, aR[2]] : [0.6, 1.1, hz + 3.8];
   }
-  const [eL, wL] = ik(sL, aL, 1.15, 1.15, [-0.3, 0.9, -0.6]),
-    [eR, wR] = ik(sR, aR, 1.15, 1.15, [-0.3, -0.9, -0.6]),
-    [kL, ftL] = ik(hL, fL, 1.6, 1.6, [1, 0.1, 0]),
-    [kR, ftR] = ik(hR, fR, 1.6, 1.6, [1, -0.1, 0]);
+  const [eL, wL] = ik(sL, aL, 1.27, 1.22, [-0.3, 0.9, -0.6]),
+    [eR, wR] = ik(sR, aR, 1.27, 1.22, [-0.3, -0.9, -0.6]),
+    [kL, ftL] = ik(hL, fL, 1.72, 1.66, [1, 0.1, 0]),
+    [kR, ftR] = ik(hR, fR, 1.72, 1.66, [1, -0.1, 0]);
   x.clearRect(0, 0, sp.w, sp.h);
   let X0 = 1e9,
     X1 = -1e9,
@@ -318,7 +324,7 @@ function buildSprite(p) {
     mid = (a, q, t) => [lp(a[0], q[0], t), lp(a[1], q[1], t), lp(a[2], q[2], t)];
   const sk = p.sk,
     hr = ["#16100d", "#2a1a10", "#0b0b0b"][look % 3],
-    hc = [lean + 0.12, 0, hz + 3.3],
+    hc = [lean + 0.1, 0, hz + 2.87],
     hs = HST[look % 12];
   for (const [h, kn, ft, sd] of [
     [hL, kL, ftL, 1],
@@ -327,10 +333,10 @@ function buildSprite(p) {
     const th = mid(h, kn, 0.62),
       cf2 = mid(kn, ft, 0.5);
     add(h, th, 0.9, tm.s);
-    add(th, kn, 0.58, sk);
+    add(th, kn, 0.5, sk);
     add([h[0], h[1] + sd * 0.55, h[2] + 0.1], [th[0], th[1] + sd * 0.55, th[2]], 0.16, tm.t, 0.3);
-    add(kn, cf2, 0.6, sk);
-    add(cf2, ft, 0.56, "#f3f3f3");
+    add(kn, cf2, 0.5, sk);
+    add(cf2, ft, 0.46, "#f3f3f3");
     add([ft[0], ft[1], ft[2] + 0.5], [ft[0], ft[1], ft[2] + 0.05], 0.5, tm.j);
     add(ft, [ft[0] + 0.8, ft[1], ft[2] - 0.02], 0.62, tm.j);
     add([ft[0], ft[1], ft[2] - 0.28], [ft[0] + 0.8, ft[1], ft[2] - 0.28], 0.16, "#f4f4f4", 0.2);
@@ -341,10 +347,10 @@ function buildSprite(p) {
   const tp = [];
   for (const sx of [-1, 1])
     for (const dx of [-1, 1])
-      tp.push(pj([lean + dx * 0.45, sx * 0.95, hz + 2.3]), pj([dx * 0.38, sx * 0.68, hz + 0.15]));
+      tp.push(pj([lean + dx * 0.4, sx * 0.8 * bw, hz + 2.2]), pj([dx * 0.34, sx * 0.55 * bw, hz + 0.15]));
   const th2 = hull(tp.map((q) => [q[0], q[1]])),
-    pa = [pj([lean, 0.95, hz + 2.25]), pj([0, 0.68, hz + 0.12])],
-    pb = [pj([lean, -0.95, hz + 2.25]), pj([0, -0.68, hz + 0.12])],
+    pa = [pj([lean, 0.8 * bw, hz + 2.15]), pj([0, 0.55 * bw, hz + 0.12])],
+    pb = [pj([lean, -0.8 * bw, hz + 2.15]), pj([0, -0.55 * bw, hz + 0.12])],
     nm = pj([lean, 0, hz + 1.35]);
   it.push({
     d: tp.reduce((a, q) => a + q[2], 0) / 8 - 0.2,
@@ -378,30 +384,30 @@ function buildSprite(p) {
       // Neckline: a V at the front, a flat collar at the back.
       const nw = Math.max(1.5, 0.13 * K);
       if (fb < -0.1) {
-        const c0 = pj([lean + 0.32, 0, hz + 1.85]);
-        quad(pj([lean + 0.08, 0.42 * bw, hz + 2.32]), c0, nw, tm.t);
-        quad(pj([lean + 0.08, -0.42 * bw, hz + 2.32]), c0, nw, tm.t);
-      } else quad(pj([lean - 0.05, 0.4 * bw, hz + 2.3]), pj([lean - 0.05, -0.4 * bw, hz + 2.3]), nw, tm.t);
+        const c0 = pj([lean + 0.3, 0, hz + 1.8]);
+        quad(pj([lean + 0.08, 0.34 * bw, hz + 2.2]), c0, nw, tm.t);
+        quad(pj([lean + 0.08, -0.34 * bw, hz + 2.2]), c0, nw, tm.t);
+      } else quad(pj([lean - 0.05, 0.32 * bw, hz + 2.18]), pj([lean - 0.05, -0.32 * bw, hz + 2.18]), nw, tm.t);
     },
   });
   for (const [s0, e, w] of [
     [sL, eL, wL],
     [sR, eR, wR],
   ]) {
-    add(s0, e, 0.56, sk);
-    add(e, w, 0.46, sk);
-    if (SLV[look % 12]) add(mid(s0, e, 0.35), e, 0.62, "#f1f1f1", 0.1);
-    add(mid(e, w, 0.62), w, 0.5, "#f1f1f1", 0.1);
+    add(s0, e, 0.44, sk);
+    add(e, w, 0.38, sk);
+    if (SLV[look % 12]) add(mid(s0, e, 0.35), e, 0.5, "#f1f1f1", 0.1);
+    add(mid(e, w, 0.7), w, 0.42, "#f1f1f1", 0.1);
     const W = pj(w);
-    it.push({ d: W[2] - 0.15, fn: () => blk(W[0], W[1], 0.46 * K, 0.46 * K, sk) });
+    it.push({ d: W[2] - 0.15, fn: () => blk(W[0], W[1], 0.4 * K, 0.42 * K, sk) }); // hand
   }
-  add([lean, 0, hz + 2.3], [lean + 0.1, 0, hz + 2.95], 0.46, shade(sk, -0.12));
+  add([lean, 0, hz + 2.1], [lean + 0.08, 0, hz + 2.55], 0.36, shade(sk, -0.12)); // neck
   const H = pj(hc);
   it.push({
     d: H[2] - 0.5,
     fn: () => {
-      const w = 0.86 * K,
-        h = 0.95 * K,
+      const w = 0.62 * K,
+        h = 0.8 * K,
         cx = H[0],
         cy = H[1],
         sx = Math.abs(fsx) > 0.25 ? Math.sign(fsx) : 0;
@@ -413,11 +419,16 @@ function buildSprite(p) {
         blk(cx + w * 0.52, cy + h * 0.08, ew, eh, shade(sk, -0.12));
       }
       blk(cx, cy + h * 0.04, w, h, sk);
-      if (fb > 0.3) blk(cx, cy - h * 0.06, w + 2, h * 0.9, hr);
-      else {
-        blk(cx, cy - h * 0.34, w + 2, h * 0.4, hr);
-        if (sx && fb > -0.25) blk(cx - sx * w * 0.3, cy - h * 0.02, w * 0.45, h * 0.7, hr);
-      }
+      // Hair: 0 short, 1 tall top, 2 buzz (thin cap), 3 bald, 4 afro.
+      if (hs === 4) blk(cx, cy - h * 0.3, w * 1.45, h * 0.75, hr);
+      if (hs !== 3) {
+        const cap = hs === 2 ? 0.22 : 0.4;
+        if (fb > 0.3) blk(cx, cy - h * 0.06, w + 2, h * (hs === 2 ? 0.7 : 0.9), hr);
+        else {
+          blk(cx, cy - h * (0.5 - cap / 2), w + 2, h * cap, hr);
+          if (sx && fb > -0.25 && hs !== 2) blk(cx - sx * w * 0.3, cy - h * 0.02, w * 0.45, h * 0.7, hr);
+        }
+      } else if (fb < 0.3) blk(cx - w * 0.15, cy - h * 0.3, w * 0.25, h * 0.12, shade(sk, 0.25)); // scalp shine
       if (hs === 1) {
         blk(cx - w * 0.38, cy - h * 0.56, w * 0.34, h * 0.24, hr);
         blk(cx, cy - h * 0.64, w * 0.4, h * 0.26, hr);
@@ -483,9 +494,9 @@ function buildSprite(p) {
         d[j + 3] = 255;
         // Rim light: pixels on the top and left edges catch the court lights.
         if (rim && ((yy > 0 && !a[i - w]) || (xx > 0 && !a[i - 1]))) {
-          d[j] = src[j] + (255 - src[j]) * 0.32;
-          d[j + 1] = src[j + 1] + (255 - src[j + 1]) * 0.3;
-          d[j + 2] = src[j + 2] + (255 - src[j + 2]) * 0.24;
+          d[j] = src[j] + (255 - src[j]) * 0.18;
+          d[j + 1] = src[j + 1] + (255 - src[j + 1]) * 0.15;
+          d[j + 2] = src[j + 2] + (255 - src[j + 2]) * 0.1;
         } else if ((yy < h - 1 && !a[i + w]) || (xx < w - 1 && !a[i + 1])) {
           // Core shadow on the bottom and right edges.
           d[j] = src[j] * 0.78;
