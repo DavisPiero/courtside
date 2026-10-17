@@ -56,86 +56,164 @@ function hull(pts) {
   up.pop();
   return lo.concat(up);
 }
-const SPN = [0, 1, 2, 3, 4, 5].map(() => {
+// Body size by position: guards are smaller, centres taller and broader.
+const BODY = { PG: [0.95, 0.95], SG: [0.98, 0.97], SF: [1.02, 1.0], PF: [1.04, 1.05], C: [1.07, 1.1] };
+const mkSpr = (w, h) => {
   const v = document.createElement("canvas");
-  v.width = 128;
-  v.height = 256;
-  return { cv: v, x: v.getContext("2d", { willReadFrequently: true }) };
-});
-// Characters are real pixel sprites: the skeleton is drawn with flat-capped blocks (no round shapes) into a small canvas at screen pixel density,
-// alpha is hard-thresholded, a 1px outline is stamped around it, then it is blitted 1:1 into the world (and mirrored for the floor reflection).
+  v.width = w;
+  v.height = h;
+  return { cv: v, x: v.getContext("2d", { willReadFrequently: true }), w, h };
+};
+const SPN = [0, 1, 2, 3, 4, 5].map(() => mkSpr(128, 256));
+// Where the ball sits in the dribbler's local frame (x forward, y left, z up, feet).
+// p.hand is the side the ball is on: -1 right, +1 left. Dribble moves carry it to the other hand.
+function ballLocal(p) {
+  const h = p.hand || -1,
+    m = p.mv,
+    B = G.ball;
+  if (m) {
+    const u = cl(m.t / m.d, 0, 1),
+      e = sm(u);
+    if (m.k === "cross") return [1.0, lp(h * 0.6, -h * 0.6, e), 0.55 + 2.4 * Math.abs(Math.cos(u * Math.PI))];
+    if (m.k === "legs")
+      return [0.7 - 0.6 * Math.sin(u * Math.PI), lp(h * 0.65, -h * 0.65, e), 0.55 + 2.2 * Math.abs(Math.cos(u * Math.PI))];
+    if (m.k === "back") {
+      const th = (h * Math.PI) / 2 + h * Math.PI * e;
+      return [Math.cos(th) * 0.95, Math.sin(th) * 0.95, u < 0.65 ? 2.3 : lp(2.3, 0.6, (u - 0.65) / 0.35)];
+    }
+    return [0.35, h * 0.85, 2.5]; // spin: ball tucked at the hip while the body turns
+  }
+  return [0.9, h * 0.55, 0.55 + Math.abs(Math.sin(B.bph)) * 2.7];
+}
+// Characters are real pixel sprites: the skeleton is drawn with flat-capped blocks into a small canvas at screen
+// pixel density, alpha is hard-thresholded, a 1px outline is stamped around it, then it is blitted into the world.
+// p.port (portrait) draws a large standalone model for the team-select screen instead.
 function buildSprite(p) {
-  const sp = SPN[p.id],
+  const port = p.port,
+    sp = port ? port.spr : SPN[p.id],
     x = sp.x,
-    tm = TM[p.t],
-    g = P(p.x, p.y, 0);
+    tm = p.team || TM[p.t],
+    look = p.look !== undefined ? p.look : p.id;
   p.spr = null;
-  if (!g || g[2] < 6) return;
-  const k = Math.round(cl(g[3], 7, 15)),
-    ox = 64,
-    oy = 232,
+  let k;
+  if (port) k = port.k;
+  else {
+    const g = P(p.x, p.y, 0);
+    if (!g || g[2] < 6) return;
+    k = Math.round(cl(g[3], 7, 15));
+  }
+  const [bh, bw] = BODY[p.pos] || [1, 1],
+    K = k * bh, // drawing scale for this body
+    ox = sp.w >> 1,
+    oy = sp.h - 24,
     f = p.f,
     cf = Math.cos(f),
     sf = Math.sin(f),
     spd = hy(p.vx, p.vy),
     run = cl(spd / 13, 0, 1.3),
+    sprint = cl((spd - 12) / 6, 0, 1),
     fb = cf * Fx + sf * Fy,
     vis = Math.abs(fb),
     fsx = cf * Rx + sf * Ry,
     b = G.ball,
     air = p.z > 0.3,
-    hold = b.own === p.id && b.mode === "held",
+    hold = port ? true : b.own === p.id && b.mode === "held",
+    shooting = !port && G.shot && G.shot.p === p,
+    mvv = port ? null : p.mv,
+    land = p.land > 0 ? p.land / 0.18 : 0,
+    tt = port ? port.t : T,
     rg = p.rag,
     ra = rg
       ? (rg.t < 0.3 ? sm(rg.t / 0.3) : rg.t > rg.d - 0.6 ? sm(cl((rg.d - rg.t) / 0.6, 0, 1)) : 1) * 1.5
       : p.sl
-        ? (p.sl.t < 0.1
-            ? sm(p.sl.t / 0.1)
-            : p.sl.t > p.sl.d - 0.22
-              ? sm(cl((p.sl.d - p.sl.t) / 0.22, 0, 1))
-              : 1) * 1.15
+        ? (p.sl.t < 0.1 ? sm(p.sl.t / 0.1) : p.sl.t > p.sl.d - 0.22 ? sm(cl((p.sl.d - p.sl.t) / 0.22, 0, 1)) : 1) *
+          1.15
         : 0;
-  const hz =
+  const idle = 1 - cl(run * 3, 0, 1),
+    breathe = Math.sin(tt * 2.4 + look) * 0.05 * idle,
+    hz =
       3 -
       (p.def ? 0.55 : 0) -
-      (G.shot && G.shot.p === p ? 0.3 : 0) -
-      (hold && !G.shot ? 0.15 : 0) +
-      Math.sin(p.ph * 2) * 0.05 * run,
+      (shooting ? 0.3 : 0) -
+      (hold && !shooting ? 0.2 : 0) -
+      (mvv ? 0.35 : 0) -
+      land * 0.5 +
+      Math.sin(p.ph * 2) * 0.07 * run +
+      breathe,
     s1 = Math.sin(p.ph),
     c1 = Math.cos(p.ph),
-    kk = run * 1.15,
-    lean = 0.3 * run + (hold ? 0.2 : 0) + (p.pun > 0 ? 0.4 : 0);
-  let fL = [s1 * kk, 0.5, Math.max(0, c1) * 0.8 * run],
-    fR = [-s1 * kk, -0.5, Math.max(0, -c1) * 0.8 * run];
+    stride = run * 1.25,
+    lean = 0.25 * run + 0.25 * sprint + (hold ? 0.2 : 0) + (p.pun > 0 ? 0.4 : 0) + (mvv ? 0.25 : 0) + land * 0.2,
+    twist = s1 * 0.2 * run; // shoulders counter-rotate against the hips when running
+  // Legs: run cycle with knee lift; a relaxed split stance when standing still.
+  let fL = [s1 * stride, 0.5, Math.max(0, c1) * 0.95 * run],
+    fR = [-s1 * stride, -0.5, Math.max(0, -c1) * 0.95 * run];
+  if (idle > 0.5 && !hold) {
+    fL = [0.15, 0.6, 0];
+    fR = [-0.15, -0.6, 0];
+  }
   if (p.def) {
     fL = [0.2 + s1 * 0.3 * run, 1.3, 0];
     fR = [-0.2 - s1 * 0.3 * run, -1.3, 0];
+  }
+  if (mvv) {
+    const h = mvv.h;
+    if (mvv.k === "legs") {
+      // Lunge: the foot on the receiving side steps forward so the ball can pass underneath.
+      fL = h < 0 ? [1.0, 0.8, 0] : [-0.8, 0.8, 0];
+      fR = h < 0 ? [-0.8, -0.8, 0] : [1.0, -0.8, 0];
+    } else if (mvv.k === "cross") {
+      fL = [0.3, 0.9, 0];
+      fR = [-0.1, -0.9, 0];
+    }
+  }
+  if (land > 0 && !air) {
+    fL = [0.2, 0.65, 0];
+    fR = [-0.2, -0.65, 0];
   }
   if (air) {
     fL = [0.6, 0.5, 1.2];
     fR = [-0.4, -0.5, 0.6];
   }
-  const hL = [0, 0.45, hz],
-    hR = [0, -0.45, hz],
-    sL = [lean, 0.95, hz + 2.2],
-    sR = [lean, -0.95, hz + 2.2];
-  let aL = [-s1 * kk * 0.9, 1.15, hz + 0.2 + run * 0.8],
-    aR = [s1 * kk * 0.9, -1.15, hz + 0.2 + run * 0.8];
+  const hL = [0, 0.45 * bw, hz],
+    hR = [0, -0.45 * bw, hz],
+    sL = [lean - twist, 0.95 * bw, hz + 2.2],
+    sR = [lean + twist, -0.95 * bw, hz + 2.2];
+  // Arms: swing against the legs by default.
+  let aL = [-s1 * stride * 0.9, 1.15 * bw, hz + 0.2 + run * 0.8 + idle * 0.1],
+    aR = [s1 * stride * 0.9, -1.15 * bw, hz + 0.2 + run * 0.8 + idle * 0.1];
   if (p.def) {
     aL = [0.9, 2.2, hz + 1.7];
     aR = [0.9, -2.2, hz + 1.7];
   }
   if (hold) {
-    if (G.shot && G.shot.p === p) {
+    if (shooting) {
       aL = [0.7, 0.3, hz + 4.9];
       aR = [0.7, -0.3, hz + 4.9];
     } else {
-      const dx = b.x - p.x,
-        dy = b.y - p.y;
-      aR = [dx * cf + dy * sf, -dx * sf + dy * cf, Math.min(b.z - p.z + 0.3, hz + 2.6)];
-      aL = [0.7, 1.3, hz + 1.3];
+      // The hand on the ball's side follows it; the other arm guards it.
+      let L;
+      if (port) L = port.ball;
+      else {
+        const dx = b.x - p.x,
+          dy = b.y - p.y;
+        L = [dx * cf + dy * sf, -dx * sf + dy * cf, b.z - p.z];
+      }
+      const hand = [L[0], L[1], Math.min(L[2] + 0.3, hz + 2.6)];
+      if (L[1] >= 0) {
+        aL = hand;
+        aR = [0.9, -1.4 * bw, hz + 1.5];
+      } else {
+        aR = hand;
+        aL = [0.9, 1.4 * bw, hz + 1.5];
+      }
     }
   }
+  if (p.pas > 0) {
+    aL = [1.9, 0.35, hz + 2.1];
+    aR = [1.9, -0.35, hz + 2.1];
+  }
+  if (p.swp > 0) aR = [2.1, -0.25, hz + 1.1 + p.swp * 2];
   if (p.fol > 0) {
     aL = [0.8, 0.2, hz + 5.3];
     aR = [0.8, -0.2, hz + 5.3];
@@ -170,7 +248,7 @@ function buildSprite(p) {
     [eR, wR] = ik(sR, aR, 1.15, 1.15, [-0.3, -0.9, -0.6]),
     [kL, ftL] = ik(hL, fL, 1.6, 1.6, [1, 0.1, 0]),
     [kR, ftR] = ik(hR, fR, 1.6, 1.6, [1, -0.1, 0]);
-  x.clearRect(0, 0, 128, 256);
+  x.clearRect(0, 0, sp.w, sp.h);
   let X0 = 1e9,
     X1 = -1e9,
     Y0 = 1e9,
@@ -194,7 +272,7 @@ function buildSprite(p) {
     const rx = x0 * cf - v[1] * sf,
       ry = x0 * sf + v[1] * cf,
       z = z0 + p.z;
-    return [ox + (rx * Rx + ry * Ry) * k, oy - (rx * Ux + ry * Uy + z * Uz) * k, rx * Fx + ry * Fy + z * Fz];
+    return [ox + (rx * Rx + ry * Ry) * K, oy - (rx * Ux + ry * Uy + z * Uz) * K, rx * Fx + ry * Fy + z * Fz];
   };
   const quad = (A, B, w, col) => {
     let dx = B[0] - A[0],
@@ -234,13 +312,13 @@ function buildSprite(p) {
     add = (a, q, w, col, bias) => {
       const A = pj(a),
         B = pj(q);
-      it.push({ A, B, w: w * k, col, d: (A[2] + B[2]) / 2 - (bias || 0) });
+      it.push({ A, B, w: w * K, col, d: (A[2] + B[2]) / 2 - (bias || 0) });
     },
     mid = (a, q, t) => [lp(a[0], q[0], t), lp(a[1], q[1], t), lp(a[2], q[2], t)];
   const sk = p.sk,
-    hr = ["#16100d", "#2a1a10", "#0b0b0b"][p.id % 3],
+    hr = ["#16100d", "#2a1a10", "#0b0b0b"][look % 3],
     hc = [lean + 0.12, 0, hz + 3.3],
-    hs = HST[p.id];
+    hs = HST[look % 6];
   for (const [h, kn, ft, sd] of [
     [hL, kL, ftL, 1],
     [hR, kR, ftR, -1],
@@ -257,7 +335,8 @@ function buildSprite(p) {
     add([ft[0], ft[1], ft[2] - 0.28], [ft[0] + 0.8, ft[1], ft[2] - 0.28], 0.16, "#f4f4f4", 0.2);
     add([ft[0] + 0.15, ft[1], ft[2] + 0.2], [ft[0] + 0.7, ft[1], ft[2] + 0.22], 0.34, tm.t, 0.1);
   }
-  add([0, 0, hz + 0.3], [0, 0, hz - 0.3], 1.1 + 0.5 * vis, tm.s);
+  add([0, 0, hz + 0.3], [0, 0, hz - 0.35], (1.15 + 0.5 * vis) * bw, tm.s);
+  add([0, 0, hz + 0.38], [0, 0, hz + 0.24], (1.2 + 0.5 * vis) * bw, tm.t, -0.05);
   const tp = [];
   for (const sx of [-1, 1])
     for (const dx of [-1, 1])
@@ -293,8 +372,15 @@ function buildSprite(p) {
       x.fillStyle = shade(tm.j, -0.26);
       x.fillRect(x1 - w * 0.3, y0, w * 0.3, y1 - y0);
       x.restore();
-      quad(pa[0], pa[1], Math.max(1.5, 0.15 * k), tm.t);
-      quad(pb[0], pb[1], Math.max(1.5, 0.15 * k), tm.t);
+      quad(pa[0], pa[1], Math.max(1.5, 0.15 * K), tm.t);
+      quad(pb[0], pb[1], Math.max(1.5, 0.15 * K), tm.t);
+      // Neckline: a V at the front, a flat collar at the back.
+      const nw = Math.max(1.5, 0.13 * K);
+      if (fb < -0.1) {
+        const c0 = pj([lean + 0.32, 0, hz + 1.85]);
+        quad(pj([lean + 0.08, 0.42 * bw, hz + 2.32]), c0, nw, tm.t);
+        quad(pj([lean + 0.08, -0.42 * bw, hz + 2.32]), c0, nw, tm.t);
+      } else quad(pj([lean - 0.05, 0.4 * bw, hz + 2.3]), pj([lean - 0.05, -0.4 * bw, hz + 2.3]), nw, tm.t);
     },
   });
   for (const [s0, e, w] of [
@@ -303,26 +389,33 @@ function buildSprite(p) {
   ]) {
     add(s0, e, 0.56, sk);
     add(e, w, 0.46, sk);
-    if (SLV[p.id]) add(mid(s0, e, 0.35), e, 0.62, "#f1f1f1", 0.1);
+    if (SLV[look % 6]) add(mid(s0, e, 0.35), e, 0.62, "#f1f1f1", 0.1);
     add(mid(e, w, 0.62), w, 0.5, "#f1f1f1", 0.1);
     const W = pj(w);
-    it.push({ d: W[2] - 0.15, fn: () => blk(W[0], W[1], 0.46 * k, 0.46 * k, sk) });
+    it.push({ d: W[2] - 0.15, fn: () => blk(W[0], W[1], 0.46 * K, 0.46 * K, sk) });
   }
   add([lean, 0, hz + 2.3], [lean + 0.1, 0, hz + 2.95], 0.46, shade(sk, -0.12));
   const H = pj(hc);
   it.push({
     d: H[2] - 0.5,
     fn: () => {
-      const w = 0.86 * k,
-        h = 0.95 * k,
+      const w = 0.86 * K,
+        h = 0.95 * K,
         cx = H[0],
         cy = H[1],
         sx = Math.abs(fsx) > 0.25 ? Math.sign(fsx) : 0;
+      if (fb < -0.25) {
+        // Ears either side of the face.
+        const ew = Math.max(2, K * 0.16),
+          eh = Math.max(2, K * 0.26);
+        blk(cx - w * 0.52, cy + h * 0.08, ew, eh, shade(sk, -0.12));
+        blk(cx + w * 0.52, cy + h * 0.08, ew, eh, shade(sk, -0.12));
+      }
       blk(cx, cy + h * 0.04, w, h, sk);
       if (fb > 0.3) blk(cx, cy - h * 0.06, w + 2, h * 0.9, hr);
       else {
         blk(cx, cy - h * 0.34, w + 2, h * 0.4, hr);
-        if (sx) blk(cx - sx * w * 0.3, cy - h * 0.02, w * 0.45, h * 0.7, hr);
+        if (sx && fb > -0.25) blk(cx - sx * w * 0.3, cy - h * 0.02, w * 0.45, h * 0.7, hr);
       }
       if (hs === 1) {
         blk(cx - w * 0.38, cy - h * 0.56, w * 0.34, h * 0.24, hr);
@@ -331,15 +424,21 @@ function buildSprite(p) {
       }
       if (fb < -0.25) {
         x.fillStyle = "#160c0c";
-        const ex = Math.max(1, Math.round(k * 0.1)),
-          ey = Math.max(1, Math.round(k * 0.14)),
+        const ex = Math.max(1, Math.round(K * 0.1)),
+          ey = Math.max(1, Math.round(K * 0.14)),
           off = Math.round(w * 0.22),
           sh2 = Math.round(fsx * w * 0.12);
         x.fillRect(Math.round(cx - off + sh2), Math.round(cy), ex, ey);
         x.fillRect(Math.round(cx + off + sh2) - ex + 1, Math.round(cy), ex, ey);
-        if (BRD[p.id]) blk(cx, cy + h * 0.3, w * 0.8, h * 0.3, hr);
+        // Nose and mouth.
+        const nz2 = Math.max(1, Math.round(K * 0.1));
+        x.fillStyle = shade(sk, -0.22);
+        x.fillRect(Math.round(cx + sh2 * 1.4 - nz2 / 2), Math.round(cy + h * 0.17), nz2, nz2 + 1);
+        x.fillStyle = shade(sk, -0.4);
+        x.fillRect(Math.round(cx + sh2 * 1.2 - w * 0.15), Math.round(cy + h * 0.32), Math.max(2, Math.round(w * 0.3)), 1);
+        if (BRD[look % 6]) blk(cx, cy + h * 0.3, w * 0.8, h * 0.3, hr);
       }
-      if (BND[p.id]) blk(cx, cy - h * 0.2, w + 2, Math.max(1.5, k * 0.17), tm.t);
+      if (BND[look % 6]) blk(cx, cy - h * 0.2, w + 2, Math.max(1.5, K * 0.17), tm.t);
     },
   });
   it.sort((a, q) => q.d - a.d);
@@ -365,8 +464,8 @@ function buildSprite(p) {
   if (X1 < X0) return;
   const x0 = Math.max(0, Math.floor(X0) - 2),
     y0 = Math.max(0, Math.floor(Y0) - 2),
-    w = Math.min(128, Math.ceil(X1) + 3) - x0,
-    h = Math.min(256, Math.ceil(Y1) + 3) - y0;
+    w = Math.min(sp.w, Math.ceil(X1) + 3) - x0,
+    h = Math.min(sp.h, Math.ceil(Y1) + 3) - y0;
   if (w < 3 || h < 3) return;
   const im = x.getImageData(x0, y0, w, h),
     d = im.data,

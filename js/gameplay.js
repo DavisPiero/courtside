@@ -32,6 +32,8 @@ function init() {
         sp: t ? DIFF[OPT.diff].sp : 12.6,
         sh: NM[t * 3 + i][2] - 14,
         sk: SK[t * 3 + i],
+        pos: NM[t * 3 + i][1],
+        hand: -1,
       });
   G.ball = { x: 47, y: 25, z: 3, vx: 0, vy: 0, vz: 0, own: 0, mode: "held", spin: 0, bph: 0 };
   setPoss(0);
@@ -156,6 +158,7 @@ function bestMate(p, dir) {
   return best;
 }
 function passTo(p, q) {
+  p.mv = null;
   if (!q) return;
   const b = G.ball,
     d = dist(p, q);
@@ -170,7 +173,7 @@ function passTo(p, q) {
   b.last = p.t;
   b.from = p.id;
   b.pT = T;
-  p.fol = 0.2;
+  p.pas = 0.25; // chest-pass pose
   sfx("pass");
   if (p.t === 0) {
     G.ctrl = q.id;
@@ -360,6 +363,7 @@ function doSteal(o) {
   sfx("steal");
 }
 function beginShot(p) {
+  if (p.mv) return;
   const h = HX(p.t),
     dh = hy(h - p.x, 25 - p.y),
     df = minDef(p),
@@ -535,6 +539,7 @@ function cutUpd(dt) {
   }
 }
 function steal(th, v) {
+  th.swp = 0.25;
   if (Math.random() < dk(th).stealWin) {
     v.stun = 0.6;
     stealBall(th, v);
@@ -561,9 +566,10 @@ function ballUpd(dt) {
       b.y = p.y + sf * 0.5;
       b.z = p.z + 6.4 + G.shot.t * 1.5;
     } else {
-      b.x = p.x + cf * 0.9 + sf * 0.55;
-      b.y = p.y + sf * 0.9 - cf * 0.55;
-      b.z = 0.55 + Math.abs(Math.sin(b.bph)) * 2.7 + p.z;
+      const L = ballLocal(p);
+      b.x = p.x + cf * L[0] - sf * L[1];
+      b.y = p.y + sf * L[0] + cf * L[1];
+      b.z = L[2] + p.z;
     }
     b.vx = b.vy = 0;
     b.spin += dt * 6;
@@ -714,6 +720,8 @@ function handler(p, dt) {
     launch(p, cl(0.45 + dk(p).shotQ + (df - 3) * 0.07 + rn(-0.2, 0.2), 0.1, 1), 1);
     return;
   }
+  // Under pressure the AI breaks out a dribble move now and then.
+  if (df < 3.5 && !p.mv && Math.random() < dt * 0.5) dribbleMove(p);
   if (p.ai > 0.8 && df < 3.2 && Math.random() < dt * 1.2) {
     p.ai = 0;
     passTo(p, bestMate(p, null));
@@ -844,21 +852,10 @@ function human(dt) {
       G.lock = 1.5;
     }
   }
-  if (pr("KeyE") && b.own === p.id) {
-    const d = G.in || { x: Math.cos(p.f), y: Math.sin(p.f) },
-      sd = Math.random() < 0.5 ? 1 : -1;
-    p.vx += -d.y * sd * 9;
-    p.vy += d.x * sd * 9;
-    let hit = 0;
-    for (const q of G.pl)
-      if (q.t !== p.t && dist(q, p) < 6 && Math.random() < 0.5) {
-        q.stun = 0.8;
-        hit = 1;
-      }
-    toast(hit ? "ANKLE BREAKER" : "CROSSOVER", 0.6);
-  }
+  if (pr("KeyE") && b.own === p.id) dribbleMove(p);
   if (pr("KeyF") && b.own >= 0 && G.pl[b.own].t !== p.t) {
     const o = G.pl[b.own];
+    p.swp = 0.25;
     if (dist(p, o) < 4.2) {
       if (Math.random() < 0.32) stealBall(p, o);
       else toast("CONTEST", 0.4);
@@ -918,8 +915,12 @@ function integ(p, dt) {
     if (p.z <= 0) {
       p.z = 0;
       p.vz = 0;
+      p.land = 0.18; // brief squat on landing
     }
   }
+  if (p.land > 0) p.land -= dt;
+  if (p.pas > 0) p.pas -= dt;
+  if (p.swp > 0) p.swp -= dt;
   if (p.fol > 0) p.fol -= dt;
   if (p.stun > 0) p.stun -= dt;
   const ta =
@@ -934,6 +935,55 @@ function integ(p, dt) {
             : p.f;
   p.f += ad(ta - p.f) * Math.min(1, dt * 9);
   p.ft = undefined;
+  if (p.mv) moveStep(p, dt);
+}
+// ---------- dribble moves: E plays a different one each press (never the same twice running)
+const MOVES = {
+  cross: { d: 0.3, name: "CROSSOVER", push: 9 },
+  legs: { d: 0.38, name: "BETWEEN THE LEGS", push: 6 },
+  back: { d: 0.4, name: "BEHIND THE BACK", push: 8 },
+  spin: { d: 0.48, name: "SPIN MOVE", push: 8 },
+};
+function dribbleMove(p) {
+  const b = G.ball;
+  if (p.mv || G.shot || G.cut || p.z > 0 || b.own !== p.id) return;
+  const ks = Object.keys(MOVES).filter((q) => q !== p.lastMv),
+    k = ks[(Math.random() * ks.length) | 0],
+    M = MOVES[k],
+    h = p.hand || -1,
+    d = p.id === G.ctrl && G.in ? G.in : { x: Math.cos(p.f), y: Math.sin(p.f) };
+  p.lastMv = k;
+  p.mv = { k, t: 0, d: M.d, h, f0: p.f };
+  if (k === "spin") {
+    p.vx += d.x * M.push;
+    p.vy += d.y * M.push;
+  } else {
+    // Burst toward the side the ball is moving to (local y = -h).
+    const side = -h;
+    p.vx += -Math.sin(p.f) * side * M.push + d.x * 2;
+    p.vy += Math.cos(p.f) * side * M.push + d.y * 2;
+  }
+  let hit = 0;
+  for (const q of G.pl)
+    if (q.t !== p.t && dist(q, p) < 6 && Math.random() < (k === "spin" ? 0.45 : 0.35)) {
+      q.stun = 0.8;
+      hit = 1;
+    }
+  if (p.t === 0) toast(hit ? "ANKLE BREAKER!" : M.name, 0.6);
+  p.stam = Math.max(0, p.stam - 4);
+}
+function moveStep(p, dt) {
+  const m = p.mv;
+  m.t += dt;
+  // The spin turns the body a full circle, away from the ball side.
+  if (m.k === "spin") p.f = m.f0 + -m.h * 6.2832 * sm(cl(m.t / m.d, 0, 1));
+  if (m.t >= m.d || G.ball.own !== p.id) {
+    if (m.k === "spin") p.f = m.f0;
+    p.hand = -m.h;
+    // Restart the dribble bounce where the move left the ball.
+    G.ball.bph = m.k === "back" ? 0 : Math.PI / 2;
+    p.mv = null;
+  }
 }
 function separate() {
   const L = G.pl;
