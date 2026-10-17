@@ -3,8 +3,8 @@
 _Updated 2026-10-18, end of session 4._
 
 ## Where we are
-Session 4 is built on the `session4` branch, **not committed and not merged**. `main` (the live site) is still
-session 3. Smoke test passes: 5 courts × 2 modes × 4 difficulties, plus all three minigames.
+Session 4 is merged to `main` and live at https://davispiero.github.io/courtside/ (David: "merge and push").
+Smoke test passes: 5 courts × 2 modes × 4 difficulties, plus all three minigames.
 
 New in session 4:
 - Money: contract 200/350/500/750 a day, 1000 CC signing bonus per new team, free All-Star Pack per chapter boss.
@@ -18,7 +18,7 @@ New in session 4:
 - Sounds: clicks, hover, story garble talk, coins, pop, squeaks, board, fire, cheer, horn.
 
 ## Next
-- David plays it and gives notes; sign-off to merge.
+- David's notes after playing it.
 - Real iPad/phone check; first outside playtest (still not done). The tutorial is the thing to test on a new player.
 
 ## Open with David (guesses until confirmed)

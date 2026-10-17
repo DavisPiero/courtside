@@ -3,7 +3,7 @@
 _Written 2026-10-18 (session 4). Replace this file at the end of each session; don't add a second one._
 
 ## State of the repo
-- Work is on branch `session4`, uncommitted unless David said to commit. `main` is session 3 and live.
+- Session 4 is merged to `main` and pushed (live). No open branches.
 - `./tools/smoke.sh` passes; it now also plays the 3-point contest, dunk contest and 1-on-1 with the AI.
 
 ## Read first
@@ -21,5 +21,5 @@ Showtime sections). 4. `DECISIONS.md`.
 - `styleOf()` returns the dunk-contest round's dunk while one is running.
 
 ## What comes next
-- David's notes and answers to STATE.md's open questions, then sign-off.
+- David's notes and answers to STATE.md's open questions.
 - Phone/iPad check (the tutorial panel and OOP button on touch especially) and an outside playtest.
