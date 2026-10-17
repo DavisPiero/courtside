@@ -1,6 +1,7 @@
 "use strict";
 // Hoops, shadows, the per-frame render and the post-processing pass.
 function hoopB(h) {
+  if (OPT.court === "street") return streetHoopB(h);
   const bx = h ? 3.9 : 90.1,
     sx = h ? -4 : 98,
     hx = HX(h),
@@ -46,6 +47,45 @@ function hoopB(h) {
   txt3(G.prac ? "--" : String(Math.ceil(G.sc)), [fx, 25, 13.15], u, [0, 0, -1], 1.05, "#ff3b2a", 1);
   seg([bx, 25, 10], [hx + (h ? -0.75 : 0.75), 25, 10], 0.2, "#ff5a2a");
 }
+// Street hoop: galvanised pole with a gooseneck, painted steel backboard, no shot clock.
+function streetHoopB(h) {
+  const bx = h ? 3.9 : 90.1,
+    sx = h ? -3.2 : 97.2,
+    hx = HX(h),
+    s = h ? 1 : -1,
+    V3 = (a) => a.map((v) => P(v[0], v[1], v[2]));
+  seg([sx, 25, 0], [sx, 25, 11.6], 0.5, "#6d7480");
+  seg([sx, 25, 11.6], [bx - s * 0.5, 25, 12.6], 0.42, "#6d7480");
+  seg([sx, 25, 7.5], [bx - s * 0.2, 25, 9.6], 0.3, "#5f6672");
+  seg([sx - s * 0.4, 25, 0.05], [sx + s * 0.4, 25, 0.05], 1.2, "#2e3138");
+  const q = V3([
+    [bx, 22.2, 8.9],
+    [bx, 27.8, 8.9],
+    [bx, 27.8, 12.4],
+    [bx, 22.2, 12.4],
+  ]);
+  if (q.every(Boolean)) {
+    poly(q, "#d7dae0");
+    c.strokeStyle = "#8b919c";
+    c.lineWidth = Math.max(1, 0.18 * q[0][3]);
+    c.stroke();
+    const sq = V3([
+      [bx + s * 0.05, 24.1, 9.7],
+      [bx + s * 0.05, 25.9, 9.7],
+      [bx + s * 0.05, 25.9, 11.1],
+      [bx + s * 0.05, 24.1, 11.1],
+    ]);
+    if (sq.every(Boolean)) {
+      c.beginPath();
+      sq.forEach((v, i) => (i ? c.lineTo(v[0], v[1]) : c.moveTo(v[0], v[1])));
+      c.closePath();
+      c.strokeStyle = "#d2562a";
+      c.lineWidth = Math.max(1, 0.12 * q[0][3]);
+      c.stroke();
+    }
+  }
+  seg([bx, 25, 10], [hx - s * 0.75, 25, 10], 0.2, "#d2562a");
+}
 function hoopF(h) {
   const hx = HX(h),
     k = G.rim[h],
@@ -56,8 +96,11 @@ function hoopF(h) {
     const a = (i / 14) * 6.2832;
     ring.push([hx + Math.cos(a) * 0.75, 25 + Math.sin(a) * 0.75]);
   }
-  c.strokeStyle = "rgba(255,255,255,.7)";
+  const street = OPT.court === "street";
+  // Street hoops have chain nets: grey, broken into links.
+  c.strokeStyle = street ? "rgba(200,205,215,.9)" : "rgba(255,255,255,.7)";
   c.lineWidth = 1;
+  if (street) c.setLineDash([1, 1]);
   for (let i = 0; i < 14; i++) {
     const a = ring[i],
       A = P(a[0], a[1], zr),
@@ -69,9 +112,10 @@ function hoopF(h) {
       c.stroke();
     }
   }
+  c.setLineDash([]);
   ln(
     ring.map((a) => [a[0] + sw * 0.3, a[1], zr]),
-    "rgba(255,255,255,.6)",
+    street ? "rgba(200,205,215,.7)" : "rgba(255,255,255,.6)",
     1,
   );
   const q = P(hx, 25, 10);
@@ -96,10 +140,16 @@ function render() {
     c.translate(Math.round(rn(-1, 1) * G.shake * 3), Math.round(rn(-1, 1) * G.shake * 3));
     G.shake = Math.max(0, G.shake - 0.03);
   }
-  arena();
-  jumbo();
-  floor();
-  beams();
+  if (OPT.court === "street") {
+    streetBg();
+    fence();
+    floor();
+  } else {
+    arena();
+    jumbo();
+    floor();
+    beams();
+  }
   const b = G.ball,
     PL = G.pl;
   for (const s of G.stain) {
@@ -138,8 +188,11 @@ function render() {
     c.closePath();
     c.clip();
   }
-  PL.forEach((p) => drawP(p, 1));
-  drawBall(1);
+  // Reflections on the polished hardwood only.
+  if (OPT.court !== "street") {
+    PL.forEach((p) => drawP(p, 1));
+    drawBall(1);
+  }
   c.restore();
   const ob = [];
   PL.forEach((p) => ob.push({ d: dp(p.x, p.y, 2), f: () => drawP(p, 0) }));
