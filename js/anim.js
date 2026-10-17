@@ -217,6 +217,27 @@ const SHOTS = {
     ],
   },
 };
+// Session 4 shots: the Deep Dip sinks low and rises slow; the Skywalker (Mythic) jumps twice as high.
+SHOTS["shot.dip"] = {
+  jump: [0.45, 10],
+  keys: [
+    [0, { hz: 2.7, lean: 0.3, aR: [0.6, -0.3, 1.3], aL: [0.6, 0.25, 1.35] }],
+    [0.3, { hz: 1.95, lean: 0.45, aR: [0.55, -0.26, 1.7], aL: [0.55, 0.18, 1.7], fL: [0.4, 0.7, 0], fR: [-0.2, -0.7, 0] }],
+    [0.55, { hz: 3.2, lean: 0.08, aR: [0.3, -0.26, 3.9], aL: [0.32, 0.12, 3.7], fL: [0.14, 0.45, 0.05], fR: [-0.02, -0.45, 0] }],
+    [0.72, { hz: 3.3, aR: [0.78, -0.2, 4.95], aL: [0.45, 0.28, 3.95], fL: [0.14, 0.45, 0.05], fR: [-0.02, -0.45, 0] }],
+    [1, { aR: [0.85, -0.18, 4.9], aL: [0.4, 0.4, 3.55], fL: [0.14, 0.45, 0.05], fR: [-0.02, -0.45, 0] }],
+  ],
+};
+SHOTS["shot.sky"] = {
+  jump: [0.26, 17],
+  keys: [
+    [0, { hz: 2.5, lean: 0.4, aR: [0.6, -0.3, 1.2], aL: [0.6, 0.25, 1.3] }],
+    [0.22, { hz: 2.0, lean: 0.4, aR: [0.5, -0.26, 2.0], aL: [0.5, 0.18, 2.0], fL: [0.35, 0.7, 0], fR: [-0.15, -0.7, 0] }],
+    [0.45, { hz: 3.35, lean: -0.05, aR: [0.2, -0.26, 4.3], aL: [0.25, 0.12, 4.1], fL: [-0.2, 0.4, 0.9], fR: [-0.3, -0.4, 0.6] }],
+    [0.72, { hz: 3.35, lean: -0.1, aR: [0.7, -0.2, 5.1], aL: [0.4, 0.3, 4.2], fL: [-0.25, 0.4, 1.0], fR: [-0.35, -0.4, 0.7] }],
+    [1, { aR: [0.85, -0.18, 5.0], aL: [0.4, 0.5, 3.7], fL: [0.1, 0.45, 0.3], fR: [-0.1, -0.45, 0.2] }],
+  ],
+};
 // Where the ball sits during a shot: just above and in front of the shooting hand.
 function shotBall(p, u) {
   const k = SHOTS[styleOf(p, "shot")] || SHOTS["shot.basic"],
@@ -316,6 +337,18 @@ const MOVE_POSES = {
     [0.75, { hz: 2.6, lean: 0.4, twist: -0.35 }],
     [1, { hz: 2.75, lean: 0.35 }],
   ],
+  halfspin: [
+    [0, { hz: 2.65, lean: 0.35, aL: [0.8, 1.3, 1.6] }],
+    [0.45, { hz: 2.5, lean: 0.25, aL: [0.3, 1.5, 1.9], fL: [0.5, 0.9, 0], fR: [-0.4, -0.9, 0] }],
+    [1, { hz: 2.7, lean: 0.4 }],
+  ],
+  yoyo: [
+    [0, { hz: 2.75, lean: 0.35 }],
+    [0.18, { hz: 2.3, lean: 0.55, aR: [0.9, -0.5, -0.6] }],
+    [0.5, { hz: 3.15, lean: -0.15, aR: [0.5, -0.9, 2.2], aL: [0.4, 0.9, 2.0] }],
+    [0.8, { hz: 2.9, lean: 0.1, aR: [0.9, -0.4, 3.6], aL: [0.6, 0.8, 1.6] }],
+    [1, { hz: 2.6, lean: 0.45 }],
+  ],
   ai: [
     [0, { hz: 2.75, lean: 0.35 }],
     [0.3, { hz: 3.2, lean: -0.05, aL: [0.4, 1.0, 1.4] }],
@@ -369,6 +402,20 @@ const CELS = {
     ][Math.floor(t * 3) % 4];
     return [[0, { hz: 3.15, lean: 0, ...P }]];
   },
+  // Heel Taps: arms swing back and forth while the heels tap out a rhythm.
+  "cel.heels": (t) => {
+    const s = Math.sin(t * 8),
+      c = Math.cos(t * 8);
+    return [[0, { hz: 3.05 + Math.abs(c) * 0.12, lean: 0.12, twist: s * 0.2, aL: [0.9 * s, 1.0, 1.0 + Math.max(0, s) * 0.8], aR: [-0.9 * s, -1.0, 1.0 + Math.max(0, -s) * 0.8], fL: [-0.25, 0.55, Math.max(0, s) * 0.6], fR: [-0.25, -0.55, Math.max(0, -s) * 0.6] }]];
+  },
+  // Take a Bow: one arm across the waist, the other out wide, and a deep bow every couple of seconds.
+  "cel.bow": (t) => {
+    const u = (t * 0.5) % 1,
+      b = Math.sin(cl((u - 0.2) / 0.5, 0, 1) * Math.PI);
+    return [[0, { hz: 3.2 - b * 0.15, lean: b * 0.2, recline: -b * 0.85, aR: [0.65, 0.2, 1.65], aL: [0.2, 1.7 - b * 0.4, 1.4 + b * 0.6], fL: [0.35, 0.5, 0], fR: [-0.25, -0.5, 0] }]];
+  },
+  // Levitate (Godlike): float up off the floor, legs crossed, palms up, slowly turning.
+  "cel.levitate": (t) => [[0, { hz: 1.55, lean: 0.05, yaw: (t * 0.9) % 6.2832, aL: [0.45, 1.45, 1.75 + Math.sin(t * 2) * 0.1], aR: [0.45, -1.45, 1.75 + Math.sin(t * 2) * 0.1], fL: [0.75, -0.35, 0.25], fR: [0.75, 0.35, 0.1] }]],
   // ICONIC celebrations
   "cel.shrug": (t) => {
     const s = Math.abs(Math.sin(t * 3));
@@ -396,6 +443,7 @@ const CELS = {
 };
 // The jump that goes with some celebrations (backflip).
 function celHop(style, t) {
+  if (style === "cel.levitate") return 2.6 + Math.sin(t * 2) * 0.35;
   if (style !== "cel.backflip") return 0;
   const u = (t * 0.6) % 1;
   return u > 0.15 && u < 0.7 ? Math.sin(((u - 0.15) / 0.55) * Math.PI) * 3.2 : 0;
@@ -453,6 +501,11 @@ const RIM_FX = {
   "dunk.kobe": { two: 1, rev: 1 },
   "dunk.mj": { glide: 8.5 },
   "layup.lbj": { spin: 1 },
+  "layup.hook": { turn: 1.35 },
+  "dunk.honey": { honey: 1, high: 1.55, slow: 1.25 },
+  "dunk.double360": { two: 1, spin: 2, high: 1.3, slow: 1.15 },
+  "dunk.moon": { glide: 24, spin: 1, walk: 1, high: 1.5, slow: 1.6 },
+  "dunk.liftoff": { two: 1, spin: 1, trail: 1, high: 1.7, slow: 1.4 },
 };
 const rimFx = (s) => RIM_FX[s] || {};
 // ---------- dunks and layups. k runs 0..1 through the rise to the rim; z is the player's height in the air.
@@ -513,6 +566,22 @@ function rimHand(style, k, z) {
       if (k < 0.4) return lerpA([0.7, -0.3, 5.6], [0.9, -0.3, 8.0], ease(k / 0.4));
       if (k < 0.65) return lerpA([0.9, -0.3, 8.0], [0.5, 0.2, 4.8], ease((k - 0.4) / 0.25));
       return lerpA([0.5, 0.2, 4.8], [1.2, 0.35, 9.3 - z], ease((k - 0.65) / 0.35));
+    case "dunk.onehand":
+      return lerpA([0.6, -0.5, 4.8], end, E);
+    case "dunk.honey":
+      // Cocked back in one hand on the way up, then the arm goes right through the rim.
+      return k < 0.65 ? lerpA([0.5, -0.6, 6.0], [-0.4, -0.5, 9.8], ease(k / 0.65)) : lerpA([-0.4, -0.5, 9.8], [1.5, 0, 10.6 - z], ease((k - 0.65) / 0.35));
+    case "dunk.double360":
+      return k < 0.8 ? [0.7, 0, 5.4] : lerpA([0.7, 0, 5.4], [1.45, 0, 10.4 - z], ease((k - 0.8) / 0.2));
+    case "dunk.moon":
+      // Ball held out in front while walking on air, then lifted and spun home.
+      return k < 0.7 ? [0.9, -0.3, 6.0 + Math.sin(k * 20) * 0.2] : lerpA([0.9, -0.3, 6.0], end, ease((k - 0.7) / 0.3));
+    case "dunk.liftoff":
+      // Both hands overhead like a rocket nose, then down through the rim.
+      return k < 0.75 ? lerpA([0.5, 0, 6.5], [0.3, 0, 9.6], ease(k / 0.75)) : lerpA([0.3, 0, 9.6], [1.45, 0, 10.4 - z], ease((k - 0.75) / 0.25));
+    case "layup.hook":
+      // Side-on: the arm sweeps up and over in a hook.
+      return k < 0.5 ? lerpA([0.2, -1.2, 4.6], [-0.2, -1.6, 6.8], ease(k / 0.5)) : lerpA([-0.2, -1.6, 6.8], [0.4, -0.4, 9.4 - z], ease((k - 0.5) / 0.5));
     case "layup.shaq":
       return lerpA([0.5, 0, 4.4], [1.3, 0, 9.5 - z], E);
     // ----- layups: the ball goes up toward the glass
@@ -535,6 +604,14 @@ function rimHand(style, k, z) {
 }
 // Leg pose in the air. Dunks drive one knee hard; the between-the-legs dunk tucks both.
 function airLegs(style, k) {
+  if (style === "dunk.moon" && k < 0.75) {
+    // Walking on air.
+    const w = Math.sin(k * 22);
+    return { fL: [w * 0.9, 0.45, 0.9 + Math.max(0, w) * 0.7], fR: [-w * 0.9, -0.45, 0.9 + Math.max(0, -w) * 0.7] };
+  }
+  if (style === "dunk.liftoff") return { fL: [0.05, 0.3, 0.4], fR: [-0.05, -0.3, 0.35] }; // legs together, like a rocket
+  if (style === "dunk.honey") return { fL: [0.3, 0.45, 1.2], fR: [0.1, -0.45, 0.9] };
+  if (style === "dunk.double360") return { fL: [0.5, 0.4, 1.5], fR: [0.4, -0.4, 1.4] };
   if (style === "dunk.legs" && k < 0.6) return { fL: [0.75, 0.45, 1.7], fR: [0.75, -0.45, 1.7] };
   if (style === "dunk.twohand" || style === "dunk.360") return { fL: [0.35, 0.45, 1.1], fR: [0.2, -0.45, 0.9] };
   if (style === "dunk.windmill" || style === "dunk.tomahawk" || style === "dunk.sidemill") return { fL: [0.9, 0.45, 1.55], fR: [-0.7, -0.45, 0.8] };
@@ -590,8 +667,10 @@ function animPose(p, c) {
     righty = L ? L[1] < 0 : (c.hand || -1) < 0, // which hand has the ball
     act = (keys, u, w) => (q = blend(q, clip(keys, u, q), w === undefined ? 1 : w)),
     side = (keys) => (righty ? keys : mirrorKeys(keys));
+  // The Yo-Yo throws the ball up over the head: the hands let go of it in the middle.
+  const loose = c.mv && c.mv.k === "yoyo" && c.mv.t / c.mv.d > 0.22 && c.mv.t / c.mv.d < 0.85;
   // Dribbling: the hand rides the top of the ball and waits at the thigh, knees pump with the bounce.
-  if (c.hold && !c.shooting && L) {
+  if (c.hold && !c.shooting && L && !loose) {
     const handZ = Math.max(L[2] + 0.5 - q.hz, -1.05),
       hand = [L[0] + 0.05, L[1], handZ],
       guarded = c.guarded,
@@ -610,7 +689,7 @@ function animPose(p, c) {
     const keys = MOVE_POSES[c.mv.k];
     if (keys) act(c.mv.h < 0 ? keys : mirrorKeys(keys), c.mv.t / c.mv.d);
     // re-attach the ball hand after the body pose
-    if (L) {
+    if (L && !loose) {
       const hand = [L[0] + 0.05, L[1], Math.max(L[2] + 0.5 - q.hz, -1.25)];
       if (L[1] < 0) q.aR = hand;
       else q.aL = hand;
@@ -627,6 +706,13 @@ function animPose(p, c) {
   if (c.pas > 0) act(ACTIONS.pass, 1 - c.pas / 0.25);
   if (c.swp > 0) act(ACTIONS.swipe, 1 - c.swp / 0.25);
   if (c.cel) act(CELS[c.celS] ? CELS[c.celS](c.tt) : CELS["cel.basic"](c.tt), 0);
+  if (c.trophy) {
+    // Both hands up, holding the trophy over the head, with a little bounce.
+    const bo = Math.abs(Math.sin(c.tt * 5)) * 0.1;
+    q.aL = [0.15, 0.32, lp(1.6, 4.25 + bo, c.trophy)];
+    q.aR = [0.15, -0.32, lp(1.6, 4.25 + bo, c.trophy)];
+    q.lean = -0.08;
+  }
   if (c.pun > 0) act(ACTIONS.punch, 1 - c.pun / 0.34);
   if (c.sl) act(ACTIONS.slide, c.sl.t / c.sl.d);
   if (c.rag) act(ACTIONS.rag, c.rag.t / c.rag.d);
@@ -634,7 +720,7 @@ function animPose(p, c) {
   if (c.dk) {
     const d = c.dk;
     if (d.phase === "gather") {
-      q.hz = lp(q.hz, 2.55, d.k);
+      q.hz = lp(q.hz, d.style === "dunk.liftoff" ? 1.85 : 2.55, d.k);
       q.lean = lp(q.lean, 0.45, d.k);
       q.aR = lerpA(q.aR, [0.7, -0.2, 2.2], d.k);
       q.aL = lerpA(q.aL, [0.7, 0.25, 2.25], d.k);
@@ -648,6 +734,13 @@ function animPose(p, c) {
       const sw = Math.sin(Math.min(1, d.k * 1.6) * Math.PI);
       q.fL = [lp(0.2, 1.4, sw), 0.5, lp(0.3, 1.9, sw)];
       q.fR = [lp(0.1, 1.3, sw), -0.5, lp(0.2, 1.8, sw)];
+    } else if (d.phase === "hang" && d.style === "dunk.honey") {
+      // Hanging by the elbow: body straight, free arm out, legs dangling.
+      q.hz = 3.25;
+      q.lean = -0.05;
+      q.aL = [0.1, 1.5, 1.6];
+      q.fL = [0.1, 0.35, 0.1 + Math.sin(d.k * 9) * 0.15];
+      q.fR = [-0.05, -0.35, 0.05];
     } else if (d.phase === "hang") {
       q.hz = 3.25;
       q.lean = -0.1;

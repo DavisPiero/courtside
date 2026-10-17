@@ -60,7 +60,8 @@ kbd {
 .menu-l { align-self: center; padding: 0 clamp(20px, 7vw, 96px); max-width: 560px; }
 .brand { font: 400 clamp(70px, 12.5vw, 140px)/0.9 var(--px); letter-spacing: 0.01em; text-shadow: 4px 4px 0 #1d3fb0; }
 .brand em { color: var(--gold); font-style: normal; text-shadow: 4px 4px 0 var(--gold-dk); }
-#mt { color: var(--muted); font-size: 22px; margin: 16px 0 28px; max-width: 380px; }
+/* the tutorial button sits under the logo, where the tagline used to be */
+.tutb { display: block; margin: 16px 0 28px; font-size: 20px; padding: 10px 18px 12px; color: var(--gold); }
 .menu-l nav { display: grid; gap: 10px; width: 250px; }
 
 /* ---------- settings */
@@ -350,7 +351,7 @@ body.touch .menu-l nav { width: 290px; }
 /* Short screens (phones in landscape): compact everything so it all fits */
 @media (max-height: 520px) {
   .brand { font-size: 64px; }
-  #mt { display: none; }
+  .tutb { margin: 8px 0 12px; }
   .menu-l nav { grid-template-columns: 1fr 1fr; width: min(520px, 90vw) !important; }
   .menu-l nav .btn.pri { grid-column: 1 / -1; }
   #setup { grid-template-rows: 44px 1fr auto; }
@@ -369,6 +370,12 @@ body.touch .menu-l nav { width: 290px; }
 
 /* ---------- rarity colours */
 .r-starter { --rc: #8f9cc4; } .r-common { --rc: #c9d1e6; } .r-rare { --rc: #4aa3ff; } .r-epic { --rc: #b46bff; } .r-legendary { --rc: #ffb02e; } .r-iconic { --rc: #ff3d7f; }
+.r-mythic { --rc: #ff2e4a; } .r-godlike { --rc: #fff1a8; } .r-gametime { --rc: #9d4dff; }
+/* Godlike shimmers through gold and white; Gametime pulses purple. */
+.r-godlike .rtag, .rtag.r-godlike { animation: godTag 1.2s steps(6) infinite; }
+.r-gametime .rtag, .rtag.r-gametime { animation: gameTag 0.9s steps(4) infinite alternate; }
+@keyframes godTag { 0% { color: #fff1a8; } 33% { color: #ffd23c; } 66% { color: #ffffff; } 100% { color: #fff1a8; } }
+@keyframes gameTag { to { color: #d7b4ff; text-shadow: 0 0 8px #9d4dff; } }
 .rtag { font: 400 15px/1 var(--px); letter-spacing: 0.12em; color: var(--rc); }
 
 /* ---------- shop */
@@ -573,7 +580,7 @@ body.cine #say { opacity: 0; }
 .item .btn { margin-top: auto; padding: 9px 12px 11px; font-size: 19px; }
 .item .iown { margin-top: auto; font: 400 19px/1 var(--px); color: var(--good); }
 .item.owned { opacity: 0.6; }
-.item.r-legendary.feat, .item.r-iconic.feat { animation: featGlow 1.6s steps(6) infinite alternate; }
+.item.r-legendary.feat, .item.r-iconic.feat, .item.r-mythic.feat, .item.r-godlike.feat { animation: featGlow 1.6s steps(6) infinite alternate; }
 @keyframes featGlow { to { box-shadow: inset 0 0 0 3px var(--rc), 0 0 0 0 transparent; filter: brightness(1.18); } }
 .packs.six { grid-template-columns: repeat(3, 1fr); }
 .pnote { margin: -4px 0 12px; font: 400 19px/1.2 var(--px); color: var(--muted); }
@@ -617,10 +624,11 @@ body.cine #say { opacity: 0; }
 #open .card.charge .in { animation: cshake 0.06s steps(2) infinite; }
 #open .card.charge .bk { box-shadow: inset 0 0 0 5px var(--gc); }
 #open .card.charge[data-lv="2"] .in { animation-duration: 0.045s; }
-#open .card.charge[data-lv="3"] .in, #open .card.charge[data-lv="4"] .in { animation-duration: 0.03s; }
+#open .card.charge[data-lv="3"] .in, #open .card.charge[data-lv="4"] .in, #open .card.charge[data-lv="5"] .in, #open .card.charge[data-lv="6"] .in, #open .card.charge[data-lv="7"] .in { animation-duration: 0.03s; }
+#open .card.charge[data-lv="5"] { transform: scale(1.28); } #open .card.charge[data-lv="6"], #open .card.charge[data-lv="7"] { transform: scale(1.34); }
 #open .card.charge[data-lv="3"] .bk, #open .card.charge[data-lv="4"] .bk { box-shadow: inset 0 0 0 7px var(--gc); }
 @keyframes cshake { 0% { transform: translate(-3px, 1px) rotate(-1.5deg); } 100% { transform: translate(3px, -1px) rotate(1.5deg); } }
-#open .card.up.r-iconic .fr, #open .card.up.r-legendary .fr { animation: glow 0.5s steps(3) infinite alternate; }
+#open .card.up.r-iconic .fr, #open .card.up.r-legendary .fr, #open .card.up.r-mythic .fr, #open .card.up.r-godlike .fr, #open .card.up.r-gametime .fr { animation: glow 0.5s steps(3) infinite alternate; }
 #openHint { position: absolute; bottom: 4px; font: 400 22px/1 var(--px); letter-spacing: 0.16em; color: var(--gold); animation: blink 1s steps(2) infinite; }
 .oinfo { display: none; grid-template-columns: 150px 1fr; gap: 14px; align-items: center; width: min(560px, 94vw); padding: 8px 14px; background: rgba(5, 7, 15, 0.7); clip-path: var(--notch); box-shadow: inset 0 0 0 2px var(--rc); }
 .oinfo.on { display: grid; }
@@ -650,7 +658,103 @@ body.cine #say { opacity: 0; }
 #open .card.charge[data-lv="3"] { transform: scale(1.16); }
 #open .card.charge[data-lv="4"] { transform: scale(1.22); }
 #open .card.charge[data-lv="3"] .bk::after, #open .card.charge[data-lv="4"] .bk::after { opacity: 0.6; }
-#open .card.up.r-epic, #open .card.up.r-legendary, #open .card.up.r-iconic { filter: drop-shadow(0 0 10px var(--rc)); }
+#open .card.up.r-epic, #open .card.up.r-legendary, #open .card.up.r-iconic, #open .card.up.r-mythic, #open .card.up.r-godlike, #open .card.up.r-gametime { filter: drop-shadow(0 0 10px var(--rc)); }
 @media (max-height: 520px) { .dgrid { grid-template-columns: 1fr; } .dprev { display: none; } .shopbox .coll { display: none; } .ostage { padding: 8px 12px 10px; gap: 4px; } .ohead h2 { font-size: 24px; } }
 @media (max-height: 520px) { .oinfo.on { display: none; } #open .card { width: 116px; height: 164px; } #open .card .fr b { font-size: 19px; } #open .card .fr { gap: 6px; padding: 8px; } }
 @media (max-height: 520px) { #scnBox { width: min(520px, 58vw); } .scn-m { height: 74vh; left: 1vw; } .scn-m.r { right: 1vw; } .scn-skip { top: calc(9vh + 6px); font-size: 15px; padding: 6px 10px 8px; } }
+
+/* ---------- session 4: shoes, shoeboxes, codes, selling, notices */
+.tabs button em { font-style: normal; font-size: 14px; background: var(--good); color: #0a1a10; padding: 2px 5px 3px; margin-left: 4px; }
+.pk.freepk { box-shadow: inset 0 0 0 3px var(--good); }
+canvas.shcv { width: 100%; height: 54px; }
+.item.shoe canvas.shcv { height: 48px; }
+.bigshoe { display: none; width: 100%; height: 200px; }
+#shopShoe { display: block; height: 220px; }
+#inv.shoes #invCv { display: none; } #inv.shoes #invShoe { display: block; height: 300px; }
+.oinfo.shoe #openCv { display: none; } .oinfo.shoe #openShoe { display: block; width: 150px; height: 110px; }
+#open .card .fr canvas.shcv { height: 64px; }
+.pack .pbtns { grid-row: 1 / span 3; grid-column: 2; display: flex; gap: 6px; align-items: center; }
+.pack .pbtns .btn { grid-row: auto; }
+.pack .btn.sell { min-width: 0; background: #2a2010; box-shadow: inset 0 0 0 2px var(--gold-dk), inset 0 -4px 0 0 #120d04; color: var(--gold); }
+.pack .btn.sell.sure { background: var(--gold); color: #1a1408; }
+.shoerow { grid-template-columns: 96px 1fr auto; }
+.shoerow canvas.shcv { grid-row: 1 / span 3; height: 52px; }
+.shoerow b, .shoerow span { grid-column: 2 !important; }
+.shoerow .pbtns { grid-column: 3; }
+.btn.mini { padding: 6px 10px 8px; font-size: 16px; margin-left: 8px; }
+/* shoebox: a lid and a box, drawn with CSS */
+.sbox { position: relative; width: 120px; height: 70px; }
+.sbox .lid { position: absolute; left: -6px; right: -6px; top: 0; height: 18px; background: var(--lc); box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.25); }
+.sbox .bod { position: absolute; left: 0; right: 0; top: 16px; bottom: 0; background: var(--bc); box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.18), inset 0 -8px 0 rgba(0, 0, 0, 0.25); display: grid; place-items: center; }
+.sbox .bod b { font: 400 34px/1 var(--px); color: var(--lc); text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5); }
+.boxpk .art { height: 110px; gap: 8px; background: radial-gradient(circle at 50% 60%, color-mix(in srgb, var(--pc) 45%, #0a0f22), #0a0f22 75%); }
+.boxpk .art span { font-size: 22px; }
+.opack.obox { background: none; box-shadow: none; clip-path: none; width: 260px; height: 220px; }
+.opack.obox .sbox { width: 230px; height: 140px; }
+.opack.obox .sbox .lid { height: 32px; transition: transform 0.35s steps(6), opacity 0.35s steps(6); }
+.opack.obox .sbox .bod { top: 28px; }
+.opack.obox .sbox .bod b { font-size: 64px; }
+.opack.obox.pop .lid { transform: translate(60px, -160px) rotate(35deg); opacity: 0; }
+.opack.obox.pop { animation: none; }
+#open .card.rise { animation: riseUp 0.5s steps(8) both; }
+@keyframes riseUp { from { transform: translateY(80px) scale(0.5); opacity: 0; } }
+/* codes */
+.codes { display: grid; gap: 12px; justify-items: start; margin-bottom: 18px; }
+.crow { display: flex; gap: 8px; }
+.crow input { font: 400 26px/1 var(--px); letter-spacing: 0.12em; padding: 10px 14px; width: min(340px, 60vw); background: #0a0f22; color: #fff; border: 0; clip-path: var(--notch); box-shadow: inset 0 0 0 2px var(--edge-hi); outline: none; text-transform: none; }
+.cmsg { font: 400 22px/1.2 var(--px); min-height: 26px; }
+.cmsg.ok { color: var(--good); } .cmsg.bad { color: #ff6b6b; }
+/* a big notice over any screen (signing bonus) */
+#notice { position: fixed; left: 50%; top: 14%; z-index: 40; transform: translateX(-50%); pointer-events: none; opacity: 0; padding: 14px 22px; background: var(--gold); color: #1a1408; font: 400 clamp(26px, 4vw, 40px)/1 var(--px); clip-path: var(--notch); white-space: nowrap; }
+#notice.on { animation: noticeIn 3.2s steps(16) forwards; }
+@keyframes noticeIn { 0% { opacity: 0; transform: translate(-50%, -20px); } 10% { opacity: 1; transform: translate(-50%, 0); } 85% { opacity: 1; } 100% { opacity: 0; } }
+
+/* ---------- hooper upgrades */
+#hero .box.hero { width: min(1080px, 96vw); }
+#hero .hbody { grid-template-columns: 200px 230px 1fr; }
+.hups { display: grid; gap: 8px; align-content: start; }
+.hupt { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; }
+.hupt span { font: 400 22px/1 var(--px); letter-spacing: 0.06em; }
+.hupt small { display: block; font-size: 16px; color: var(--muted); letter-spacing: 0; margin-top: 4px; }
+.hovr { width: 74px; height: 74px; display: grid; place-items: center; align-content: center; clip-path: var(--notch); background: #0a0f22; box-shadow: inset 0 0 0 3px var(--gold); }
+.hovr b { font: 400 40px/0.9 var(--px); color: var(--gold); }
+.hovr i { font: 400 13px/1 var(--px); font-style: normal; letter-spacing: 0.12em; color: var(--muted); }
+#heroUps { display: grid; gap: 5px; }
+.up { display: grid; grid-template-columns: 96px 1fr 30px 150px; gap: 10px; align-items: center; padding: 4px 8px; background: rgba(255, 255, 255, 0.03); }
+.up span { font: 400 18px/1 var(--px); letter-spacing: 0.08em; }
+.up i { height: 8px; background: rgba(255, 255, 255, 0.08); }
+.up i b { display: block; height: 100%; background: linear-gradient(90deg, #4aa3ff, var(--good)); }
+.up u { text-decoration: none; font: 400 22px/1 var(--px); text-align: right; }
+.up .btn { padding: 7px 8px 9px; font-size: 16px; }
+.up .btn[disabled] { opacity: 0.45; cursor: default; }
+@media (max-width: 900px), (max-height: 520px) { #hero .hbody { grid-template-columns: 140px 1fr; } .hups { grid-column: 1 / -1; } #hero .box.hero { max-height: 96vh; overflow: auto; } }
+.cg .rec { grid-column: 3; grid-row: 1; font: 400 15px/1 var(--px); font-style: normal; letter-spacing: 0.1em; color: #ff8a6a; text-align: right; }
+.cg .rec.ok { color: var(--good); }
+.cg .rec + .stars { grid-row: 2; }
+#hero .hform { min-width: 0; }
+#hero .hform input { width: 100%; }
+#hero #heroHair { flex-wrap: wrap; }
+/* the PASS button turns gold and pulses when an alley-oop is on */
+.tb.oop { background: var(--gold); color: #1a1408; animation: oopPulse 0.5s steps(3) infinite alternate; }
+@keyframes oopPulse { to { transform: scale(1.12); } }
+
+/* ---------- minigames */
+#mini .mcard { width: min(300px, 90vw); }
+#mini .mcard em { visibility: visible; }
+/* ---------- tutorial */
+#tut { display: none; position: fixed; left: 16px; top: 130px; z-index: 8; width: min(360px, 44vw); padding: 14px 18px 16px; background: rgba(13, 19, 40, 0.94); clip-path: var(--notch); box-shadow: inset 0 0 0 3px var(--gold); }
+#tut.on { display: block; }
+#tut.ok { box-shadow: inset 0 0 0 3px var(--good); }
+#tut.ok #tutT::after { content: "  ✓"; color: var(--good); }
+.tuth { display: flex; align-items: baseline; gap: 12px; }
+.tuth i { font: 400 16px/1 var(--px); font-style: normal; color: var(--muted); letter-spacing: 0.12em; }
+.tuth b { font: 400 30px/1 var(--px); color: var(--gold); }
+#tutX { margin: 8px 0 12px; font: 400 21px/1.2 var(--px); }
+#tut .act { justify-content: flex-end; }
+#tut .btn { padding: 8px 14px 10px; font-size: 18px; }
+.tutbox { width: min(560px, 92vw) !important; }
+.tutn { font: 400 16px/1 var(--px); font-style: normal; color: var(--muted); letter-spacing: 0.12em; }
+#tutcX { font: 400 23px/1.25 var(--px); margin: 0 0 22px; min-height: 90px; }
+.tutbox .act { justify-content: space-between; }
+@media (max-height: 520px) { #tut { top: 96px; padding: 8px 12px 10px; } #tutX { font-size: 17px; margin: 4px 0 6px; } }
+.opack.obox.tear > i { visibility: hidden; }

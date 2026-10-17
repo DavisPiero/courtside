@@ -11,8 +11,14 @@ const RARITY = {
   epic: { name: "EPIC", col: "#b46bff", refund: 100 },
   legendary: { name: "LEGENDARY", col: "#ffb02e", refund: 250 },
   iconic: { name: "ICONIC", col: "#ff3d7f", refund: 300 }, // a famous player's signature: Player Packs and the Daily Shop only
+  mythic: { name: "MYTHIC", col: "#ff2e4a", refund: 600 }, // very rare: top packs and the Daily Shop
+  godlike: { name: "GODLIKE", col: "#fff1a8", refund: 1500 }, // the rarest you can get by luck
+  gametime: { name: "GAMETIME", col: "#9d4dff", refund: 0 }, // one of a kind, from the code LAUNCHED only
 };
-const RARITIES = ["common", "rare", "epic", "legendary"];
+// Rarities a random pack can roll, worst to best.
+const RARITIES = ["common", "rare", "epic", "legendary", "mythic", "godlike"];
+// Every rarity, worst to best (for sorting, the reveal build-up and selling).
+const RANK = ["starter", "common", "rare", "epic", "legendary", "iconic", "mythic", "godlike", "gametime"];
 const A = (id, cat, name, rarity, desc, who) => ({ id, cat, name, rarity, desc, who });
 const ANIMS = [
   // Dunks
@@ -73,6 +79,23 @@ const ANIMS = [
   A("cel.crossarms", "cel", "Arms Crossed", "common", "Lean back. Unbothered."),
   A("cel.wave", "cel", "Crowd Wave", "rare", "Both arms up, get the crowd going."),
   A("cel.robot", "cel", "The Robot", "rare", "Beep. Boop. Bucket."),
+  // Session 4
+  A("dunk.onehand", "dunk", "One-Hand Jam", "common", "Reach up with one hand and stuff it."),
+  A("layup.hook", "layup", "Baby Hook", "rare", "Turn side-on and sweep a little hook off the glass."),
+  A("dribble.halfspin", "dribble", "Half Spin", "rare", "Spin halfway, freeze, and spin back out."),
+  A("shot.dip", "shot", "Deep Dip", "common", "Sink low, then rise slow and smooth."),
+  A("cel.heels", "cel", "Heel Taps", "epic", "Swing the arms, tap the heels. Can't stop."),
+  A("cel.bow", "cel", "Take a Bow", "rare", "One arm across, a deep bow to the crowd."),
+  // MYTHIC: very rare, from the best packs and sometimes the Daily Shop.
+  A("dunk.honey", "dunk", "Honey Dip", "mythic", "Arm through the rim up to the elbow. Hang there. Unreal."),
+  A("dunk.double360", "dunk", "Double 360", "mythic", "Two full spins before the slam."),
+  A("dribble.yoyo", "dribble", "Yo-Yo", "mythic", "Slam it down so hard it bounces over your head, then catch it in stride."),
+  A("shot.sky", "shot", "Skywalker", "mythic", "Rise way higher than anyone should, release from the clouds."),
+  // GODLIKE: the rarest you can pull.
+  A("dunk.moon", "dunk", "Moonwalk", "godlike", "Take off from way out, walk on the air, and spin it home."),
+  A("cel.levitate", "cel", "Levitate", "godlike", "Float up off the floor, legs crossed, slowly turning."),
+  // GAMETIME: one of a kind. Only from the code LAUNCHED.
+  A("dunk.liftoff", "dunk", "Liftoff", "gametime", "Crouch low and blast off like a rocket, in a trail of sparks."),
   // ICONIC: famous players' signatures, from Player Packs and the Daily Shop.
   A("shot.mj", "shot", "Jordan Fadeaway", "iconic", "Turn, rise, fade, legs kicked out. Unguardable.", "JORDAN"),
   A("dunk.mj", "dunk", "Free Throw Line", "iconic", "Take off from way out and glide in, legs split.", "JORDAN"),
@@ -106,19 +129,21 @@ const MAX_MOVES = 3; // extra dribble moves you can switch on at once
 
 // Shop packs: price, how many animations, odds per card (percent), and a guaranteed minimum rarity for one card.
 const SHOP = [
-  { id: "street", name: "STREET PACK", price: 150, cards: 1, odds: { common: 70, rare: 25, epic: 5, legendary: 0 }, min: null, col: "#5f6b86" },
+  { id: "street", name: "STREET PACK", price: 150, cards: 1, odds: { common: 70, rare: 25, epic: 5 }, min: null, col: "#5f6b86" },
   { id: "pro", name: "PRO PACK", price: 400, cards: 2, odds: { common: 45, rare: 38, epic: 14, legendary: 3 }, min: "rare", col: "#2f6fd6" },
-  { id: "allstar", name: "ALL-STAR PACK", price: 900, cards: 3, odds: { common: 15, rare: 45, epic: 32, legendary: 8 }, min: "epic", col: "#7d3ccf" },
-  { id: "hof", name: "HALL OF FAME PACK", price: 2000, cards: 3, odds: { common: 0, rare: 35, epic: 45, legendary: 20 }, min: "legendary", col: "#c98a12" },
+  { id: "allstar", name: "ALL-STAR PACK", price: 900, cards: 3, odds: { common: 15, rare: 44, epic: 32, legendary: 8, mythic: 1 }, min: "epic", col: "#7d3ccf" },
+  { id: "hof", name: "HALL OF FAME PACK", price: 2000, cards: 3, odds: { common: 0, rare: 33, epic: 44, legendary: 19, mythic: 3.5, godlike: 0.5 }, min: "legendary", col: "#c98a12" },
 ];
 
 const owns = (id) => ANIM[id] && (ANIM[id].rarity === "starter" || SAVE.owned.includes(id));
 // The style a player uses for a category: yours from the Inventory, the AI's always the starter.
-const styleOf = (p, cat) => (p.t === 0 && !p.port ? SAVE.equip[cat] : p.port && p.port.style && p.port.style[cat]) || cat + ".basic";
+// In the dunk contest each round uses its own dunk (js/minigames.js).
+const styleOf = (p, cat) =>
+  (cat === "dunk" && G.mg && G.mg.style && p.t === 0 && !p.port ? G.mg.style : p.t === 0 && !p.port ? SAVE.equip[cat] : p.port && p.port.style && p.port.style[cat]) || cat + ".basic";
 
 function rollRarity(odds) {
   let r = Math.random() * 100;
-  for (const k of RARITIES) if ((r -= odds[k]) < 0) return k;
+  for (const k of RARITIES) if ((r -= odds[k] || 0) < 0) return k;
   return "common";
 }
 // Pick an animation of rarity r: new ones are three times as likely as ones you have. from: limit the pool.
@@ -139,10 +164,13 @@ function grant(a) {
   return { a, dupe, refund };
 }
 // Open a pack: returns the cards, adds new animations, refunds duplicates. null if you can't afford it.
+// A free pack you've won (beating a chapter boss) is used before any coins.
 function openPack(packId) {
   const pk = SHOP.find((s) => s.id === packId) || PLAYER_PACKS.find((s) => s.id === packId);
-  if (!pk || SAVE.cc < pk.price) return null;
-  SAVE.cc -= pk.price;
+  if (!pk) return null;
+  if (SAVE.free[packId] > 0) SAVE.free[packId]--;
+  else if (SAVE.cc < pk.price) return null;
+  else SAVE.cc -= pk.price;
   let cards;
   if (pk.who) {
     // Player pack: one of the player's signatures, plus a bonus card.
@@ -171,11 +199,15 @@ const PLAYER_PACKS = [
   { id: "p.lebron", who: "LEBRON", name: "LEBRON", hof: ["CLE", 1], col: "#860038" },
 ].map((p) => ({ ...p, price: 1200, cards: 2, odds: { common: 0, rare: 60, epic: 32, legendary: 8 } }));
 
-// ---------- Daily Shop: six single animations, the same for everyone on the same day, new at midnight.
-const SINGLE_PRICE = { common: 120, rare: 300, epic: 700, legendary: 1400, iconic: 2000 };
-// Slots: one big featured item (Iconic or Legendary), then Epic, two Rares, a Common.
-const DAILY_SLOTS = [["iconic", "legendary"], ["epic"], ["rare"], ["rare"], ["common"]];
+// ---------- Daily Shop: five single animations and one shoe, the same for everyone in the same hour, new every hour.
+const SINGLE_PRICE = { common: 120, rare: 300, epic: 700, legendary: 1400, iconic: 2000, mythic: 4000, godlike: 10000 };
+// Sell an animation back for a quarter of its shop price. Starters and Gametime can't be sold.
+const sellPrice = (a) => (SINGLE_PRICE[a.rarity] ? Math.round(SINGLE_PRICE[a.rarity] / 4) : 0);
+// Slots: one big featured item (mostly Iconic or Legendary, sometimes Mythic, rarely Godlike), then Epic, two
+// Rares, a Common.
+const DAILY_SLOTS = [["iconic", "iconic", "legendary", "legendary", "legendary", "mythic", "mythic", "godlike"], ["epic"], ["rare"], ["rare"], ["common"]];
 const dayKey = (d) => d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+const hourKey = (d) => dayKey(d) * 100 + d.getHours();
 function seeded(n) {
   // Small fast random-number generator (mulberry32) so a date always gives the same shop.
   return () => {
@@ -186,7 +218,7 @@ function seeded(n) {
   };
 }
 function dailyItems(date) {
-  const rnd = seeded(dayKey(date || new Date())),
+  const rnd = seeded(hourKey(date || new Date())),
     taken = new Set();
   return DAILY_SLOTS.map((rs) => {
     const r = rs[(rnd() * rs.length) | 0],
@@ -196,10 +228,10 @@ function dailyItems(date) {
     return a;
   });
 }
-// Seconds until the shop changes (local midnight).
+// Seconds until the shop changes (the next hour).
 function dailyLeft() {
   const n = new Date(),
-    m = new Date(n.getFullYear(), n.getMonth(), n.getDate() + 1);
+    m = new Date(n.getFullYear(), n.getMonth(), n.getDate(), n.getHours() + 1);
   return Math.max(0, Math.floor((m - n) / 1000));
 }
 // Buy one animation from today's shop. Returns false if you can't.
@@ -210,6 +242,19 @@ function buySingle(id) {
   grant(a);
   writeSave();
   return true;
+}
+// Sell an animation you own for coins. Anything equipped is unequipped first.
+function sellAnim(id) {
+  const a = ANIM[id],
+    pay = a && sellPrice(a);
+  if (!pay || !SAVE.owned.includes(id)) return 0;
+  SAVE.owned.splice(SAVE.owned.indexOf(id), 1);
+  const m = SAVE.equip.moves.indexOf(id);
+  if (m >= 0) SAVE.equip.moves.splice(m, 1);
+  if (SAVE.equip[a.cat] === id) SAVE.equip[a.cat] = a.cat + ".basic";
+  SAVE.cc += pay;
+  writeSave();
+  return pay;
 }
 function equipAnim(id) {
   const k = ANIM[id];

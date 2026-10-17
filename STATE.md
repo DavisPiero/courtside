@@ -1,27 +1,31 @@
 # Courtside: state
 
-_Updated 2026-10-17, end of session 3._
+_Updated 2026-10-18, end of session 4._
 
 ## Where we are
-Session 3 is merged to `main` and live at https://davispiero.github.io/courtside/ (David said to push without
-asking). Smoke test passes on all 5 courts × 2 modes × 4 difficulties.
+Session 4 is built on the `session4` branch, **not committed and not merged**. `main` (the live site) is still
+session 3. Smoke test passes: 5 courts × 2 modes × 4 difficulties, plus all three minigames.
 
-New in session 3:
-- Three new courts: Rooftop, Beach, The Cage. In Quick Play and used through the Street campaign.
-- NBA campaign locked until you win the Summer Jam. Scouted by Coach Ray, you pick from three bottom-ten teams
-  and play with their two best players; better offers after each NBA chapter. Contract pays CC once a day.
-- Difficulty ramps across both campaigns (Street Rookie → Hall of Famer at the end, NBA Pro → Hall of Famer).
-- Mayhem: each punch thrown cuts the game's coins 6% (max 50%); slide goes about twice as far; knock-downs 1.4 s.
-- Close to the rim is always a layup (contested ones can miss). Long shots get harder with distance:
-  about 1 in 10 past half court at Pro.
-- Hall of Fame switch fixed; Hall of Fame teams wear gold trim. Close calls swapped by popularity.
+New in session 4:
+- Money: contract 200/350/500/750 a day, 1000 CC signing bonus per new team, free All-Star Pack per chapter boss.
+- Hooper upgrades on EDIT HOOPER (8 stats, rating = average, start 50 / NBA 75); recommended rating on every game.
+- NBA games are 4 × 30 s. A perfect release always goes in, from anywhere.
+- Shop: Daily Shop every hour with a shoe slot, Shoeboxes (3 tiers, unboxing), Codes (LAUNCHED), "Street Pack" names.
+- 33 shoes your team wears; sell animations in the Inventory; Mythic, Godlike and Gametime rarities; 13 new animations.
+- Showtime: On Fire, alley-oops (PASS becomes OOP!), buzzer beaters in slow motion, a trophy win celebration.
+- Minigames: 3-point contest, dunk contest, 1-on-1. Tutorial (first draft) under the logo.
+- Fixes: ball layering in hands, ball bounces off board and rim, dunk cutscene has no text and is a bit slower.
+- Sounds: clicks, hover, story garble talk, coins, pop, squeaks, board, fire, cheer, horn.
 
 ## Next
-- Real iPad/phone check; first outside playtest (still not done).
+- David plays it and gives notes; sign-off to merge.
+- Real iPad/phone check; first outside playtest (still not done). The tutorial is the thing to test on a new player.
 
 ## Open with David (guesses until confirmed)
-1. Salary numbers (60/120/200/300 CC a day) and that every team in a tier pays the same.
-2. Punch penalty size (6% a punch, max half) and counting punches thrown rather than landed.
-3. Long-shot odds (Pro: 1 in 3 at half court, 1 in 10 past it, 1 in 50 full court).
-4. The new courts' looks, and which campaign games use them.
-5. Coach Ray as a scout who follows you; Dex and Lou in the stands for the NBA.
+1. Punch penalty (6% a punch, max half), the new courts' looks, Coach Ray as scout: carried from session 3.
+2. Upgrade prices (50 CC at 50 up to ~500 near 99) and +2 a buy.
+3. Shoebox prices (100/300/800) and odds; Daily Shop shoe prices; sell price = a quarter of the shop price.
+4. Gametime purple is close to Epic's purple: it pulses to tell them apart. Change the colour?
+5. Shoe pixel art and the trophy are first passes; the Air Mag sole glows only in menus.
+6. Minigame rewards (4 CC a 3-point make, half the dunk score, 80 for a 1-on-1 win).
+7. Buzzer beaters have no replay yet.

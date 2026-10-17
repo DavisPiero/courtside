@@ -35,6 +35,8 @@
   <div id="toast"></div>
   <div id="say"><b id="sayWho"></b><span id="sayText"></span></div>
 </div>
+<!-- Tutorial: the step you're on (court part) -->
+<div id="tut"><div class="tuth"><i id="tutN"></i><b id="tutT"></b></div><p id="tutX"></p><div class="act"><button class="btn" id="bTutEnd">END</button><button class="btn pri" id="bTutNext">SKIP ▸</button></div></div>
 <div id="ttl"></div><div id="tip"></div><div id="lb1" class="lb"></div><div id="lb2" class="lb"></div>
 
 <!-- Loading: spinning ball while fonts and models warm up -->
@@ -63,10 +65,11 @@
   <div class="payday" id="payday"></div>
   <div class="menu-l">
     <div class="brand">COURT<em>SIDE</em></div>
-    <p id="mt">Full-court 3-on-3. Drive to an open rim and the bucket is yours.</p>
+    <button class="btn tutb" id="bTut">▶ TUTORIAL</button>
     <nav>
       <button class="btn pri" id="bCamp">CAMPAIGN</button>
       <button class="btn" id="bPlay">QUICK PLAY</button>
+      <button class="btn" id="bMini">MINIGAMES</button>
       <button class="btn" id="bPrac">PRACTICE</button>
       <button class="btn" id="bShop">SHOP</button>
       <button class="btn" id="bInv">INVENTORY</button>
@@ -103,6 +106,10 @@
         <i class="hint">Don't use your real name.</i>
         <div class="hl">SKIN</div><div class="swatches" id="heroSkin"></div>
         <div class="hl">HAIR</div><div class="seg" id="heroHair"></div>
+      </div>
+      <div class="hups">
+        <div class="hupt"><div class="hovr" id="heroOvr"></div><span>UPGRADE YOUR HOOPER<small>Spend Court Coins to get better. Each upgrade costs a bit more.</small></span><div class="cc ccbal">0 CC</div></div>
+        <div id="heroUps"></div>
       </div>
     </div>
     <div class="act"><button class="btn" id="bHeroX">BACK</button><button class="btn pri" id="bHeroOk">LET'S HOOP</button></div>
@@ -167,6 +174,25 @@
   <button class="btn scn-skip" id="scnSkip">SKIP ▸▸</button>
 </div>
 
+<!-- Tutorial: cards about the rest of the game -->
+<div id="tutc" class="scr dim">
+  <div class="pnl box tutbox">
+    <i id="tutcN" class="tutn"></i>
+    <h2 id="tutcT"></h2>
+    <p id="tutcX"></p>
+    <div class="act"><button class="btn" id="bTutcBack">◂ BACK</button><button class="btn pri" id="bTutcNext">NEXT ▸</button></div>
+  </div>
+</div>
+
+<!-- Minigames: 3-point contest, dunk contest, 1-on-1 -->
+<div id="mini" class="scr dim">
+  <div class="dv">
+    <h2>MINIGAMES</h2>
+    <div class="dvc" id="miniCards"></div>
+    <div class="act cpact"><button class="btn" id="bMiniX">BACK</button></div>
+  </div>
+</div>
+
 <!-- Results after a game -->
 <div id="res" class="scr dim">
   <div class="pnl box res">
@@ -199,13 +225,13 @@
       <div class="cards" id="openCards"></div>
       <div id="openHint"></div>
     </div>
-    <div id="openInfo" class="oinfo"><canvas id="openCv"></canvas><div id="openName"></div></div>
+    <div id="openInfo" class="oinfo"><canvas id="openCv"></canvas><canvas id="openShoe" class="bigshoe"></canvas><div id="openName"></div></div>
     <div class="obtns"><button class="btn" id="bOpenAll">REVEAL ALL</button></div>
     <div class="act hide" id="openAct"><button class="btn" id="bOpenShop">SHOP</button><button class="btn" id="bOpenInv">INVENTORY</button><button class="btn pri" id="bOpenAgain">OPEN ANOTHER</button></div>
   </div>
   <div id="openBanner"></div>
 </div>
-<div id="fxFlash"></div><div id="fxLayer"></div>
+<div id="fxFlash"></div><div id="fxLayer"></div><div id="notice"></div>
 
 <!-- Animation Lab: watch any animation slowly, from any side -->
 <div id="lab" class="scr dim">
@@ -224,7 +250,7 @@
   <div class="pnl box inv">
     <div class="ihead"><h2>INVENTORY</h2><div class="cc ccbal">0 CC</div></div>
     <div class="ibody">
-      <div class="iprev"><canvas id="invCv"></canvas><div id="invName"></div></div>
+      <div class="iprev"><canvas id="invCv"></canvas><canvas id="invShoe" class="bigshoe"></canvas><div id="invName"></div></div>
       <div class="ilist">
         <div class="tabs" id="invTabs"></div>
         <div class="rows" id="invRows"></div>
@@ -261,6 +287,7 @@
 <script src="js/settings.js"></script>
 <script src="js/save.js"></script>
 <script src="js/packs.js"></script>
+<script src="js/shoes.js"></script>
 <script src="js/core.js"></script>
 <script src="js/projection.js"></script>
 <script src="js/arena.js"></script>
@@ -271,10 +298,14 @@
 <script src="js/camera.js"></script>
 <script src="js/gameplay.js"></script>
 <script src="js/loop.js"></script>
+<script src="js/showtime.js"></script>
 <script src="js/audio.js"></script>
 <script src="js/campaign.js"></script>
+<script src="js/hooper.js"></script>
 <script src="js/menus.js"></script>
 <script src="js/campui.js"></script>
+<script src="js/minigames.js"></script>
+<script src="js/tutorial.js"></script>
 <script src="js/story.js"></script>
 <script src="js/shop.js"></script>
 <script src="js/touch.js"></script>

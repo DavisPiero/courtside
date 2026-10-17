@@ -199,33 +199,7 @@ function renderModel(cv2, P0, a) {
   V.yaw = Math.atan2(-V.y, -V.x);
   setV();
   buildSprite(P0);
-  const S = P0.spr,
-    L = P0.port.ball;
-  if (S && L) {
-    // Ball: projected with the same camera, drawn as a pixel disc onto the sprite.
-    const pk = P0.port.k,
-      bx = S.ox + (L[0] * Rx + L[1] * Ry) * pk,
-      by = S.oy - (L[0] * Ux + L[1] * Uy + (L[2] + P0.z) * Uz) * pk,
-      g = S.cv.getContext("2d"),
-      br = Math.round(0.55 * pk);
-    const disc = (x, y, r, col) => {
-      g.fillStyle = col;
-      g.beginPath();
-      g.arc(Math.round(x), Math.round(y), r, 0, 7);
-      g.fill();
-    };
-    disc(bx, by, br + 1, "#2a0f08");
-    disc(bx, by, br, "#d8692a");
-    disc(bx - br * 0.3, by - br * 0.3, Math.round(br * 0.45), "#f59a4a");
-    g.strokeStyle = "#2a0f08";
-    g.lineWidth = 1;
-    g.beginPath();
-    g.moveTo(bx - br, by);
-    g.lineTo(bx + br, by);
-    g.moveTo(bx, by - br);
-    g.lineTo(bx, by + br);
-    g.stroke();
-  }
+  const S = P0.spr; // the ball, if any, is drawn into the sprite by buildSprite
   Object.assign(V, saved);
   setV();
   if (!S) return;
@@ -539,11 +513,13 @@ function previewAnim(cv, P0, id, speed, angle) {
     port.mv = P0.mv;
     if (P0.mv) port.ball = ballLocal(P0);
     if (mk === "spin" || mk === "tornado") P0.f = u <= 1 ? 6.2832 * sm(u) : 0;
+    if (mk === "halfspin") P0.f = u <= 1 ? Math.PI * 0.9 * Math.sin(u * Math.PI) : 0;
   } else if (k.cat === "dunk" || k.cat === "layup") {
     // Gather, take off, rise to the rim, flush or release, land. Same paths as the real thing.
     const dk = k.cat === "dunk",
-      u = (t % 2.2) / 2.2,
-      Zm = dk ? 3.2 : 2.3;
+      fx = rimFx(k.id),
+      u = (t % (2.2 * (fx.slow || 1))) / (2.2 * (fx.slow || 1)),
+      Zm = (dk ? 3.2 : 2.3) * (fx.high || 1);
     if (u < 0.2) port.dk = { style: k.id, phase: "gather", k: u / 0.2 };
     else if (u < 0.55) {
       const kk = (u - 0.2) / 0.35;
@@ -553,14 +529,16 @@ function previewAnim(cv, P0, id, speed, angle) {
       P0.hw = [hl[0], hl[1], P0.z + hl[2]];
       P0.hw2 = kk > 0.55 && rimFx(k.id).two ? P0.hw : null;
       port.ball = [hl[0] + 0.15, hl[1], hl[2] + 0.4];
-      if (rimFx(k.id).spin) P0.f = 6.2832 * ease(kk);
+      if (fx.spin) P0.f = 6.2832 * fx.spin * ease(kk);
+      if (fx.turn) P0.f = fx.turn;
       if (dk && rimFx(k.id).rev) P0.f = Math.PI;
       if (k.id === "layup.reverse") P0.f = Math.PI * 0.85;
     } else if (u < 0.85) {
       const kk = (u - 0.55) / 0.3;
-      P0.z = Zm * (dk ? (kk < 0.4 ? 1 : Math.max(0, 1 - (kk - 0.4) / 0.6)) : Math.max(0, 1 - kk * 1.25));
+      const hk = fx.honey ? 0.7 : 0.4;
+      P0.z = Zm * (dk ? (kk < hk ? 1 : Math.max(0, 1 - (kk - hk) / (1 - hk))) : Math.max(0, 1 - kk * 1.25));
       port.dk = { style: k.id, phase: dk ? "hang" : "fall", k: kk };
-      if (dk && kk < 0.55) P0.hw = [1.45, 0, 10.15];
+      if (dk && kk < (fx.honey ? 0.8 : 0.55)) P0.hw = fx.honey ? [1.5, -0.3, 9.0] : [1.45, 0, 10.15];
       if (dk && rimFx(k.id).rev) P0.f = Math.PI;
       port.ball = null;
     } else port.ball = null;
@@ -568,10 +546,13 @@ function previewAnim(cv, P0, id, speed, angle) {
   renderModel(cv, P0, angle || 0.75);
 }
 
-// ---------- inventory: equip the animations you own (get more from packs in the Shop)
-const INV = { cat: "dunk", sel: "dunk.basic" };
+// ---------- inventory: equip the animations and shoes you own (get more in the Shop), or sell animations
+const INV = { cat: "dunk", sel: "dunk.basic", sell: null };
+const isEquipped = (a) => (a.cat === "dribble" ? SAVE.equip.moves.includes(a.id) : SAVE.equip[a.cat] === a.id);
 function openInv() {
-  INV.sel = INV.cat === "dribble" ? SAVE.equip.moves[0] || "dribble.cross" : SAVE.equip[INV.cat];
+  if (INV.cat === "shoe") INV.sel = SAVE.shoe || (SHOES.find((x) => ownsShoe(x.id)) || SHOES[0]).id;
+  else INV.sel = INV.cat === "dribble" ? SAVE.equip.moves[0] || "dribble.cross" : SAVE.equip[INV.cat];
+  INV.sell = null;
   drawInv();
   show("inv");
 }
@@ -587,43 +568,97 @@ function animRow(a, sel) {
     const on = SAVE.equip[a.cat] === a.id;
     btn = `<button class="btn${on ? " own" : ""}" data-eq="${a.id}">${on ? "EQUIPPED" : "EQUIP"}</button>`;
   }
+  // Sell: anything you own that isn't a starter, Gametime or equipped. Press twice to be sure.
+  const pay = own && !isEquipped(a) ? sellPrice(a) : 0;
+  if (pay) btn = `<button class="btn sell${INV.sell === a.id ? " sure" : ""}" data-sell="${a.id}">${INV.sell === a.id ? `SURE? +${pay}` : `SELL ${pay}`}</button>` + btn;
   return `<div class="pack r-${a.rarity}${own ? "" : " lock"}${a.id === sel ? " sel" : ""}" data-id="${a.id}">
-    <b>${a.name}</b><span class="rtag">${RARITY[a.rarity].name}</span><span>${a.desc}</span>${btn}</div>`;
+    <b>${a.name}</b><span class="rtag">${RARITY[a.rarity].name}</span><span>${a.desc}</span><div class="pbtns">${btn}</div></div>`;
+}
+function shoeRow(x, sel) {
+  const own = ownsShoe(x.id),
+    on = SAVE.shoe === x.id;
+  return `<div class="pack shoerow r-${x.rarity}${own ? "" : " lock"}${x.id === sel ? " sel" : ""}" data-id="${x.id}">
+    <canvas class="shcv" data-s="${x.id}"></canvas><b>${x.name}</b><span class="rtag">${RARITY[x.rarity].name}</span><span>${x.desc}</span>
+    <div class="pbtns">${own ? `<button class="btn${on ? " own" : ""}" data-wear="${x.id}">${on ? "WEARING" : "WEAR"}</button>` : `<div class="inpk">IN THE SHOP</div>`}</div></div>`;
 }
 function drawInv() {
-  $("invTabs").innerHTML = CATS.map(([c, l]) => `<button data-c="${c}" class="${c === INV.cat ? "on" : ""}">${l}</button>`).join("");
+  $("invTabs").innerHTML = [...CATS, ["shoe", "SHOES"]].map(([c, l]) => `<button data-c="${c}" class="${c === INV.cat ? "on" : ""}">${l}</button>`).join("");
   $("invTabs").querySelectorAll("button").forEach(
     (b) =>
       (b.onclick = () => {
         INV.cat = b.dataset.c;
-        INV.sel = INV.cat === "dribble" ? SAVE.equip.moves[0] || "dribble.hesi" : SAVE.equip[INV.cat];
-        drawInv();
+        openInv();
       }),
   );
-  const list = ANIMS.filter((a) => a.cat === INV.cat).sort((a, b) => owns(b.id) - owns(a.id));
-  $("invRows").innerHTML =
-    (INV.cat === "dribble"
-      ? `<p class="mvcount">Crossover, Between the Legs, Behind the Back and Spin are always on. Switch on up to ${MAX_MOVES} more (${SAVE.equip.moves.length}/${MAX_MOVES}).</p>`
-      : "") + list.map((a) => animRow(a, INV.sel)).join("");
-  $("invRows").querySelectorAll(".pack").forEach((r) => (r.onclick = () => ((INV.sel = r.dataset.id), drawInv())));
+  if (INV.cat === "shoe") {
+    const list = SHOES.slice().sort((a, b) => ownsShoe(b.id) - ownsShoe(a.id) || RANK.indexOf(b.rarity) - RANK.indexOf(a.rarity));
+    $("invRows").innerHTML =
+      `<p class="mvcount">Your whole team wears the pair you pick. ${SAVE.shoes.length} / ${SHOES.length} collected.${SAVE.shoe ? ` <button class="btn mini" data-wear="">TEAM COLOURS</button>` : ""}</p>` +
+      list.map((x) => shoeRow(x, INV.sel)).join("");
+    $("invRows").querySelectorAll("canvas.shcv").forEach((cv) => shoeCanvas(cv, SHOE[cv.dataset.s]));
+  } else {
+    const list = ANIMS.filter((a) => a.cat === INV.cat).sort((a, b) => owns(b.id) - owns(a.id));
+    $("invRows").innerHTML =
+      (INV.cat === "dribble"
+        ? `<p class="mvcount">Crossover, Between the Legs, Behind the Back and Spin are always on. Switch on up to ${MAX_MOVES} more (${SAVE.equip.moves.length}/${MAX_MOVES}).</p>`
+        : "") + list.map((a) => animRow(a, INV.sel)).join("");
+  }
+  $("invRows").querySelectorAll(".pack").forEach((r) => (r.onclick = () => ((INV.sel = r.dataset.id), (INV.sell = null), drawInv())));
   $("invRows").querySelectorAll("[data-eq]").forEach(
     (b) =>
       (b.onclick = (e) => {
         e.stopPropagation();
         INV.sel = b.dataset.eq;
+        INV.sell = null;
         equipAnim(b.dataset.eq);
         drawInv();
       }),
   );
-  const a = ANIM[INV.sel];
-  $("invName").innerHTML = a ? `${a.name.toUpperCase()}${owns(a.id) ? "" : "<br><small>LOCKED</small>"}` : "";
+  $("invRows").querySelectorAll("[data-wear]").forEach(
+    (b) =>
+      (b.onclick = (e) => {
+        e.stopPropagation();
+        SAVE.shoe = b.dataset.wear;
+        if (SAVE.shoe) INV.sel = SAVE.shoe;
+        writeSave();
+        drawInv();
+      }),
+  );
+  $("invRows").querySelectorAll("[data-sell]").forEach(
+    (b) =>
+      (b.onclick = (e) => {
+        e.stopPropagation();
+        const id = b.dataset.sell;
+        if (INV.sell !== id) {
+          INV.sell = id;
+            return drawInv();
+        }
+        const pay = sellAnim(id);
+        INV.sell = null;
+        if (pay) {
+          sfx("coins");
+          burst(b, "#ffcf5c", 18);
+        }
+        drawInv();
+      }),
+  );
+  const a = INV.cat === "shoe" ? SHOE[INV.sel] : ANIM[INV.sel],
+    own = a && (INV.cat === "shoe" ? ownsShoe(a.id) : owns(a.id));
+  $("invName").innerHTML = a ? `${a.name.toUpperCase()}${own ? "" : "<br><small>LOCKED</small>"}` : "";
+  $("inv").classList.toggle("shoes", INV.cat === "shoe");
   $("bInvX").onclick = () => show("menu");
 }
 function invPreview() {
   labPreview();
   shopPreview();
-  if ($("inv").classList.contains("on") && INV.sel) previewAnim($("invCv"), previewModel("inv"), INV.sel);
-  if ($("open").classList.contains("on") && OPEN.sel) previewAnim($("openCv"), previewModel("open"), OPEN.sel);
+  if ($("inv").classList.contains("on") && INV.sel) {
+    if (INV.cat === "shoe") shoeCanvas($("invShoe"), SHOE[INV.sel], T);
+    else previewAnim($("invCv"), previewModel("inv"), INV.sel);
+  }
+  if ($("open").classList.contains("on") && OPEN.sel) {
+    if (SHOE[OPEN.sel]) shoeCanvas($("openShoe"), SHOE[OPEN.sel], T);
+    else previewAnim($("openCv"), previewModel("open"), OPEN.sel);
+  }
 }
 
 // The Shop and pack opening live in js/shop.js.

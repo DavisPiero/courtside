@@ -19,7 +19,7 @@ where we are, HANDOFF.md for how the last session ended.
   http://localhost:8791/?mute (the preview config in `.claude/launch.json` serves it).
   Always test with `?mute` so no sound plays. `&device=pc` or `&device=touch` skips the
   loading and device screens.
-- Smoke test (loads the game headless, plays every mode/court/difficulty, reports scores):
+- Smoke test (loads the game headless, plays every mode/court/difficulty and each minigame, reports scores):
   `./tools/smoke.sh`
 - Sound: `M` mutes effects. Run it muted when testing.
 
@@ -29,11 +29,13 @@ where we are, HANDOFF.md for how the last session ended.
 - `js/settings.js` the settings menu's options and saving them
 - `js/save.js` your save: Court Coins, packs, campaign stars (browser storage only)
 - `js/anim.js` the animation system: keyframe clips for every move, blending, smoothing
-- `js/packs.js` collectable animations (rarity, names), packs, Player Packs, Daily Shop (prices, odds)
+- `js/packs.js` collectable animations (rarity, names), packs, Player Packs, Daily Shop (prices, odds), selling
+- `js/shoes.js` the 33 shoes, Shoeboxes, the shoe in the Daily Shop, drawing a pixel shoe
+- `js/hooper.js` your hooper's 8 stats, upgrade prices, recommended ratings, the upgrade panel
 - `js/campaign.js` campaign chapters, games, every story line, goals; your crew; NBA career (teams, offers, salary)
 - `js/campui.js` campaign, hooper, story card, results, team choice screens; daily payday
 - `js/story.js` story scenes (characters talking) and in-game chatter
-- `js/shop.js` Shop (Daily Shop, Packs, Player Packs) and the pack opening
+- `js/shop.js` Shop (Daily Shop, Packs, Player Packs, Shoeboxes, Codes), pack opening and unboxing
 - `js/touch.js` touch controls for Mobile / Tablet
 - `js/core.js` helpers, options and difficulty, global state, screen sizing
 - `js/projection.js` 3D projection and drawing primitives
@@ -44,6 +46,9 @@ where we are, HANDOFF.md for how the last session ended.
 - `js/camera.js` cameras and cutscene cameras
 - `js/gameplay.js` rules, moves, AI, input
 - `js/loop.js` fixed-step simulation, HUD
+- `js/showtime.js` On Fire, alley-oops, buzzer beaters, the win celebration and trophy
+- `js/minigames.js` 3-point contest, dunk contest, 1-on-1
+- `js/tutorial.js` the tutorial (court steps, then cards)
 - `js/audio.js` sound effects (no music)
 - `js/menus.js` menus, setup screen, tip-off
 - `js/main.js` input listeners, start-up, smoke-test hook

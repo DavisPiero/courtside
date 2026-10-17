@@ -44,9 +44,9 @@ const streetish = () => OPT.court !== "arena";
 // stealWin: chance an attempt works, gap: extra distance they give you on defence (feet), shotQ: shot quality bonus,
 // pick: pass interceptions, react: how quickly they change direction,
 // squeeze: how much their defence shrinks your green zone (0 none, 1 can close it almost shut).
-// Long shots (your shots only; the AI always uses Pro): a perfect release goes in every time out to just past
-// the 3-point line, then less and less: half (chance right at half court), deep (just past half court),
-// full (from the far baseline). layup: how often a contested close layup rims out.
+// Long shots that aren't perfect (your shots only; the AI always uses Pro): past the 3-point line they go in less
+// and less: half (share right at half court), deep (just past half court), full (from the far baseline).
+// A perfect release always goes in from anywhere. layup: how often a contested close layup rims out.
 const DIFF = [
   { name: "ROOKIE", sp: 0.84, stealRate: 0.08, stealWin: 0.25, gap: 1.4, shotQ: -0.18, pick: 0.4, react: 4, squeeze: 0.25, half: 0.45, deep: 0.17, full: 0.04, layup: 0.25 },
   { name: "PRO", sp: 0.94, stealRate: 0.22, stealWin: 0.4, gap: 0, shotQ: 0, pick: 1, react: 6, squeeze: 0.45, half: 0.3, deep: 0.1, full: 0.02, layup: 0.35 },

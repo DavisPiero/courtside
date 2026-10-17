@@ -4,7 +4,7 @@
 // Player arrays match js/teams.js: [name, pos, ovr, height, speed, shooting, finishing, handling, defence,
 // blocking, skin 0-5, hair 0-4 (optional)].
 
-// ---------- your crew: your hooper plus Dex and Big Lou. They improve with every chapter you clear.
+// ---------- your crew: your hooper plus Dex and Big Lou. Dex and Lou improve with every chapter you clear.
 function crewTeam() {
   const lv = crewLevel() * 3,
     up = (R) => R.map((v, i) => (i >= 2 && i <= 9 && i !== 3 ? Math.min(99, v + lv) : v));
@@ -18,7 +18,7 @@ function crewTeam() {
     k: "#b8862a",
     look0: 91,
     p: [
-      up([SAVE.name || "ROOKIE", "SG", 74, 76, 82, 78, 78, 80, 72, 50, SAVE.skin, SAVE.hair]),
+      hooperRow(), // you: upgraded with coins on the hooper screen (js/hooper.js), not by bosses
       up(["DEX", "PG", 72, 72, 88, 74, 70, 84, 70, 30, 2, 4]),
       up(["BIG LOU", "C", 72, 83, 64, 50, 82, 50, 76, 82, 5, 3]),
     ],
@@ -70,9 +70,10 @@ function game(id, opp, court, mode, diff, rules, twist, style, intro, win, x) {
 const STREET11 = { target: 11 },
   STREET15 = { target: 15 },
   STREET21 = { target: 21 },
-  SUMMER = { nq: 1, qlen: 180 },
-  LEAGUE = { nq: 1, qlen: 240 },
-  FINALS = { nq: 2, qlen: 180 };
+  // NBA games: four 30-second quarters, about two minutes a game (David: "faster is funnier").
+  SUMMER = { nq: 4, qlen: 30 },
+  LEAGUE = { nq: 4, qlen: 30 },
+  FINALS = { nq: 4, qlen: 30 };
 // The NBA campaign's rival, Zeke Knox, is made up. He joins a real team for the games he plays in.
 const KNOX = ["Z. KNOX", "SG", 86, 78, 88, 86, 86, 86, 74, 45, 3, 1];
 const withKnox = (c, slot) => {
@@ -85,7 +86,7 @@ const TANKS = (r) => streetCrew("TANK & THE TOWERS", "TNK", "#5b616e", "#ff5c4d"
 
 // Two campaigns. STREET: street courts, Mayhem allowed. NBA: arenas, professional rules only (never Mayhem).
 // Each chapter has an opening scene (intro) and a closing scene after the boss (outro). The first chapter's
-// intro is the campaign's prologue. Each chapter's boss unlocks a Legendary animation the first time you beat it.
+// intro is the campaign's prologue. Each chapter's boss gives you a free All-Star Pack the first time you beat it.
 const CAMPAIGNS = {
   street: {
     title: "KING OF THE COURTS",
@@ -95,7 +96,6 @@ const CAMPAIGNS = {
       {
         title: "THE BLOCK",
         sub: "Nobody knows your name. Yet.",
-        reward: "dribble.tornado",
         intro: [
           ["", "New town. New block. One cracked court behind the laundromat."],
           ["DEX", "Yo, new kid! You hoop? I'm Dex. Fastest hands on the block.", "point"],
@@ -149,7 +149,6 @@ const CAMPAIGNS = {
       {
         title: "THE CITY",
         sub: "Downtown courts. Bigger crowds, dirtier games.",
-        reward: "dunk.legs",
         intro: [
           ["", "Downtown. Bigger courts. Bigger crowds. Way bigger mouths."],
           ["DEX", "Every crew down here wants one thing: a spot in the Summer Jam."],
@@ -196,7 +195,6 @@ const CAMPAIGNS = {
       {
         title: "THE SUMMER JAM",
         sub: "The city's street tournament. Win it and you're kings.",
-        reward: "cel.backflip",
         intro: [
           ["ANNOUNCER", "WELCOME... TO THE SUMMER JAAAAM!", "hype"],
           ["", "The boardwalk. Speakers booming. Hundreds of people packed along the sand."],
@@ -255,7 +253,6 @@ const CAMPAIGNS = {
       {
         title: "SUMMER LEAGUE",
         sub: "Undrafted. Signed anyway. Prove it.",
-        reward: "shot.hook",
         intro: [
           ["", "Draft night. Sixty names called. Not one of them yours."],
           ["ANNOUNCER", "With the seventh pick... ZEKE KNOX!"],
@@ -272,23 +269,23 @@ const CAMPAIGNS = {
           ["ZEKE KNOX", "Summer League doesn't count. See you in the real games.", "cocky"],
         ],
         games: [
-          game("n1-1", () => NBA("CHA"), "arena", "clean", 1, SUMMER, goal("margin", 4), goal("greens", 2),
+          game("n1-1", () => NBA("CHA"), "arena", "clean", 1, SUMMER, goal("margin", 3), goal("greens", 2),
             [["COACH RAY", "First game. Breathe. It's just basketball, with nicer floors."]],
             [["COACH RAY", "Huh. Not bad. Don't get a big head."]],
             { lose: [["COACH RAY", "Again. From the top."]] }),
-          game("n1-2", () => NBA("CHI"), "arena", "clean", 1, SUMMER, goal("hold", 14), goal("steals", 2),
+          game("n1-2", () => NBA("CHI"), "arena", "clean", 1, SUMMER, goal("hold", 8), goal("steals", 2),
             [["COACH RAY", "Arena floors are fast. Defence first."]],
             [["DEX", "Coach almost smiled. I SAW it."], ["COACH RAY", "I did not."]]),
           game("n1-3", () => NBA("BKN"), "arena", "clean", 2, SUMMER, goal("ankles", 2), goal("dunks", 1),
             [["DEX", "No Mayhem in the League, Lou. Just basketball."], ["BIG LOU", "...Fine. Dunk on them instead. For me.", "flex"]],
             [["BIG LOU", "You dunked on a pro! I'm framing the photo.", "flex"]]),
-          game("n1-4", () => NBA("UTA"), "arena", "clean", 2, SUMMER, goal("margin", 5), goal("ankles", 2),
+          game("n1-4", () => NBA("UTA"), "arena", "clean", 2, SUMMER, goal("margin", 4), goal("ankles", 2),
             [["COACH RAY", "Utah's got size. Go around them."]],
             [["", "That night, on TV..."], ["ZEKE KNOX", "Playground kid beat some backups. Whatever.", "cocky"], ["BIG LOU", "Is he talking about YOU?"]]),
-          game("n1-5", () => NBA("MEM"), "arena", "clean", 2, { ...SUMMER, start: [0, 6] }, goal("win"), goal("threes", 2),
+          game("n1-5", () => NBA("MEM"), "arena", "clean", 2, { ...SUMMER, start: [0, 4] }, goal("win"), goal("threes", 2),
             [["ANNOUNCER", "The rookie's team is down six at the tip!"], ["COACH RAY", "Good. Now we find out who you are."]],
             [["COACH RAY", "That's who you are."]]),
-          game("n1-6", () => withKnox("WAS", 1), "arena", "clean", 2, SUMMER, goal("margin", 6), goal("greens", 3),
+          game("n1-6", () => withKnox("WAS", 1), "arena", "clean", 2, SUMMER, goal("margin", 5), goal("greens", 3),
             [["ZEKE KNOX", "Summer League final. The lottery pick against nobody.", "cocky"], ["COACH RAY", "Win this and the whole league knows your name."], ["HERO", "I'm not nobody."]],
             [["ZEKE KNOX", "...That was a fluke."], ["COACH RAY", "Welcome to the League. For real."], ["BIG LOU", "COACH IS CRYING."], ["COACH RAY", "It's allergies, Lou."]],
             { lose: [["ZEKE KNOX", "Back to the playground.", "shh"]] }),
@@ -297,7 +294,6 @@ const CAMPAIGNS = {
       {
         title: "THE LEAGUE",
         sub: "Rookie season. Every night is a big name.",
-        reward: "dunk.360",
         intro: [
           ["", "Rookie season. Eighty-two games. Every night, a famous name."],
           ["ANNOUNCER", "The undrafted rookie is the story of the year!"],
@@ -311,22 +307,22 @@ const CAMPAIGNS = {
           ["COACH RAY", "And the best teams in the league are calling about you. Stay, or chase the ring somewhere new."],
         ],
         games: [
-          game("n2-1", () => NBA("ATL"), "arena", "clean", 2, LEAGUE, goal("margin", 5), goal("steals", 3),
+          game("n2-1", () => NBA("ATL"), "arena", "clean", 2, LEAGUE, goal("margin", 4), goal("steals", 2),
             [["ANNOUNCER", "Opening night for the undrafted rookie!"]],
             [["DEX", "You're one-and-oh in the NBA. ONE. AND. OH.", "dance"]]),
-          game("n2-2", () => NBA("SAC"), "arena", "clean", 2, LEAGUE, goal("hold", 16), goal("ankles", 2),
+          game("n2-2", () => NBA("SAC"), "arena", "clean", 2, LEAGUE, goal("hold", 8), goal("ankles", 2),
             [["COACH RAY", "Sacramento shoots it. Close out."]],
             [["COACH RAY", "That's how you guard a shooter."]]),
-          game("n2-3", () => NBA("PHX"), "arena", "clean", 2, LEAGUE, goal("steals", 4), goal("dunks", 2),
+          game("n2-3", () => NBA("PHX"), "arena", "clean", 2, LEAGUE, goal("steals", 2), goal("dunks", 2),
             [["DEX", "Booker in the desert. Hands up."]],
             [["BIG LOU", "It's so hot here. Even my nachos are sweating."]]),
-          game("n2-4", () => NBA("MIA"), "arena", "clean", 3, LEAGUE, goal("margin", 6), goal("blk", 1),
+          game("n2-4", () => NBA("MIA"), "arena", "clean", 3, LEAGUE, goal("margin", 5), goal("blk", 1),
             [["COACH RAY", "Giannis in Miami. Stay out of his way. Or block him."]],
             [["BIG LOU", "You touched Giannis. Can I touch your hand?"]]),
-          game("n2-5", () => NBA("LAL"), "arena", "clean", 3, { ...LEAGUE, start: [0, 6] }, goal("win"), goal("threes", 3),
+          game("n2-5", () => NBA("LAL"), "arena", "clean", 3, { ...LEAGUE, start: [0, 4] }, goal("win"), goal("threes", 2),
             [["ANNOUNCER", "Lakers up six early. Big crowd tonight."]],
             [["ANNOUNCER", "The undrafted kid takes down the Lakers!"], ["ZEKE KNOX", "Enjoy it while it lasts.", "cocky"]]),
-          game("n2-6", () => NBA("NYK"), "arena", "clean", 3, LEAGUE, goal("margin", 6), goal("greens", 4),
+          game("n2-6", () => NBA("NYK"), "arena", "clean", 3, LEAGUE, goal("margin", 5), goal("greens", 3),
             [["ANNOUNCER", "The champs at Madison Square Garden. Boss game."], ["COACH RAY", "Beat the champs and we're in the playoffs."]],
             [["COACH RAY", "You just beat the champs. Playoffs, here we come."]]),
         ],
@@ -334,7 +330,6 @@ const CAMPAIGNS = {
       {
         title: "THE FINALS",
         sub: "Hall of Famer difficulty. Earn the ring.",
-        reward: "cel.mic",
         intro: [
           ["", "Playoffs. Win or go home."],
           ["COACH RAY", "Twenty years I've waited for this. Let's go get a ring."],
@@ -349,25 +344,25 @@ const CAMPAIGNS = {
           ["DEX", "From a cracked court to the ring. Nobody's gonna believe this.", "dance"],
         ],
         games: [
-          game("n3-1", () => NBA("DET"), "arena", "clean", 3, FINALS, goal("margin", 5), goal("steals", 3),
+          game("n3-1", () => NBA("DET"), "arena", "clean", 3, FINALS, goal("margin", 4), goal("steals", 2),
             [["COACH RAY", "Playoffs. Every possession counts."]],
             [["COACH RAY", "Round one. Done. Next."]]),
-          game("n3-2", () => NBA("HOU"), "arena", "clean", 3, FINALS, goal("hold", 24), goal("blk", 2),
+          game("n3-2", () => NBA("HOU"), "arena", "clean", 3, FINALS, goal("hold", 10), goal("blk", 1),
             [["BIG LOU", "Durant and Sengun. Make them work."]],
             [["BIG LOU", "You guarded Durant. DURANT. I got it on video."]]),
-          game("n3-3", () => NBA("MIN"), "arena", "clean", 3, FINALS, goal("ankles", 3), goal("dunks", 2),
+          game("n3-3", () => NBA("MIN"), "arena", "clean", 3, FINALS, goal("ankles", 2), goal("dunks", 2),
             [["DEX", "Ant's the fastest guy we've seen. Be faster."]],
             [["DEX", "You were faster. Barely. But you were."]]),
-          game("n3-4", () => NBA("DEN"), "arena", "clean", 3, FINALS, goal("margin", 6), goal("ankles", 3),
+          game("n3-4", () => NBA("DEN"), "arena", "clean", 3, FINALS, goal("margin", 5), goal("ankles", 2),
             [["COACH RAY", "Jokic sees everything. Move the ball."]],
             [["COACH RAY", "Conference finals. One more."]]),
-          game("n3-5", () => NBA("SAS"), "arena", "clean", 3, FINALS, goal("margin", 4), goal("greens", 4),
+          game("n3-5", () => NBA("SAS"), "arena", "clean", 3, FINALS, goal("margin", 3), goal("greens", 3),
             [["BIG LOU", "Wemby. Don't shoot over him. Go around."]],
             [["ANNOUNCER", "The undrafted kid is going to the FINALS!", "hype"], ["ZEKE KNOX", "Finally. Let's see what you've got.", "cocky"]]),
-          game("n3-6", () => withKnox("OKC", 1), "arena", "clean", 3, FINALS, goal("margin", 6), goal("greens", 5),
+          game("n3-6", () => withKnox("OKC", 1), "arena", "clean", 3, FINALS, goal("margin", 5), goal("greens", 3),
             [["ANNOUNCER", "Game 7 of the Finals. The undrafted kid against Zeke Knox."], ["ZEKE KNOX", "Playground's over.", "cocky"], ["HERO", "Nah. The playground is where I learned."], ["COACH RAY", "Just basketball. Nicer floors."]],
             [["ANNOUNCER", "CHAMPIONS! Undrafted to the ring!", "hype"], ["ZEKE KNOX", "...Respect. For real."]],
-            { lose: [["ZEKE KNOX", "Told you. Playground's over.", "cocky"]], mid: [["COACH RAY", "Half time. Twenty-four minutes from a ring. Let's go."]] }),
+            { lose: [["ZEKE KNOX", "Told you. Playground's over.", "cocky"]], mid: [["COACH RAY", "Half time. One more minute from a ring. Let's go."]] }),
         ],
       },
     ],
@@ -384,7 +379,8 @@ const gameUnlocked = (ci, gi) => (gi === 0 ? ci === 0 || starsOf(CAMP[ci - 1].ga
 // with an NBA team and play alongside its two best players. First offers come from the league's ten worst
 // teams; every NBA chapter you clear brings offers from better ones (the middle ten, then the top ten).
 // Your contract pays Court Coins once a day (see payday() in js/campui.js), more for every chapter cleared.
-const SALARY = [60, 120, 200, 300]; // CC a day, by NBA chapters cleared (3 = champion)
+const SALARY = [200, 350, 500, 750]; // CC a day, by NBA chapters cleared (3 = champion)
+const SIGN_BONUS = 1000; // paid every time you sign with a new team (staying put pays nothing extra)
 const PAY_DAYS_MAX = 7; // missed paydays add up, to a week at most
 const STREET_FINAL = "s3-6";
 const nbaCleared = () => CAMPAIGNS.nba.chapters.filter((ch) => starsOf(ch.games[5].id) > 0).length;
@@ -415,10 +411,14 @@ function nbaOffers() {
   }
   return N.offers;
 }
+// Returns the signing bonus paid (0 if you stayed with your team).
 function signWith(code) {
+  const bonus = code !== SAVE.nba.team ? SIGN_BONUS : 0;
+  SAVE.cc += bonus;
   Object.assign(SAVE.nba, { team: code, tier: offerTier(), offers: [], offerTier: -1 });
   if (!SAVE.payday) SAVE.payday = 0; // first payday comes the next time the menu opens
   writeSave();
+  return bonus;
 }
 // The two players you play alongside on a team: its best two.
 const mates = (t) => t.p.slice().sort((a, b) => b[2] - a[2]).slice(0, 2);

@@ -16,6 +16,12 @@ const SAVE = {
   // day (yyyymmdd) your contract paid out (0 = not yet).
   nba: { team: "", tier: 0, offers: [], offerTier: -1 },
   payday: 0,
+  free: {}, // free packs you've won and not opened yet: pack id -> how many (a chapter boss gives an All-Star Pack)
+  shoes: [], // shoe ids you own (js/shoes.js)
+  shoe: "", // the shoe your team wears ("" = plain team-colour sneakers)
+  codes: [], // codes already redeemed in the Shop
+  hooper: null, // your hooper's eight stats (js/hooper.js); null until first worked out from your progress
+  best: {}, // best scores in the minigames
 };
 // The story was rewritten in session 2 (2026-10-17), so campaign progress starts again once.
 // Coins, animations and what you have equipped are kept.
@@ -36,6 +42,8 @@ function loadSave() {
     for (const k in SAVE) if (k in s) SAVE[k] = s[k];
     SAVE.nba = Object.assign({ team: "", tier: 0, offers: [], offerTier: -1 }, SAVE.nba);
     SAVE.equip = Object.assign({ dunk: "dunk.basic", layup: "layup.basic", cel: "cel.basic", shot: "shot.basic", moves: [] }, SAVE.equip);
+    for (const k of ["free", "best"]) if (!SAVE[k] || typeof SAVE[k] !== "object") SAVE[k] = {};
+    for (const k of ["shoes", "codes"]) if (!Array.isArray(SAVE[k])) SAVE[k] = [];
   } catch (e) {
     /* private window or blocked storage: start fresh */
   }

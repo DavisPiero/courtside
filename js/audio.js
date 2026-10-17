@@ -61,9 +61,26 @@ function sfxTick(k) {
 }
 function sfxReveal(r) {
   if (!AU.x || AU.mute) return;
-  const notes = { common: [523], rare: [523, 784], epic: [523, 659, 784, 1047], legendary: [392, 523, 659, 784, 1047, 1319], iconic: [392, 523, 659, 784, 1047, 1319, 1568] }[r] || [523];
+  const notes =
+    {
+      common: [523],
+      rare: [523, 784],
+      epic: [523, 659, 784, 1047],
+      legendary: [392, 523, 659, 784, 1047, 1319],
+      iconic: [392, 523, 659, 784, 1047, 1319, 1568],
+      mythic: [330, 392, 523, 659, 784, 1047, 1319, 1568],
+      godlike: [262, 330, 392, 523, 659, 784, 1047, 1319, 1568, 2093],
+      gametime: [294, 370, 440, 587, 740, 880, 1175, 1480],
+    }[r] || [523];
   notes.forEach((f, i) => setTimeout(() => !AU.mute && tone("triangle", f, f, 0.22, 0.12), i * 70));
-  if (r === "legendary" || r === "iconic") setTimeout(() => !AU.mute && nz(0.6, 0.35, 900), 60);
+  if (RANK.indexOf(r) >= RANK.indexOf("legendary")) setTimeout(() => !AU.mute && nz(0.6, 0.35, 900), 60);
+  if (r === "godlike" || r === "gametime") setTimeout(() => !AU.mute && (tone("sine", 1047, 2093, 0.9, 0.12), nz(1.2, 0.3, 4000)), 500);
+}
+// Story talk: a little garble of blips, pitched per character (like someone mumbling fast).
+function sfxTalk(pitch) {
+  if (!AU.x || AU.mute) return;
+  const f = pitch * (0.85 + Math.random() * 0.35);
+  tone(Math.random() < 0.5 ? "square" : "triangle", f, f * (0.8 + Math.random() * 0.5), 0.05, 0.04);
 }
 function sfx(k) {
   if (!AU.x || AU.mute) return;
@@ -96,6 +113,19 @@ function sfx(k) {
       tone("sine", 70, 30, 0.25, 0.6);
     },
     whoosh: () => nz(0.12, 0.18, 2200),
+    // Menus
+    click: () => tone("square", 880, 660, 0.04, 0.05),
+    hover: () => tone("square", 1320, 1300, 0.015, 0.02),
+    nope: () => (tone("square", 220, 160, 0.12, 0.08), setTimeout(() => !AU.mute && tone("square", 180, 120, 0.14, 0.08), 110)),
+    coins: () => [988, 1319, 1568].forEach((f, i) => setTimeout(() => !AU.mute && tone("square", f, f, 0.08, 0.05), i * 60)),
+    pop: () => (tone("sine", 300, 900, 0.12, 0.25), nz(0.25, 0.25, 2600)),
+    // Game
+    board: () => (tone("triangle", 200, 120, 0.12, 0.25), nz(0.08, 0.3, 700)),
+    squeak: () => tone("sine", 2600 + Math.random() * 600, 3300, 0.06, 0.035),
+    fire: () => (nz(0.5, 0.3, 500), tone("sawtooth", 140, 420, 0.4, 0.08)),
+    cheer: () => (nz(1.4, 0.22, 1100), nz(1.2, 0.15, 2400)),
+    horn: () => (tone("sawtooth", 196, 196, 0.6, 0.09), tone("sawtooth", 247, 247, 0.6, 0.07)),
+    lob: () => tone("sine", 400, 900, 0.18, 0.15),
     slide: () => nz(0.4, 0.3, 1400),
   };
   if (m[k]) m[k]();

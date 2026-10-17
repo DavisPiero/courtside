@@ -13,6 +13,7 @@ function openHero(first) {
     $("heroHair").querySelectorAll("button").forEach((b) => (b.onclick = () => ((SAVE.hair = +b.dataset.i), draw())));
   };
   draw();
+  drawUpgrades();
   $("bHeroX").onclick = () => (first ? show("menu") : openCamp());
   $("bHeroOk").onclick = () => {
     SAVE.name = ($("heroName").value || "ROOKIE").toUpperCase().replace(/[^A-Z0-9 .'-]/g, "").trim().slice(0, 12) || "ROOKIE";
@@ -74,10 +75,9 @@ function drawCamp() {
   const ch = CAMP[CUI.ch],
     open = gameUnlocked(CUI.ch, 0);
   $("chTitle").textContent = `${CUI.cid === "nba" ? "NBA" : "STREET"} · CHAPTER ${CUI.ch + 1}: ${ch.title}`;
-  const rw = ANIM[ch.reward],
-    got = starsOf(ch.games[5].id) > 0;
-  $("chReward").className = "reward r-" + rw.rarity;
-  $("chReward").innerHTML = `Beat the boss to unlock: <b>${RARITY[rw.rarity].name} ${rw.name}</b>${got ? ' <span class="got">✓ UNLOCKED</span>' : ""}`;
+  const got = starsOf(ch.games[5].id) > 0;
+  $("chReward").className = "reward r-epic";
+  $("chReward").innerHTML = `Beat the boss to win: <b>A FREE ALL-STAR PACK</b>${got ? ' <span class="got">✓ WON</span>' : ""}`;
   $("chSub").textContent = open ? ch.sub : "Locked. Beat the last boss to open it.";
   // NBA: who you play for, what your contract pays, and new offers after each chapter.
   const nba = CUI.cid === "nba" && SAVE.nba.team;
@@ -97,11 +97,14 @@ function drawCamp() {
       const opp = gm.opp(),
         lock = !gameUnlocked(CUI.ch, gi),
         boss = gi === 5,
-        what = gm.rules.target ? `First to ${gm.rules.target}` : `${gm.rules.nq > 1 ? gm.rules.nq + " × " : ""}${gm.rules.qlen / 60} min`;
+        rec = recRating(CUI.cid, CUI.ch, gi),
+        len = gm.rules.qlen < 60 ? gm.rules.qlen + " sec" : gm.rules.qlen / 60 + " min",
+        what = gm.rules.target ? `First to ${gm.rules.target}` : `${gm.rules.nq > 1 ? gm.rules.nq + " × " : ""}${len}`;
       return `<div class="cg${lock ? " lock" : ""}" data-g="${gi}">
         <div class="num${boss ? " boss" : ""}">${boss ? "BOSS" : gi + 1}</div>
         <b>${lock ? "???" : "VS " + opp.n}</b>
         <span>${lock ? "Win the game before to unlock" : `${COURTS[gm.court].name[0] + COURTS[gm.court].name.slice(1).toLowerCase()} · ${gm.mode === "mayhem" ? "MAYHEM" : "Clean"} · ${DIFF[gm.diff].name} · ${what}`}</span>
+        ${lock ? "" : `<em class="rec${hooperOvr() >= rec ? " ok" : ""}" title="Recommended rating. Yours: ${hooperOvr()}">REC ${rec}</em>`}
         <div class="stars">${starStr(starsOf(gm.id))}</div></div>`;
     })
     .join("");
@@ -146,12 +149,10 @@ function storyCard(ci, gi, opp) {
   $("storyLines").innerHTML = last ? `<p><b>${last[0] === "HERO" ? SAVE.name : last[0] || "&nbsp;"}</b>${last[1].replace(/HERO/g, SAVE.name)}</p>` : "";
   $("storyGoals").innerHTML =
     gm.goals.map((gl) => `<div>${goalText(gl)}</div>`).join("") +
-    (gm.rules.start[1] ? `<div class="meta">You start down ${gm.rules.start[1]}-${gm.rules.start[0]}.</div>` : "");
+    (gm.rules.start[1] ? `<div class="meta">You start down ${gm.rules.start[1]}-${gm.rules.start[0]}.</div>` : "") +
+    `<div class="meta">Recommended rating ${recRating(CUI.cid, ci, gi)} · you're ${hooperOvr()}${hooperOvr() < recRating(CUI.cid, ci, gi) ? " (upgrade on EDIT HOOPER)" : ""}</div>`;
   $("bStoryX").onclick = () => (drawCamp(), show("camp"));
-  if (gi === 5) {
-    const rw = ANIM[CAMP[ci].reward];
-    $("storyGoals").innerHTML += `<div class="meta r-${rw.rarity}">Boss reward: <span class="rtag">${RARITY[rw.rarity].name}</span> ${rw.name}</div>`;
-  }
+  if (gi === 5 && !starsOf(gm.id)) $("storyGoals").innerHTML += `<div class="meta r-epic">Boss reward: <span class="rtag">FREE</span> ALL-STAR PACK</div>`;
   $("bStoryGo").onclick = () => startCamp(ci, gi);
   show("story");
 }
@@ -172,6 +173,7 @@ function startCamp(ci, gi) {
   Object.assign(OPT, { court: gm.court, mode: CUI.cid === "nba" ? "clean" : gm.mode, diff: gm.diff });
   G.rules = { ...gm.rules };
   G.camp = { cid: CUI.cid, ci, gi };
+  G.mg = null;
   setTeamObjs(CUI.cid === "nba" ? nbaTeam() : crewTeam(), gm.opp());
   start(0);
 }
@@ -180,7 +182,7 @@ const QUICK_RULES = { nq: 4, qlen: 60 };
 const QUICK_BONUS = 100; // every finished Quick Play game pays this, win or lose
 function startQuick(pr) {
   G.rules = { ...RULES_STD, ...QUICK_RULES };
-  G.camp = null;
+  G.camp = G.mg = null;
   setTeamObjs(LT()[SEL.a], LT()[SEL.b]);
   start(pr);
 }
@@ -203,15 +205,10 @@ function showResults() {
     if (n > prev) {
       extra.push([`New stars ×${n - prev}`, (n - prev) * 25]);
       if (prev === 0) extra.push(["First win bonus", 50 + camp.ci * 25]);
-      // Beating a chapter boss for the first time unlocks that chapter's Legendary animation.
+      // Beating a chapter boss for the first time wins a free All-Star Pack.
       if (prev === 0 && camp.gi === 5) {
-        const id = CAMP[camp.ci].reward;
-        unlocked = ANIM[id];
-        if (owns(id)) extra.push([`Already had ${unlocked.name}`, RARITY.legendary.refund]);
-        else {
-          SAVE.owned.push(id);
-          if (unlocked.cat === "dribble" && SAVE.equip.moves.length < MAX_MOVES) SAVE.equip.moves.push(id);
-        }
+        SAVE.free.allstar = (SAVE.free.allstar || 0) + 1;
+        unlocked = 1;
       }
       SAVE.stars[gm.id] = n;
     }
@@ -225,7 +222,7 @@ function showResults() {
   $("resScore").textContent = `${TM[0].c} ${G.home} – ${G.away} ${TM[1].c}`;
   $("resOutro").innerHTML = ""; // the story lines played as a scene before this screen
   $("resGoals").innerHTML =
-    (unlocked ? `<div class="meta res-unlock r-legendary">LEGENDARY UNLOCKED: ${unlocked.name}! Equip it in the Inventory.</div>` : "") +
+    (unlocked ? `<div class="meta res-unlock r-epic">YOU WON A FREE ALL-STAR PACK!</div>` : "") +
     (gm ? gm.goals.map((gl, i) => `<div class="${won && met[i] ? "ok" : ""}">${goalText(gl)}</div>`).join("") : "");
   $("resPay").innerHTML =
     pay.rows.map(([l, v]) => `<div class="${v < 0 ? "neg" : ""}">${l}<b>${v < 0 ? "−" + -v : "+" + v}</b></div>`).join("") + `<div class="tot">COURT COINS<b>+${pay.total} CC</b></div>`;
@@ -234,7 +231,8 @@ function showResults() {
     const nextG = camp.gi < 5 ? [camp.ci, camp.gi + 1] : camp.ci < CAMP.length - 1 ? [camp.ci + 1, 0] : null;
     // Winning the Summer Jam gets you scouted; clearing an NBA chapter brings better offers.
     const scouted = camp.cid === "street" && gm.id === STREET_FINAL && won && !SAVE.nba.team;
-    if (scouted) acts.push(["CHOOSE YOUR NBA TEAM", "pri", () => openSign(() => pickCamp("nba"))]);
+    if (unlocked) acts.push(["OPEN ALL-STAR PACK", "pri", () => openPackScreen("allstar")]);
+    if (scouted) acts.push(["CHOOSE YOUR NBA TEAM", acts.length ? "" : "pri", () => openSign(() => pickCamp("nba"))]);
     else if (camp.cid === "nba" && won && offersWaiting()) acts.push(["NEW OFFERS", "pri", () => openSign(() => pickCamp("nba"))]);
     if (won && nextG) acts.push(["NEXT GAME", acts.length ? "" : "pri", () => openStory(...nextG)]);
     acts.push(["RETRY", won ? "" : "pri", () => openStory(camp.ci, camp.gi, 1)]);
@@ -260,7 +258,7 @@ function openSign(then) {
       return `<button class="offer${cur ? " cur" : ""}" data-c="${code}" style="--tc:${t.k}">
         <i>${cur ? "STAY WITH" : "OFFER"}</i><b>${t.n}</b><span>${t.city}</span>
         <span>Play with ${m.map((q) => `${q[0]} <em>${q[2]}</em>`).join(" and ")}</span>
-        <em>${pay} CC a day</em></button>`;
+        <em>${pay} CC a day${cur ? "" : ` · +${SIGN_BONUS} BONUS`}</em></button>`;
     };
   $("signTitle").textContent = !N.team ? "SCOUTED! CHOOSE YOUR TEAM" : wait ? "NEW OFFERS" : "YOUR CONTRACT";
   $("signSub").textContent = !N.team
@@ -273,8 +271,9 @@ function openSign(then) {
   $("signOffers").querySelectorAll(".offer").forEach(
     (b) =>
       (b.onclick = () => {
-        if (wait || !N.team) signWith(b.dataset.c);
+        const bonus = wait || !N.team ? signWith(b.dataset.c) : 0;
         then();
+        if (bonus) flashBanner(`SIGNED! +${bonus} CC SIGNING BONUS`);
       }),
   );
   // You can't leave without a team the first time: the NBA campaign needs one.
@@ -302,6 +301,6 @@ function payday() {
   const el = $("payday");
   el.textContent = `PAYDAY! +${amt} CC · ${NBA(SAVE.nba.team).n} CONTRACT${days > 1 ? ` (${days} DAYS)` : ""}`;
   el.classList.add("on");
-  sfx("rare");
+  sfx("coins");
   setTimeout(() => el.classList.remove("on"), 4000);
 }
