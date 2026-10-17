@@ -24,7 +24,7 @@ addEventListener("keydown", (e) => {
       e.preventDefault(); // stop the focused button (e.g. PLAY) from also being pressed
       $("bStart").click();
     }
-    if (e.code === "Escape") show("menu");
+    if (e.code === "Escape") SEL.grid >= 0 ? closeGrid() : show("menu");
     return;
   }
   // Escape steps back out of menu screens.

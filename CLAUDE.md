@@ -25,12 +25,15 @@ where we are, HANDOFF.md for how the last session ended.
 
 ## Code map
 - `js/teams.js` all 30 teams, rosters and player ratings (edit freely)
+- `js/hof.js` Hall of Fame league: each franchise's all-time top three (edit freely)
 - `js/settings.js` the settings menu's options and saving them
 - `js/save.js` your save: Court Coins, packs, campaign stars (browser storage only)
 - `js/anim.js` the animation system: keyframe clips for every move, blending, smoothing
-- `js/packs.js` collectable animations (rarity, names) and Shop packs (prices, odds)
-- `js/campaign.js` campaign chapters, games, story lines, goals; your crew
-- `js/campui.js` campaign, hooper, story and results screens
+- `js/packs.js` collectable animations (rarity, names), packs, Player Packs, Daily Shop (prices, odds)
+- `js/campaign.js` campaign chapters, games, every story line, goals; your crew
+- `js/campui.js` campaign, hooper, story card and results screens
+- `js/story.js` story scenes (characters talking) and in-game chatter
+- `js/shop.js` Shop (Daily Shop, Packs, Player Packs) and the pack opening
 - `js/touch.js` touch controls for Mobile / Tablet
 - `js/core.js` helpers, options and difficulty, global state, screen sizing
 - `js/projection.js` 3D projection and drawing primitives

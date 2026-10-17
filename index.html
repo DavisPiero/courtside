@@ -33,6 +33,7 @@
   <div id="meter" class="pnl"><div class="trk"><i id="nd"></i></div><div class="lb2"><span>EARLY</span><span>GOOD</span><span>LATE</span></div></div>
   <div id="vm"><div class="vt"><i class="vz"></i><i class="vf" id="vf"></i><i class="vn" id="vn"></i></div><b id="vl"></b></div>
   <div id="toast"></div>
+  <div id="say"><b id="sayWho"></b><span id="sayText"></span></div>
 </div>
 <div id="ttl"></div><div id="tip"></div><div id="lb1" class="lb"></div><div id="lb2" class="lb"></div>
 
@@ -75,12 +76,13 @@
 
 <!-- Setup: teams, mode, court, difficulty -->
 <div id="setup" class="scr">
-  <header class="su-top"><span>PLAY NOW</span><b>COURTSIDE</b><span>TEAM SELECT</span></header>
+  <header class="su-top"><span>PLAY NOW</span><div class="seg lg" id="lgSeg"><button data-v="nba" data-tip="Today's NBA teams and stars.">NBA</button><button data-v="hof" data-tip="Every team's three best players of all time.">HALL OF FAME</button></div><span>TEAM SELECT</span></header>
   <div class="su-main">
     <section class="side" id="sideA"></section>
     <section class="side r" id="sideB"></section>
     <div class="roster" id="roster"></div>
   </div>
+  <div id="grid"><div class="gbox pnl"><div class="ghead"><b id="gridTitle"></b><button class="btn" id="gridX">CLOSE</button></div><div class="gtiles" id="gridTiles"></div></div></div>
   <footer class="su-bot">
     <div class="opt"><i>MODE</i><div class="seg" data-k="mode"><button data-v="clean" data-tip="Straight basketball: dribble, pass, shoot, steal and block. No punches or slides.">CLEAN</button><button data-v="mayhem" data-tip="No rules: punch to drop players and steal the ball, slide-tackle the ball carrier. Chaos!">MAYHEM</button></div></div>
     <div class="opt"><i>COURT</i><div class="seg" data-k="court"><button data-v="arena">ARENA</button><button data-v="street">STREET</button></div></div>
@@ -110,6 +112,7 @@
 <div id="campPick" class="scr dim">
   <div class="dv">
     <h2>CHOOSE YOUR ROAD</h2>
+    <p class="newstory" id="cpNew">NEW STORY! Campaign progress starts fresh. Your coins and animations are safe.</p>
     <div class="dvc">
       <button class="dcard ccard" id="cpStreet"><b class="ico">◆</b><b>STREET</b><span>King of the Courts</span><span class="cp-rule">Street courts · Mayhem allowed</span><em id="cpStreetStars"></em></button>
       <button class="dcard ccard" id="cpNba"><b class="ico">★</b><b>NBA</b><span>Road to the Ring</span><span class="cp-rule">Arenas · Professional rules only</span><em id="cpNbaStars"></em></button>
@@ -129,17 +132,27 @@
     </div>
     <div class="reward" id="chReward"></div>
     <div class="rows" id="campRows"></div>
-    <div class="act"><button class="btn" id="bCampX">BACK</button></div>
+    <div class="act"><button class="btn" id="bCampX">BACK</button><button class="btn" id="bCampStory">▶ CHAPTER STORY</button></div>
   </div>
 </div>
 
 <!-- Campaign: story before a game -->
 <div id="story" class="scr dim">
   <div class="pnl box story">
+    <div class="vs" id="storyVs"></div>
     <div class="sline" id="storyLines"></div>
     <div class="goals" id="storyGoals"></div>
     <div class="act"><button class="btn" id="bStoryX">BACK</button><button class="btn pri" id="bStoryGo">PLAY</button></div>
   </div>
+</div>
+
+<!-- Campaign: story scene (characters talk; tap to go on) -->
+<div id="scene" class="scr">
+  <div class="scn-bar t"></div><div class="scn-bar b"></div>
+  <canvas id="scnL" class="scn-m"></canvas><canvas id="scnR" class="scn-m r"></canvas>
+  <div id="scnChap"></div>
+  <div id="scnBox"><b id="scnWho"></b><p id="scnText"></p><i class="scn-next">▼</i></div>
+  <button class="btn scn-skip" id="scnSkip">SKIP ▸▸</button>
 </div>
 
 <!-- Results after a game -->
@@ -154,27 +167,33 @@
   </div>
 </div>
 
-<!-- Shop: open animation packs with Court Coins -->
+<!-- Shop: Daily Shop (single animations), Packs, Player Packs -->
 <div id="shop" class="scr dim">
   <div class="pnl box shopbox">
     <div class="ihead"><h2>SHOP</h2><div class="cc ccbal">0 CC</div></div>
+    <div class="tabs" id="shopTabs"></div>
     <p class="coll" id="shopColl"></p>
-    <div class="packs" id="shopPacks"></div>
+    <div id="shopBody"></div>
     <button class="btn pri" id="bShopX">BACK</button>
   </div>
 </div>
 
-<!-- Pack opening: tap the cards to flip them -->
-<div id="open" class="scr dim">
-  <div class="pnl box openbox">
-    <div class="ihead"><h2 id="openTitle">PACK</h2><div class="cc ccbal">0 CC</div></div>
-    <div class="obody">
-      <div class="iprev"><canvas id="openCv"></canvas><div id="openName"></div></div>
+<!-- Pack opening: tap the pack, then tap each card -->
+<div id="open" class="scr">
+  <div class="ostage">
+    <div class="ohead"><h2 id="openTitle">PACK</h2><div class="cc ccbal">0 CC</div></div>
+    <div class="otable">
+      <div id="openPack" class="opack"></div>
       <div class="cards" id="openCards"></div>
+      <div id="openHint"></div>
     </div>
-    <div class="act"><button class="btn" id="bOpenShop">SHOP</button><button class="btn" id="bOpenInv">INVENTORY</button><button class="btn pri" id="bOpenAgain">OPEN ANOTHER</button></div>
+    <div id="openInfo" class="oinfo"><canvas id="openCv"></canvas><div id="openName"></div></div>
+    <div class="obtns"><button class="btn" id="bOpenAll">REVEAL ALL</button></div>
+    <div class="act hide" id="openAct"><button class="btn" id="bOpenShop">SHOP</button><button class="btn" id="bOpenInv">INVENTORY</button><button class="btn pri" id="bOpenAgain">OPEN ANOTHER</button></div>
   </div>
+  <div id="openBanner"></div>
 </div>
+<div id="fxFlash"></div><div id="fxLayer"></div>
 
 <!-- Animation Lab: watch any animation slowly, from any side -->
 <div id="lab" class="scr dim">
@@ -226,6 +245,7 @@
 </div>
 
 <script src="js/teams.js"></script>
+<script src="js/hof.js"></script>
 <script src="js/settings.js"></script>
 <script src="js/save.js"></script>
 <script src="js/packs.js"></script>
@@ -242,6 +262,8 @@
 <script src="js/campaign.js"></script>
 <script src="js/menus.js"></script>
 <script src="js/campui.js"></script>
+<script src="js/story.js"></script>
+<script src="js/shop.js"></script>
 <script src="js/touch.js"></script>
 <script src="js/main.js"></script>
 </body>

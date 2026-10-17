@@ -78,7 +78,9 @@ function drawSettings() {
 }
 
 // ---------- setup screen: teams side by side (after the reference), then mode, court and difficulty
-const SEL = { a: DEFAULT_TEAMS[0], b: DEFAULT_TEAMS[1], pr: 0 };
+const SEL = { a: DEFAULT_TEAMS[0], b: DEFAULT_TEAMS[1], pr: 0, lg: "nba", grid: -1 };
+// The teams of the league picked at the top of the setup screen (NBA or Hall of Fame).
+const LT = () => LEAGUES[SEL.lg].teams;
 function openSel(pr) {
   ac();
   SEL.pr = pr;
@@ -100,20 +102,29 @@ const star = (t) => t.p.reduce((a, q, i) => (q[2] > t.p[a][2] ? i : a), 0);
 const accent = (t) => (t.t === "#22242c" ? "#c7cfe0" : t.t);
 function drawSel() {
   const side = (el, ti, right) => {
-    const t = TEAMS[ti],
+    const t = LT()[ti],
       r = ratings(t),
       rings = Object.entries(r).map(([k, v]) => `<div class="ring"><b>${v}</b><i>${k}</i></div>`),
-      arrows = `<button class="arr" data-d="-1" aria-label="Previous team">‹</button><b>${t.n}</b><button class="arr" data-d="1" aria-label="Next team">›</button>`;
+      arrows = `<button class="arr" data-d="-1" aria-label="Previous team">‹</button><button class="tpick" data-tip="Pick from all 30 teams">${t.n}<small>▼</small></button><button class="arr" data-d="1" aria-label="Next team">›</button>`;
     el.style.setProperty("--tc", t.k);
     el.innerHTML = `<div class="wm">${t.c}</div><canvas class="port"></canvas>
       <div class="info"><i class="lbl">${right ? "OPPONENT" : "YOUR TEAM"}</i><div class="tn">${arrows}</div>
       <div class="city">${t.city}</div><div class="rings">${(right ? rings : rings.reverse()).join("")}</div></div>`;
     el.querySelectorAll(".arr").forEach((b) => (b.onclick = () => cycle(right, +b.dataset.d)));
+    el.querySelector(".tpick").onclick = () => openGrid(right);
   };
+  $("lgSeg").querySelectorAll("button").forEach((b) => {
+    b.classList.toggle("on", b.dataset.v === SEL.lg);
+    b.onclick = () => {
+      SEL.lg = b.dataset.v;
+      drawSel();
+    };
+  });
+  $("setup").classList.toggle("hof", SEL.lg === "hof");
   side($("sideA"), SEL.a, 0);
   side($("sideB"), SEL.b, 1);
-  const A = TEAMS[SEL.a].p,
-    B = TEAMS[SEL.b].p;
+  const A = LT()[SEL.a].p,
+    B = LT()[SEL.b].p;
   $("roster").innerHTML =
     `<div class="ra">${A.map((q) => `${q[0]} <u>${q[2]}</u><span>${q[1]}</span>`).join("<br>")}</div><i class="sep"></i>` +
     `<div>${B.map((q) => `<span>${q[1]}</span><u>${q[2]}</u> ${q[0]}`).join("<br>")}</div>`;
@@ -130,10 +141,39 @@ function drawSel() {
 }
 // Step one side through the teams, skipping the team the other side has.
 function cycle(right, d) {
-  const n = TEAMS.length;
+  const n = LT().length;
   if (right) do SEL.b = (SEL.b + d + n) % n; while (SEL.b === SEL.a);
   else do SEL.a = (SEL.a + d + n) % n; while (SEL.a === SEL.b);
   drawSel();
+}
+// Team grid: every team in the league as a colour tile. right: picking the opponent.
+function openGrid(right) {
+  SEL.grid = right;
+  const mine = right ? SEL.b : SEL.a,
+    other = right ? SEL.a : SEL.b;
+  $("gridTitle").textContent = (right ? "CHOOSE THE OPPONENT" : "CHOOSE YOUR TEAM") + " · " + LEAGUES[SEL.lg].name;
+  $("gridTiles").innerHTML = LT()
+    .map((t, i) => {
+      const r = ratings(t);
+      return `<button class="tile${i === mine ? " on" : ""}" data-i="${i}" style="--tc:${t.k};--tt:${accent(t)}"${i === other ? " disabled" : ""}>
+        <b>${t.c}</b><span>${t.n}</span><i>${r.OVR}</i></button>`;
+    })
+    .join("");
+  $("gridTiles").querySelectorAll(".tile").forEach(
+    (b) =>
+      (b.onclick = () => {
+        if (right) SEL.b = +b.dataset.i;
+        else SEL.a = +b.dataset.i;
+        closeGrid();
+        drawSel();
+      }),
+  );
+  $("gridX").onclick = closeGrid;
+  $("grid").classList.add("on");
+}
+function closeGrid() {
+  SEL.grid = -1;
+  $("grid").classList.remove("on");
 }
 // Portraits: the team's star drawn with the in-game model, large, dribbling. Redrawn every frame while visible.
 const PORT = [],
@@ -141,8 +181,8 @@ const PORT = [],
   PW = 260,
   PH = 440;
 // A standalone model for menus: player ti/i of TEAMS, drawn by the in-game sprite builder.
-function portraitPlayer(ti, i, id, hand) {
-  const t = TEAMS[ti],
+function portraitPlayer(ti, i, id, hand, list) {
+  const t = (list || TEAMS)[ti],
     q = t.p[i];
   return {
     ti, pi: i, id, team: t, look: ti * 3 + i, sk: SK[q[10]], pos: q[1], ht: q[3],
@@ -211,7 +251,10 @@ function portraits() {
     const cv2 = el.querySelector("canvas.port");
     if (!cv2) continue;
     let P0 = PORT[right];
-    if (!P0 || P0.ti !== ti) P0 = PORT[right] = portraitPlayer(ti, star(TEAMS[ti]), 6 + right, right ? 1 : -1);
+    if (!P0 || P0.ti !== ti || P0.lg !== SEL.lg) {
+      P0 = PORT[right] = portraitPlayer(ti, star(LT()[ti]), 6 + right, right ? 1 : -1, LT());
+      P0.lg = SEL.lg;
+    }
     P0.port.t = T;
     P0.port.ball = [0.95, P0.hand * 0.6, 0.55 + Math.abs(Math.sin(T * 5.5)) * 2.6];
     renderModel(cv2, P0, right ? -0.75 : 0.75);
@@ -222,6 +265,7 @@ function start(pr) {
   init();
   G.run = 1;
   G.pause = 0;
+  chatterReset();
   show(null);
   hudOn(1);
   initTip();
@@ -505,17 +549,17 @@ function previewAnim(cv, P0, id, speed, angle) {
       port.dk = { style: k.id, phase: "rise", k: kk };
       const hl = rimHand(k.id, kk, P0.z);
       P0.hw = [hl[0], hl[1], P0.z + hl[2]];
-      P0.hw2 = kk > 0.55 && ["dunk.twohand", "dunk.360", "dunk.reverse", "dunk.legs"].includes(k.id) ? P0.hw : null;
+      P0.hw2 = kk > 0.55 && rimFx(k.id).two ? P0.hw : null;
       port.ball = [hl[0] + 0.15, hl[1], hl[2] + 0.4];
-      if (k.id === "dunk.360") P0.f = 6.2832 * ease(kk);
-      if (k.id === "dunk.reverse") P0.f = Math.PI;
+      if (rimFx(k.id).spin) P0.f = 6.2832 * ease(kk);
+      if (dk && rimFx(k.id).rev) P0.f = Math.PI;
       if (k.id === "layup.reverse") P0.f = Math.PI * 0.85;
     } else if (u < 0.85) {
       const kk = (u - 0.55) / 0.3;
       P0.z = Zm * (dk ? (kk < 0.4 ? 1 : Math.max(0, 1 - (kk - 0.4) / 0.6)) : Math.max(0, 1 - kk * 1.25));
       port.dk = { style: k.id, phase: dk ? "hang" : "fall", k: kk };
       if (dk && kk < 0.55) P0.hw = [1.45, 0, 10.15];
-      if (k.id === "dunk.reverse") P0.f = Math.PI;
+      if (dk && rimFx(k.id).rev) P0.f = Math.PI;
       port.ball = null;
     } else port.ball = null;
   }
@@ -532,7 +576,7 @@ function openInv() {
 function animRow(a, sel) {
   const own = owns(a.id);
   let btn;
-  if (!own) btn = `<div class="inpk">IN PACKS</div>`;
+  if (!own) btn = `<div class="inpk">IN THE SHOP</div>`;
   else if (a.cat === "dribble") {
     const on = SAVE.equip.moves.includes(a.id),
       full = !on && SAVE.equip.moves.length >= MAX_MOVES;
@@ -575,82 +619,12 @@ function drawInv() {
 }
 function invPreview() {
   labPreview();
+  shopPreview();
   if ($("inv").classList.contains("on") && INV.sel) previewAnim($("invCv"), previewModel("inv"), INV.sel);
   if ($("open").classList.contains("on") && OPEN.sel) previewAnim($("openCv"), previewModel("open"), OPEN.sel);
 }
 
-// ---------- shop: packs with odds you can see
-function openShop() {
-  const have = ANIMS.filter((a) => a.rarity !== "starter" && owns(a.id)).length,
-    all = ANIMS.filter((a) => a.rarity !== "starter").length;
-  $("shopColl").textContent = `Collection: ${have} / ${all} animations. Duplicates turn into Court Coins.`;
-  $("shopPacks").innerHTML = SHOP.map(
-    (pk) => `<div class="pk" style="--pc:${pk.col}">
-      <div class="art">${pk.name}<small>${pk.cards} animation${pk.cards > 1 ? "s" : ""}</small></div>
-      <div class="odds">${RARITIES.filter((r) => pk.odds[r] > 0)
-        .map((r) => `<div class="r-${r}">${RARITY[r].name}<span>${pk.odds[r]}%</span><i><b style="width:${pk.odds[r]}%"></b></i></div>`)
-        .join("")}</div>
-      <div class="guar">${pk.min ? `1 guaranteed ${RARITY[pk.min].name}${pk.min === "legendary" ? "" : " or better"}` : ""}</div>
-      <button class="btn${SAVE.cc >= pk.price ? " pri" : ""}" data-pk="${pk.id}"${SAVE.cc >= pk.price ? "" : " disabled"}>${pk.price} CC</button>
-    </div>`,
-  ).join("");
-  $("shopPacks").querySelectorAll("[data-pk]").forEach((b) => (b.onclick = () => openPackScreen(b.dataset.pk)));
-  $("bShopX").onclick = () => show("menu");
-  show("shop");
-}
-// ---------- pack opening: cards face down; tap to flip (they also flip themselves, best one last)
-const OPEN = { pk: null, cards: [], sel: null, timers: [] };
-function openPackScreen(pkId) {
-  const cards = openPack(pkId);
-  if (!cards) return;
-  OPEN.timers.forEach(clearTimeout);
-  const pk = SHOP.find((s) => s.id === pkId);
-  OPEN.pk = pkId;
-  OPEN.cards = cards;
-  OPEN.sel = null;
-  $("openTitle").textContent = pk.name;
-  $("openName").textContent = "TAP A CARD";
-  $("openCards").innerHTML = cards
-    .map(
-      (c, i) => `<div class="card r-${c.a.rarity}" data-i="${i}" style="--pc:${pk.col}"><div class="in">
-        <div class="bk">?</div>
-        <div class="fr"><span class="rtag">${RARITY[c.a.rarity].name}</span><b>${c.a.name}</b><span class="cat">${CATS.find((x) => x[0] === c.a.cat)[1]}</span>
-        <span class="tag${c.dupe ? " dupe" : ""}">${c.dupe ? `DUPLICATE +${c.refund} CC` : "NEW!"}</span></div></div></div>`,
-    )
-    .join("");
-  const flip = (i) => {
-    const el = $("openCards").children[i];
-    if (!el || el.classList.contains("up")) return;
-    el.classList.add("up");
-    const c = cards[i];
-    sfx(c.a.rarity === "legendary" || c.a.rarity === "epic" ? "dunk" : "green");
-    if (c.a.rarity === "legendary") G.flash = 0.5;
-    selectCard(i);
-  };
-  $("openCards").querySelectorAll(".card").forEach((el) => (el.onclick = () => (el.classList.contains("up") ? selectCard(+el.dataset.i) : flip(+el.dataset.i))));
-  cards.forEach((c, i) => OPEN.timers.push(setTimeout(() => flip(i), 900 + i * 900)));
-  const again = $("bOpenAgain");
-  again.disabled = SAVE.cc < pk.price;
-  again.textContent = `OPEN ANOTHER (${pk.price} CC)`;
-  again.onclick = () => openPackScreen(pkId);
-  $("bOpenShop").onclick = openShop;
-  $("bOpenInv").onclick = () => {
-    const c = OPEN.cards[0];
-    INV.cat = c ? c.a.cat : INV.cat;
-    openInv();
-    if (c) {
-      INV.sel = c.a.id;
-      drawInv();
-    }
-  };
-  show("open");
-}
-function selectCard(i) {
-  const c = OPEN.cards[i];
-  OPEN.sel = c.a.id;
-  $("openCards").querySelectorAll(".card").forEach((el, j) => el.classList.toggle("sel", j === i));
-  $("openName").textContent = c.a.name.toUpperCase();
-}
+// The Shop and pack opening live in js/shop.js.
 
 // ---------- Animation Lab: every animation, slow motion and from any side, so it can be judged frame by frame
 const CORE_ANIMS = [

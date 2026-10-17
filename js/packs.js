@@ -10,9 +10,10 @@ const RARITY = {
   rare: { name: "RARE", col: "#4aa3ff", refund: 40 },
   epic: { name: "EPIC", col: "#b46bff", refund: 100 },
   legendary: { name: "LEGENDARY", col: "#ffb02e", refund: 250 },
+  iconic: { name: "ICONIC", col: "#ff3d7f", refund: 300 }, // a famous player's signature: Player Packs and the Daily Shop only
 };
 const RARITIES = ["common", "rare", "epic", "legendary"];
-const A = (id, cat, name, rarity, desc) => ({ id, cat, name, rarity, desc });
+const A = (id, cat, name, rarity, desc, who) => ({ id, cat, name, rarity, desc, who });
 const ANIMS = [
   // Dunks
   A("dunk.basic", "dunk", "Hammer", "starter", "One or two hands, straight down."),
@@ -23,6 +24,8 @@ const ANIMS = [
   A("dunk.windmill", "dunk", "Windmill", "epic", "A full arm circle on the way up."),
   A("dunk.360", "dunk", "360", "legendary", "Spin all the way round in the air."),
   A("dunk.legs", "dunk", "Between the Legs", "legendary", "Pass it under your legs in mid-air. Unreal."),
+  A("dunk.pump", "dunk", "Double Pump", "rare", "Up, back down, and up again before the slam."),
+  A("dunk.sidemill", "dunk", "Side Windmill", "legendary", "A windmill swung out wide to the side."),
   // Layups
   A("layup.basic", "layup", "Lay-In", "starter", "Off the glass, nice and easy."),
   A("layup.fingerroll", "layup", "Finger Roll", "common", "Reach up high and roll it off your fingertips."),
@@ -30,6 +33,8 @@ const ANIMS = [
   A("layup.reverse", "layup", "Reverse Layup", "rare", "Go under the rim and finish on the other side."),
   A("layup.euro", "layup", "Euro Step", "epic", "One step one way, the next step the other."),
   A("layup.clutch", "layup", "Double Clutch", "legendary", "Up, down, switch hands, and finish."),
+  A("layup.floater", "layup", "Floater", "common", "Float it up early, soft over the big man."),
+  A("layup.goingup", "layup", "Up-and-Under", "rare", "Fake it up, duck under, finish the other side."),
   // Dribble moves (added to the E rotation when switched on)
   A("dribble.hesi", "dribble", "Hesitation", "common", "Freeze the defender with a fake stop, then explode."),
   A("dribble.inout", "dribble", "In-and-Out", "common", "Fake the crossover, keep it in the same hand."),
@@ -39,6 +44,8 @@ const ANIMS = [
   A("dribble.killer", "dribble", "Killer Crossover", "epic", "A huge, low, wide cross. Ankles beware."),
   A("dribble.shammgod", "dribble", "Shammgod", "legendary", "Push it out with one hand, pull it back with the other."),
   A("dribble.tornado", "dribble", "Tornado Spin", "legendary", "Spin with a behind-the-back in the middle."),
+  A("dribble.combo", "dribble", "Between-Behind", "rare", "Between the legs, then straight behind the back."),
+  A("dribble.tweens", "dribble", "Tween Combo", "epic", "Three quick between-the-legs. Machine gun."),
   // Jump shots
   A("shot.basic", "shot", "Classic Jumper", "starter", "Dip, rise, release at the top."),
   A("shot.set", "shot", "Set Shot", "common", "Old-school: the feet barely leave the floor."),
@@ -48,6 +55,8 @@ const ANIMS = [
   A("shot.stepback", "shot", "Step-Back", "epic", "Hop back to make space, then rise."),
   A("shot.oneleg", "shot", "One-Leg Fade", "epic", "Knee up, falling away. Unblockable vibes."),
   A("shot.hook", "shot", "Sky Hook", "legendary", "Side-on, arm sweeping over the top."),
+  A("shot.sidestep", "shot", "Side-Step", "rare", "Hop to the side, then rise."),
+  A("shot.turnaround", "shot", "Turnaround", "epic", "Back to the rim, spin and fade."),
   // Celebrations
   A("cel.basic", "cel", "Arms Up", "starter", "Both arms in the air."),
   A("cel.flex", "cel", "Flex", "common", "Show off the guns."),
@@ -60,6 +69,29 @@ const ANIMS = [
   A("cel.ice", "cel", "Ice Veins", "epic", "Tap your wrist. Cold-blooded."),
   A("cel.mic", "cel", "Mic Drop", "legendary", "Hold it up... and drop it."),
   A("cel.backflip", "cel", "Backflip", "legendary", "A full backflip. Yes, really."),
+  A("cel.salute", "cel", "Salute", "common", "A sharp salute to the crowd."),
+  A("cel.crossarms", "cel", "Arms Crossed", "common", "Lean back. Unbothered."),
+  A("cel.wave", "cel", "Crowd Wave", "rare", "Both arms up, get the crowd going."),
+  A("cel.robot", "cel", "The Robot", "rare", "Beep. Boop. Bucket."),
+  // ICONIC: famous players' signatures, from Player Packs and the Daily Shop.
+  A("shot.mj", "shot", "Jordan Fadeaway", "iconic", "Turn, rise, fade, legs kicked out. Unguardable.", "JORDAN"),
+  A("dunk.mj", "dunk", "Free Throw Line", "iconic", "Take off from way out and glide in, legs split.", "JORDAN"),
+  A("cel.shrug", "cel", "The Shrug", "iconic", "Palms up. 'I can't miss either.'", "JORDAN"),
+  A("shot.kobe", "shot", "Mamba Fade", "iconic", "Spin out of the post, fade on one leg.", "KOBE"),
+  A("dunk.kobe", "dunk", "Mamba Reverse", "iconic", "Swing it low, turn and hammer it backwards.", "KOBE"),
+  A("cel.jaw", "cel", "Jaw Jut", "iconic", "Hands on hips, chin up. Nothing to say.", "KOBE"),
+  A("shot.curry", "shot", "Chef Release", "iconic", "Lightning release. Turns away before it lands.", "CURRY"),
+  A("dribble.curry", "dribble", "Double Behind", "iconic", "Behind the back, and behind the back again.", "CURRY"),
+  A("cel.shimmy", "cel", "Shimmy", "iconic", "Shake the shoulders. Let them know.", "CURRY"),
+  A("dribble.ai", "dribble", "The Crossover", "iconic", "Freeze them with a hesi, then cross them into next week.", "IVERSON"),
+  A("layup.lbj", "layup", "Spin Layup", "iconic", "A full spin in the air on the way up.", "LEBRON"),
+  A("shot.ai", "shot", "Pull-Up J", "iconic", "Stop on a dime off the dribble and rise straight up.", "IVERSON"),
+  A("cel.stepover", "cel", "Step Over", "iconic", "Step right over them. Look down.", "IVERSON"),
+  A("dunk.shaq", "dunk", "Shaq Attack", "iconic", "Two hands, hang on the rim, legs up. Bring the hoop down.", "SHAQ"),
+  A("layup.shaq", "layup", "Drop Step", "iconic", "Back them down, drop step, power it up.", "SHAQ"),
+  A("cel.shaq", "cel", "Shaq Shuffle", "iconic", "Side to side, big arms, big smile.", "SHAQ"),
+  A("dunk.lbj", "dunk", "Freight Train", "iconic", "Two-hand tomahawk at full speed.", "LEBRON"),
+  A("cel.chalk", "cel", "Chalk Toss", "iconic", "Clap, then fling both arms to the sky.", "LEBRON"),
 ];
 const ANIM = Object.fromEntries(ANIMS.map((a) => [a.id, a]));
 const animName = (id) => (ANIM[id] ? ANIM[id].name : id);
@@ -89,32 +121,95 @@ function rollRarity(odds) {
   for (const k of RARITIES) if ((r -= odds[k]) < 0) return k;
   return "common";
 }
+// Pick an animation of rarity r: new ones are three times as likely as ones you have. from: limit the pool.
+function drawAnim(r, from) {
+  const pool = (from || ANIMS).filter((a) => a.rarity === r),
+    weighted = pool.flatMap((a) => (owns(a.id) ? [a] : [a, a, a]));
+  return weighted[(Math.random() * weighted.length) | 0];
+}
+// Add a drawn animation to your collection, or refund it as coins if you have it already.
+function grant(a) {
+  const dupe = owns(a.id),
+    refund = dupe ? RARITY[a.rarity].refund : 0;
+  if (dupe) SAVE.cc += refund;
+  else {
+    SAVE.owned.push(a.id);
+    if (a.cat === "dribble" && SAVE.equip.moves.length < MAX_MOVES) SAVE.equip.moves.push(a.id);
+  }
+  return { a, dupe, refund };
+}
 // Open a pack: returns the cards, adds new animations, refunds duplicates. null if you can't afford it.
 function openPack(packId) {
-  const pk = SHOP.find((s) => s.id === packId);
+  const pk = SHOP.find((s) => s.id === packId) || PLAYER_PACKS.find((s) => s.id === packId);
   if (!pk || SAVE.cc < pk.price) return null;
   SAVE.cc -= pk.price;
-  const rar = [];
-  for (let i = 0; i < pk.cards; i++) rar.push(rollRarity(pk.odds));
-  // Guarantee: if no card reached the minimum, upgrade the last card to it.
-  if (pk.min && !rar.some((r) => RARITIES.indexOf(r) >= RARITIES.indexOf(pk.min))) rar[rar.length - 1] = pk.min;
-  rar.sort((a, b) => RARITIES.indexOf(a) - RARITIES.indexOf(b)); // best card revealed last
-  const cards = rar.map((r) => {
-    const pool = ANIMS.filter((a) => a.rarity === r),
-      unowned = pool.filter((a) => !owns(a.id)),
-      // A little kinder than pure chance: new animations are three times as likely as ones you have.
-      weighted = pool.flatMap((a) => (owns(a.id) ? [a] : [a, a, a])),
-      a = weighted[(Math.random() * weighted.length) | 0],
-      dupe = owns(a.id);
-    if (dupe) SAVE.cc += RARITY[r].refund;
-    else {
-      SAVE.owned.push(a.id);
-      if (a.cat === "dribble" && SAVE.equip.moves.length < MAX_MOVES) SAVE.equip.moves.push(a.id);
-    }
-    return { a, dupe, refund: dupe ? RARITY[r].refund : 0, fresh: unowned.length > 0 };
-  });
+  let cards;
+  if (pk.who) {
+    // Player pack: one of the player's signatures, plus a bonus card.
+    const sig = drawAnim("iconic", ANIMS.filter((a) => a.who === pk.who));
+    cards = [grant(drawAnim(rollRarity(pk.odds))), grant(sig)];
+  } else {
+    const rar = [];
+    for (let i = 0; i < pk.cards; i++) rar.push(rollRarity(pk.odds));
+    // Guarantee: if no card reached the minimum, upgrade the last card to it.
+    if (pk.min && !rar.some((r) => RARITIES.indexOf(r) >= RARITIES.indexOf(pk.min))) rar[rar.length - 1] = pk.min;
+    rar.sort((a, b) => RARITIES.indexOf(a) - RARITIES.indexOf(b)); // best card revealed last
+    cards = rar.map((r) => grant(drawAnim(r)));
+  }
   writeSave();
   return cards;
+}
+
+// ---------- Player Packs: a famous player's signature moves. Each pack: 1 signature + 1 bonus card.
+// hof: the Hall of Fame team whose colours (and model) the pack shows.
+const PLAYER_PACKS = [
+  { id: "p.jordan", who: "JORDAN", name: "JORDAN", hof: ["CHI", 1], col: "#ce1141" },
+  { id: "p.kobe", who: "KOBE", name: "KOBE", hof: ["LAL", 1], col: "#552583" },
+  { id: "p.curry", who: "CURRY", name: "CURRY", hof: ["GSW", 0], col: "#1d428a" },
+  { id: "p.iverson", who: "IVERSON", name: "IVERSON", hof: ["PHI", 0], col: "#006bb6" },
+  { id: "p.shaq", who: "SHAQ", name: "SHAQ", hof: ["LAL", 2], col: "#b8862a" },
+  { id: "p.lebron", who: "LEBRON", name: "LEBRON", hof: ["CLE", 1], col: "#860038" },
+].map((p) => ({ ...p, price: 1200, cards: 2, odds: { common: 0, rare: 60, epic: 32, legendary: 8 } }));
+
+// ---------- Daily Shop: six single animations, the same for everyone on the same day, new at midnight.
+const SINGLE_PRICE = { common: 120, rare: 300, epic: 700, legendary: 1400, iconic: 2000 };
+// Slots: one big featured item (Iconic or Legendary), then Epic, two Rares, a Common.
+const DAILY_SLOTS = [["iconic", "legendary"], ["epic"], ["rare"], ["rare"], ["common"]];
+const dayKey = (d) => d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+function seeded(n) {
+  // Small fast random-number generator (mulberry32) so a date always gives the same shop.
+  return () => {
+    n = (n + 0x6d2b79f5) | 0;
+    let t = Math.imul(n ^ (n >>> 15), 1 | n);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function dailyItems(date) {
+  const rnd = seeded(dayKey(date || new Date())),
+    taken = new Set();
+  return DAILY_SLOTS.map((rs) => {
+    const r = rs[(rnd() * rs.length) | 0],
+      pool = ANIMS.filter((a) => a.rarity === r && !taken.has(a.id)),
+      a = pool[(rnd() * pool.length) | 0];
+    taken.add(a.id);
+    return a;
+  });
+}
+// Seconds until the shop changes (local midnight).
+function dailyLeft() {
+  const n = new Date(),
+    m = new Date(n.getFullYear(), n.getMonth(), n.getDate() + 1);
+  return Math.max(0, Math.floor((m - n) / 1000));
+}
+// Buy one animation from today's shop. Returns false if you can't.
+function buySingle(id) {
+  const a = ANIM[id];
+  if (!a || owns(id) || !dailyItems().includes(a) || SAVE.cc < SINGLE_PRICE[a.rarity]) return false;
+  SAVE.cc -= SINGLE_PRICE[a.rarity];
+  grant(a);
+  writeSave();
+  return true;
 }
 function equipAnim(id) {
   const k = ANIM[id];

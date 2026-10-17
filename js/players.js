@@ -97,6 +97,28 @@ function ballLocal(p) {
       const w = (u - 0.4) / 0.6;
       return [lp(2.1, 0.8, ease(w)), lp(h * 0.4, -h * 0.6, ease(w)), 0.55 + 2.0 * Math.abs(Math.cos(w * Math.PI))];
     }
+    // Behind the back from hand hb (path used by the combos below).
+    const behind = (hb, w) => {
+      const th = (hb * Math.PI) / 2 + hb * Math.PI * sm(w);
+      return [Math.cos(th) * 0.95, Math.sin(th) * 0.95, w < 0.65 ? 2.3 : lp(2.3, 0.6, (w - 0.65) / 0.35)];
+    };
+    if (m.k === "combo") {
+      if (u < 0.5) {
+        const w = u * 2;
+        return [0.7 - 0.6 * Math.sin(w * Math.PI), lp(h * 0.65, -h * 0.65, sm(w)), 0.55 + 2.2 * Math.abs(Math.cos(w * Math.PI))];
+      }
+      return behind(-h, (u - 0.5) * 2);
+    }
+    if (m.k === "curry") return u < 0.5 ? behind(h, u * 2) : behind(-h, (u - 0.5) * 2);
+    if (m.k === "tweens") {
+      const a = u * Math.PI * 3;
+      return [0.7 - 0.6 * Math.abs(Math.sin(a)), h * 0.65 * Math.cos(a), 0.55 + 2.0 * Math.abs(Math.cos(a))];
+    }
+    if (m.k === "ai") {
+      if (u < 0.4) return [0.9, h * 0.6, 2.4 - Math.sin((u / 0.4) * Math.PI) * 0.3];
+      const w = (u - 0.4) / 0.6;
+      return [1.1, lp(h * 0.9, -h * 0.9, sm(w)), 0.5 + 1.7 * Math.abs(Math.cos(w * Math.PI))];
+    }
     if (m.k === "tornado") {
       // Ball at the hip through the spin, switched behind the back in the middle.
       const t = cl((u - 0.35) / 0.3, 0, 1);
@@ -291,7 +313,7 @@ function buildSprite(p) {
     },
     mid = (a, q, t) => [lp(a[0], q[0], t), lp(a[1], q[1], t), lp(a[2], q[2], t)];
   const sk = p.sk,
-    hr = ["#16100d", "#2a1a10", "#0b0b0b"][look % 3],
+    hr = p.hcol || ["#16100d", "#2a1a10", "#0b0b0b"][look % 3],
     hc = [lean + 0.1, 0, hz + 2.87],
     hs = p.hair !== undefined ? p.hair : HST[look % 12];
   for (const [h, kn, ft, sd] of [
