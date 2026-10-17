@@ -1,6 +1,8 @@
 # Brief: campaign, currency and online accounts
 
-Status: proposal only. Nothing built. Decisions marked **(you decide)**.
+Status (2026-10-17): campaign and currency are BUILT (sections 1-2, currency named Court Coins).
+Section 3 step one (save on this computer) is built. Online accounts (step two) are NOT built:
+David said no online services yet.
 
 ## 1. Campaign: "Streets to the League"
 **Story.** You're an unknown kid with a crew of two on the street courts. Win your way up:

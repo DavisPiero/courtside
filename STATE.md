@@ -1,32 +1,32 @@
 # Courtside: state
 
-_Updated 2026-10-17 (session 3)._
+_Updated 2026-10-17 (session 4)._
 
 ## Where we are
-Branch `overhaul` holds two rounds of David's notes, not yet merged. `main` (the live site at
-https://davispiero.github.io/courtside/) is still v1.0.
+Branch `overhaul` holds three rounds of David's notes, not merged or pushed. David reviews first,
+then we push. `main` (the live site, https://davispiero.github.io/courtside/) is still v1.0.
 
-Round 2, done on `overhaul`:
-- Music removed.
-- Settings (Play, Practice, Settings on the main menu; also in pause): video effects, audio,
-  gameplay, controls. Saved in the browser.
-- Crisp pixel-art look: whole-pixel scaling, pixel UI font (Jersey 10), coloured outlines and rim
-  light on players, bloom, fog, lighting, colour grade, vignette, scanlines, grain, all toggleable.
-- All 30 teams, three popular players each (2026-27 rosters), with ratings that drive play.
-- Defence shrinks your green zone (more on harder levels); the AI no longer blocks your jumpers;
-  tall players are hard to block.
-- Realistic proportions scaled by real height; buzz/bald/afro hair; jump-shot dip; defensive shuffle.
-- Brief for campaign, currency and accounts: BRIEF-campaign.md (nothing built).
+Round 3, done on `overhaul`:
+- Loading screen (spinning pixel ball), then Computer or Mobile / Tablet.
+- Team select starts on Clean; hover/tap tips for Clean and Mayhem. Plain white name tag.
+- Campaign "Streets to the League": your hooper, 5 chapters x 6 games, story cards, 3 stars each.
+- Court Coins (CC) for winning and style; results screen with stars and payout.
+- 17 animation packs (dunks, dribble moves, celebrations, shot forms) in the Inventory,
+  with buy, equip and a live preview. Packs change the real in-game animations.
+- Touch controls: floating joystick, context-sensitive buttons, Mayhem buttons, pause, camera,
+  tap to skip. Bigger touch menus, compact phone layout, turn-sideways prompt.
+
+Tested: smoke test passes (every mode/court/difficulty); campaign flow, results, buying and
+equipping, every pack preview, every dunk pack in a real dunk; touch controls by scripted touches
+at phone (844x390) and iPad (1180x820) sizes. Not tested: a real phone or iPad in hand.
 
 ## Next
-- David plays it and signs off, then merge to `main` and push.
-- First outside playtest (still not done).
-- Campaign, per BRIEF-campaign.md, once David answers its questions.
+- David reviews (ideally on a real iPad and phone), then push.
+- First outside playtest, still not done.
 
 ## Open with David (guesses until confirmed)
-1. Player ratings, heights and skin tones are Claude's estimates (js/teams.js; easy to edit).
-2. "Most popular" picks are Claude's judgement, e.g. Bronny over Walker Kessler for the Lakers.
-3. Ankle-breaker stuns stay in Clean mode.
-4. Team OFF/DEF rings: OFF = shooting, finishing, handling; DEF = defence (x2) and blocking.
-5. Choosing from 30 teams is by arrows only; a team grid may be needed.
-6. Brief questions: currency name, password-recovery choice, Supabase account.
+1. Campaign story, opponents, goals and rewards are invented (js/campaign.js).
+2. Pack prices (150-500 CC) and earnings (~60-170 CC a game) are first guesses.
+3. Your crew mates are named Dex and Big Lou.
+4. Earlier guesses still open: player ratings and skin tones, "most popular" picks, ankle breakers in
+   Clean mode, team OFF/DEF formula, arrows-only team picking.
