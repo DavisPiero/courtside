@@ -225,4 +225,33 @@ function post() {
     X.fillRect(0, 0, W, H);
     G.flash = Math.max(0, G.flash - 0.035);
   }
+  nameTag();
+}
+// The player you control gets their name floating above their head. Nobody else is named.
+function nameTag() {
+  if (!G.run || G.cut || G.tip) return;
+  const p = G.pl[G.ctrl];
+  if (!p || p.t !== 0) return;
+  const q = P(p.x, p.y, p.z + 7.4);
+  if (!q) return;
+  const sx = W / RW,
+    sy = H / RH,
+    x = Math.round(q[0] * sx),
+    y = Math.round(q[1] * sy),
+    name = NM[p.id][0],
+    fs = Math.round(cl(H / 52, 11, 16));
+  X.save();
+  X.font = `700 ${fs}px Bahnschrift, "DIN Alternate", "Arial Narrow", system-ui, sans-serif`;
+  X.textAlign = "center";
+  X.textBaseline = "alphabetic";
+  const w = X.measureText(name).width + fs;
+  X.globalAlpha = 0.82;
+  X.fillStyle = "#0a0f1e";
+  X.fillRect(x - w / 2, y - fs - 6, w, fs + 10);
+  X.globalAlpha = 1;
+  X.fillStyle = TM[0].t === "#ffffff" ? TM[0].j : lite(TM[0].t);
+  X.fillRect(x - w / 2, y + 3, w, 2);
+  X.fillStyle = "#fff";
+  X.fillText(name, x, y);
+  X.restore();
 }

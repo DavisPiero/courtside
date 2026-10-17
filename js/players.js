@@ -295,13 +295,6 @@ function buildSprite(p) {
       x.restore();
       quad(pa[0], pa[1], Math.max(1.5, 0.15 * k), tm.t);
       quad(pb[0], pb[1], Math.max(1.5, 0.15 * k), tm.t);
-      if (vis > 0.45) {
-        x.fillStyle = tm.t;
-        x.font = "900 " + 1.25 * k + "px sans-serif";
-        x.textAlign = "center";
-        x.textBaseline = "middle";
-        x.fillText(p.n, nm[0], nm[1]);
-      }
     },
   });
   for (const [s0, e, w] of [

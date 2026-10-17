@@ -1,6 +1,8 @@
 "use strict";
 // Sound effects (synthesised) and music playlist.
-const AU = { x: null, mute: 0, cg: null };
+// Add ?mute to the address (e.g. index.html?mute) to start with all sound and music off. Used for testing.
+const QUIET = /[?&](mute|smoke)\b/.test(location.search);
+const AU = { x: null, mute: QUIET ? 1 : 0, cg: null };
 function ac() {
   if (!MUS.started) {
     MUS.started = 1;
@@ -98,7 +100,7 @@ function sfx(k) {
   if (m[k]) m[k]();
 }
 const MUS = {
-  on: 1,
+  on: QUIET ? 0 : 1,
   a: new Audio(),
   q: [],
   last: "",

@@ -29,7 +29,7 @@ function init() {
         ph: rn(0, 6),
         n: NM[t * 3 + i][3],
         stam: 100,
-        sp: t ? 11.8 : 12.6,
+        sp: t ? DIFF[OPT.diff].sp : 12.6,
         sh: NM[t * 3 + i][2] - 14,
         sk: SK[t * 3 + i],
       });
@@ -342,24 +342,9 @@ function punchHit(p) {
   toast("DROPPED!", 0.9);
   sfx("punch");
 }
+// Steals are instant: no cutscene. The victim stumbles briefly.
 function stealBall(o, v) {
-  if (v && !G.cut && !G.tip && T > G.sCd) {
-    const b = G.ball;
-    G.sCd = T + 7;
-    G.cut = {
-      kind: "steal",
-      p: o,
-      v,
-      t: 0,
-      d: 0.95,
-      bx: b.x,
-      by: b.y,
-      bz: b.z,
-      side: Math.random() < 0.5 ? -1 : 1,
-      sc: 0,
-    };
-    return;
-  }
+  if (v) v.stun = 0.6;
   doSteal(o);
 }
 function doSteal(o) {
@@ -369,48 +354,10 @@ function doSteal(o) {
   G.poss = o.t;
   G.sc = 24;
   if (o.t === 0) G.st.stl++;
-  toast("STEAL!");
-  spark(o.x, o.y, 3, 8);
+  toast("STEAL!", 0.6);
+  spark(o.x, o.y, 3, 10, "#fff");
+  G.hs = 0.05;
   sfx("steal");
-}
-function stealUpd(dt) {
-  const c0 = G.cut,
-    p = c0.p,
-    v = c0.v,
-    b = G.ball;
-  let u = c0.t / c0.d;
-  c0.t += dt * (u > 0.2 && u < 0.6 ? 0.35 : 1);
-  u = cl(c0.t / c0.d, 0, 1);
-  p.vx = p.vy = v.vx = v.vy = 0;
-  p.def = true;
-  p.f += ad(Math.atan2(v.y - p.y, v.x - p.x) - p.f) * 0.3;
-  v.f += ad(Math.atan2(p.y - v.y, p.x - v.x) - v.f) * 0.3;
-  const k = sm(cl((u - 0.2) / 0.5, 0, 1)),
-    ex = p.x + Math.cos(p.f) * 0.9,
-    ey = p.y + Math.sin(p.f) * 0.9;
-  b.own = -1;
-  b.mode = "cut";
-  b.x = lp(c0.bx, ex, k);
-  b.y = lp(c0.by, ey, k);
-  b.z = lp(c0.bz, 3.2, k) + Math.sin(k * Math.PI) * 1.8;
-  b.spin += dt * 14;
-  p.hw = [b.x, b.y, b.z];
-  p.hw2 = null;
-  if (u >= 0.35 && !c0.sc) {
-    c0.sc = 1;
-    G.flash = 0.35;
-    G.shake = 0.5;
-    G.hs = 0.09;
-    spark(b.x, b.y, b.z, 14, "#fff");
-    toast("STEAL!", 0.9);
-    sfx("steal");
-  }
-  if (u >= 1) {
-    G.cut = null;
-    p.hw = null;
-    v.stun = 0.6;
-    doSteal(p);
-  }
 }
 function beginShot(p) {
   const h = HX(p.t),
@@ -489,7 +436,7 @@ function scripted(p, kind) {
     y0: p.y,
     h: HX(p.t),
     dir,
-    d: kind === "dunk" ? 2.6 : 0.95,
+    d: kind === "dunk" ? 1.3 : 0.8,
     sc: 0,
     side: Math.random() < 0.5 ? -1 : 1,
     two: Math.random() < 0.5,
@@ -498,13 +445,12 @@ function scripted(p, kind) {
   if (kind === "dunk") document.body.classList.add("cine");
 }
 function cutUpd(dt) {
-  if (G.cut.kind === "steal") return stealUpd(dt);
   const c0 = G.cut,
     p = c0.p,
     b = G.ball,
     dk = c0.kind === "dunk";
   let u = c0.t / c0.d;
-  c0.t += dt * (dk && u > 0.3 && u < 0.7 ? 0.4 : 1);
+  c0.t += dt * (dk && u > 0.3 && u < 0.7 ? 0.7 : 1); // brief slow-mo at the rim
   u = cl(c0.t / c0.d, 0, 1);
   const A = dk ? 0.3 : 0.25,
     S = dk ? 0.62 : 0.58,
@@ -583,13 +529,13 @@ function cutUpd(dt) {
   if (u >= 1) {
     G.cut = null;
     p.hw = p.hw2 = null;
-    G.dead = 0.7;
+    G.dead = 0.4;
     document.body.classList.remove("cine");
     $("ttl").className = "";
   }
 }
 function steal(th, v) {
-  if (Math.random() < 0.4) {
+  if (Math.random() < dk(th).stealWin) {
     v.stun = 0.6;
     stealBall(th, v);
   }
@@ -632,7 +578,7 @@ function ballUpd(dt) {
     b.z = lp(b.sz, 4.4, u) + Math.sin(u * Math.PI) * 0.7;
     b.spin += dt * 12;
     for (const o of PL)
-      if (o.t !== q.t && dist(o, b) < 2.1 && u > 0.15 && u < 0.95 && !b.tip && Math.random() < dt * 3) {
+      if (o.t !== q.t && dist(o, b) < 2.1 && u > 0.15 && u < 0.95 && !b.tip && Math.random() < dt * 3 * dk(o).pick) {
         stealBall(o);
         return;
       }
@@ -662,7 +608,7 @@ function ballUpd(dt) {
         b.z < o.z + 8.8 &&
         b.z > o.z + 4 &&
         b.vz > -5 &&
-        Math.random() < dt * 14
+        Math.random() < dt * 14 * dk(o).block
       ) {
         b.mode = "loose";
         b.vx = rn(-12, 12);
@@ -746,8 +692,9 @@ function mv(p, tx, ty, m, dt) {
     dy = ty - p.y,
     d = hy(dx, dy),
     sp = p.sp * m * (p.stun > 0 ? 0.2 : 1) * (d < 1.5 ? d / 1.5 : 1);
-  p.vx = lp(p.vx, (dx / (d || 1)) * sp, Math.min(1, dt * 6));
-  p.vy = lp(p.vy, (dy / (d || 1)) * sp, Math.min(1, dt * 6));
+  const r = Math.min(1, dt * dk(p).react);
+  p.vx = lp(p.vx, (dx / (d || 1)) * sp, r);
+  p.vy = lp(p.vy, (dy / (d || 1)) * sp, r);
 }
 function handler(p, dt) {
   const h = HX(p.t),
@@ -764,7 +711,7 @@ function handler(p, dt) {
   if (p.ai > 1.2 && (G.sc < 4 || (dh < 24 && Math.random() < dt * 0.8))) {
     p.ai = 0;
     p.ft = Math.atan2(25 - p.y, h - p.x);
-    launch(p, cl(0.45 + (df - 3) * 0.07 + rn(-0.2, 0.2), 0.1, 1), 1);
+    launch(p, cl(0.45 + dk(p).shotQ + (df - 3) * 0.07 + rn(-0.2, 0.2), 0.1, 1), 1);
     return;
   }
   if (p.ai > 0.8 && df < 3.2 && Math.random() < dt * 1.2) {
@@ -789,7 +736,7 @@ function ai(dt) {
   PL.forEach((p, i) => {
     p.def = false;
     if (p.rag || p.sl) return;
-    if (i === G.ctrl) return;
+    if (i === G.ctrl && !G.auto) return; // G.auto: the smoke test lets the AI play your player too
     const t = p.t,
       d = t ? -1 : 1,
       h = HX(t),
@@ -816,15 +763,19 @@ function ai(dt) {
         dx = hh - o.x,
         dy = 25 - o.y,
         dl = hy(dx, dy) || 1,
-        g = b.own === o.id ? 2.6 : 3.6;
+        g = Math.max(1.6, (b.own === o.id ? 2.6 : 3.6) + dk(p).gap);
       mv(p, o.x + (dx / dl) * g, o.y + (dy / dl) * g, 1, dt);
       p.def = true;
       p.ft = Math.atan2(o.y - p.y, o.x - p.x);
-      if (b.own === o.id && dist(p, o) < 3.4 && !G.shot && Math.random() < dt * 0.22) steal(p, o);
+      if (b.own === o.id && dist(p, o) < 3.4 && !G.shot && Math.random() < dt * dk(p).stealRate) steal(p, o);
+      // Contest a jump shot by jumping at it; better defenders do it more often.
+      if (G.shot && G.shot.p === o && p.z === 0 && dist(p, o) < 4.5 && Math.random() < dt * 2.5 * dk(p).block)
+        p.vz = 10;
     }
   });
 }
 function human(dt) {
+  if (G.auto) return;
   const p = G.pl[G.ctrl],
     b = G.ball,
     K = (k) => keys.has(k);
@@ -867,10 +818,11 @@ function human(dt) {
     }
     return false;
   };
-  if (pr("ControlLeft")) startSlide(p);
+  // Punch and slide only exist in Mayhem mode.
+  if (pr("ControlLeft") && mayhem()) startSlide(p);
   if (G.click) {
     G.click = 0;
-    punch(p);
+    if (mayhem()) punch(p);
   }
   if (pr("Space")) {
     if (b.own === p.id && !G.shot) beginShot(p);

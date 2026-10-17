@@ -56,26 +56,6 @@ function camOv() {
   let o = null;
   const k = G.cut;
   if (G.tip) o = { x: 47 + Math.sin(T * 0.3) * 3, y: -2, z: 9, lx: 47, ly: 25, lz: 5.5, fl: 1.1, w: 1 };
-  else if (k && k.kind === "steal") {
-    const p = k.p,
-      v = k.v,
-      u = cl(k.t / k.d, 0, 1),
-      mx = (p.x + v.x) / 2,
-      my = (p.y + v.y) / 2,
-      dx = v.x - p.x,
-      dy = v.y - p.y,
-      L = hy(dx, dy) || 1;
-    o = {
-      x: mx - (dy / L) * k.side * 19,
-      y: my + (dx / L) * k.side * 19,
-      z: 5.5,
-      lx: mx,
-      ly: my,
-      lz: 3.6,
-      fl: 1.05 + 0.2 * sm(cl((u - 0.2) * 3, 0, 1)),
-      w: sm(cl(Math.min(u / 0.15, (1 - u) / 0.15), 0, 1)),
-    };
-  }
   if (!o) return;
   const w = o.w,
     yw = Math.atan2(o.ly - o.y, o.lx - o.x),

@@ -84,6 +84,22 @@ setTeams(0, 1);
 const lite = (c) => (pc(c).reduce((a, b) => a + b) > 330 ? c : "#ffffff");
 const SK = ["#8b5a3c", "#b27850", "#5e3a26", "#c58b60", "#7b4b32", "#a96b46"],
   HX = (t) => (t ? 5.25 : 88.75);
+// Options chosen on the setup screen.
+// mode: "mayhem" (punch, slide, blood) or "clean" (straight basketball). court: "arena" or "street".
+const OPT = { mode: "mayhem", court: "arena", diff: 1 };
+// Difficulty for the opposing team's AI. Pro is how the game originally played.
+// sp: run speed, stealRate: steal attempts per second when guarding the ball, stealWin: chance an attempt works,
+// gap: extra distance they give you on defence (feet), shotQ: shot quality bonus, pick: pass interceptions,
+// block: block chance, react: how quickly they change direction.
+const DIFF = [
+  { name: "ROOKIE", sp: 10.4, stealRate: 0.08, stealWin: 0.25, gap: 1.4, shotQ: -0.18, pick: 0.4, block: 0.4, react: 4 },
+  { name: "PRO", sp: 11.8, stealRate: 0.22, stealWin: 0.4, gap: 0, shotQ: 0, pick: 1, block: 1, react: 6 },
+  { name: "ALL-STAR", sp: 12.6, stealRate: 0.4, stealWin: 0.5, gap: -0.4, shotQ: 0.1, pick: 1.5, block: 1.4, react: 8 },
+  { name: "HALL OF FAMER", sp: 13.3, stealRate: 0.65, stealWin: 0.6, gap: -0.8, shotQ: 0.2, pick: 2.2, block: 1.9, react: 11 },
+];
+// Your AI teammates always play at Pro; the opponents play at the chosen level.
+const dk = (p) => (p.t === 1 ? DIFF[OPT.diff] : DIFF[1]);
+const mayhem = () => OPT.mode === "mayhem";
 const G = {
   run: 0,
   pause: 0,

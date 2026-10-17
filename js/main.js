@@ -83,4 +83,47 @@ window.addEventListener("error", (e) => {
 });
 rs();
 init();
-requestAnimationFrame(loop);
+if (/[?&]smoke\b/.test(location.search)) smoke();
+else requestAnimationFrame(loop);
+
+// Smoke test (tools/smoke.sh): AI plays both teams for a 2-minute quarter in every mode, court and difficulty.
+// Your side always plays at Pro, so the score margin shows how hard each level is.
+function smoke() {
+  const out = [];
+  let ok = true;
+  for (const mode of ["mayhem", "clean"])
+    for (const court of ["arena", "street"])
+      for (let diff = 0; diff < 4; diff++) {
+        try {
+          Object.assign(OPT, { mode, court, diff });
+          setTeams(0, 1);
+          start(0);
+          G.tip = null;
+          G.auto = 1;
+          G.time = 120; // a 2-minute quarter keeps the test quick
+          document.body.classList.remove("bars");
+          setPoss(0);
+          let n = 0;
+          while (G.run && G.q === 1) {
+            step(1 / 120);
+            T += 1 / 120;
+            if (++n % 60 === 0) {
+              camUpd(1 / 120);
+              render();
+              hud();
+            }
+            if (n > 120 * 400) throw new Error("quarter never ended");
+          }
+          out.push(`${mode.padEnd(7)} ${court.padEnd(7)} ${DIFF[diff].name.padEnd(14)} you ${G.home} - ${G.away} them`);
+        } catch (e) {
+          ok = false;
+          out.push(`${mode} ${court} ${DIFF[diff].name}: ERROR ${e.message} ${(e.stack || "").split("\n")[1] || ""}`);
+        }
+      }
+  G.run = 0;
+  G.auto = 0;
+  const pre = document.createElement("pre");
+  pre.id = "smoke";
+  pre.textContent = (ok ? "SMOKE PASS" : "SMOKE FAIL") + "\n" + out.join("\n");
+  document.body.appendChild(pre);
+}
