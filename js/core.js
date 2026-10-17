@@ -20,7 +20,11 @@ const ST = {
 };
 let TM, KC, NM, KD;
 function setTeams(a, b) {
-  TM = [TEAMS[a], TEAMS[b]];
+  setTeamObjs(TEAMS[a], TEAMS[b]);
+}
+// Campaign crews aren't in TEAMS, so teams can also be set directly.
+function setTeamObjs(A, B) {
+  TM = [A, B];
   KC = TM.map((t) => pc(t.k));
   KD = KC[0].map((v) => (v * 0.5) | 0);
   NM = [...TM[0].p, ...TM[1].p];
@@ -32,7 +36,7 @@ const SK = ["#f0c8a0", "#e0b08a", "#c8946a", "#a96b46", "#8b5a3c", "#5e3a26"],
   HX = (t) => (t ? 5.25 : 88.75);
 // Options chosen on the setup screen.
 // mode: "mayhem" (punch, slide, blood) or "clean" (straight basketball). court: "arena" or "street".
-const OPT = { mode: "mayhem", court: "arena", diff: 1 };
+const OPT = { mode: "clean", court: "arena", diff: 1 };
 // Difficulty for the opposing team's AI. Pro is how the game originally played.
 // sp: run-speed multiplier on each player's own speed, stealRate: steal attempts per second when guarding the ball,
 // stealWin: chance an attempt works, gap: extra distance they give you on defence (feet), shotQ: shot quality bonus,

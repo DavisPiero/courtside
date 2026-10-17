@@ -35,11 +35,14 @@ function greenZone(p) {
     squeeze = (p.t === 0 ? DIFF[OPT.diff] : DIFF[1]).squeeze;
   return Math.max(0.012, base * (1 - Math.min(0.85, contest(p) * squeeze)));
 }
+// Rules for the next game: quarters and their length, or a first-to-N target; optional starting score.
+const RULES_STD = { nq: 4, qlen: 240, target: 0, start: [0, 0] };
+G.rules = { ...RULES_STD };
 function init() {
-  G.home = G.away = 0;
-  G.time = 240;
+  [G.home, G.away] = G.rules.start;
+  G.time = G.rules.qlen;
   G.q = 1;
-  G.st = { pts: 0, reb: 0, ast: 0, stl: 0 };
+  G.st = { pts: 0, reb: 0, ast: 0, stl: 0, greens: 0, dunks: 0, ankles: 0, threes: 0, blk: 0, drops: 0 };
   G.cut = null;
   G.shot = null;
   G.dead = 0;
@@ -63,7 +66,8 @@ function init() {
         ph: rn(0, 6),
         stam: 100,
         ...stats(NM[t * 3 + i], t),
-        look: TEAMS.indexOf(TM[t]) * 3 + i,
+        look: (TM[t].look0 !== undefined ? TM[t].look0 : TEAMS.indexOf(TM[t]) * 3) + i,
+        hair: NM[t * 3 + i][11],
         sk: SK[NM[t * 3 + i][10]],
         pos: NM[t * 3 + i][1],
         hand: -1,
@@ -152,6 +156,7 @@ function score(t, pts, p, cut) {
   const b = G.ball;
   if (t === 0) {
     G.st.pts += pts;
+    if (pts === 3) G.st.threes++;
     if (b.pT && T - b.pT < 4 && b.from !== undefined && b.from !== p.id && G.pl[b.from].t === 0) G.st.ast++;
   }
   G.rim[t] = 1;
@@ -375,6 +380,7 @@ function punchHit(p) {
   G.shake = 0.7;
   G.hype = 1;
   G.gl = 0.25;
+  if (p.t === 0) G.st.drops++;
   toast("DROPPED!", 0.9);
   sfx("punch");
 }
@@ -447,13 +453,20 @@ function launch(p, q, ai) {
     last: h,
     missed: !made,
   });
-  if (p.z < 0.1) p.vz = 6;
+  // Shot forms: the set shot barely leaves the floor; the fadeaway drifts back.
+  const form = styleOf(p, "shot");
+  if (p.z < 0.1) p.vz = form === "shot.set" ? 2.5 : form === "shot.high" ? 7 : 6;
+  if (form === "shot.fade") {
+    p.vx -= Math.cos(p.f) * 5;
+    p.vy -= Math.sin(p.f) * 5;
+  }
   p.fol = 0.45;
   G.shot = null;
   $("meter").classList.remove("on");
   G.sc = 24;
   if (!ai) toast(q > 0.82 ? "PERFECT!" : q > 0.6 ? "GOOD" : "RUSHED", 0.6);
   b.green = !ai && q > 0.82;
+  if (b.green) G.st.greens++;
   if (b.green) {
     G.gf = 1;
     G.hype = Math.max(G.hype, 0.5);
@@ -479,7 +492,11 @@ function scripted(p, kind) {
     side: Math.random() < 0.5 ? -1 : 1,
     two: Math.random() < 0.5,
     nm: ["TOMAHAWK JAM", "TWO-HAND HAMMER", "THE POSTER", "RIM RATTLER"][(Math.random() * 4) | 0],
+    style: styleOf(p, "dunk"), // from your equipped dunk pack
   };
+  if (G.cut.style === "dunk.reverse" || G.cut.style === "dunk.360") G.cut.two = true;
+  if (G.cut.style === "dunk.tomahawk" || G.cut.style === "dunk.windmill") G.cut.two = false;
+  if (G.cut.style !== "dunk.basic") G.cut.nm = PACK[G.cut.style].name.toUpperCase();
   if (kind === "dunk") document.body.classList.add("cine");
 }
 function cutUpd(dt) {
@@ -515,7 +532,11 @@ function cutUpd(dt) {
   }
   p.vx = (p.x - ox) / Math.max(dt, 0.001);
   p.vy = (p.y - oy) / Math.max(dt, 0.001);
-  p.f += ad(f - p.f) * Math.min(1, dt * 10);
+  // Dunk packs change how the body turns: the reverse faces away from the rim, the 360 spins in the air.
+  const rev = dk && c0.style === "dunk.reverse" && u >= A,
+    face = rev ? f + Math.PI : f;
+  p.f += ad(face - p.f) * Math.min(1, dt * (rev ? 14 : 10));
+  if (dk && c0.style === "dunk.360" && u >= A && u < S) p.f = f + 6.2832 * sm((u - A) / (S - A));
   p.ph += hy(p.vx, p.vy) * dt * 0.8 * (u < A ? 1 : 0.2);
   p.def = false;
   if (u < A) {
@@ -526,6 +547,23 @@ function cutUpd(dt) {
   } else if (u < S) {
     const k = sm((u - A) / (S - A));
     p.hw = [lp(p.x, c0.h, k), lp(p.y, 25, k), lp(p.z + 7.6, 10.8, k)];
+    if (dk) {
+      const dir = c0.dir,
+        sh = [p.x, p.y, p.z + 5.4]; // shoulder height
+      if (c0.style === "dunk.tomahawk" && k < 0.6) {
+        // Ball cocked back behind the head, then whipped forward.
+        const w = k / 0.6;
+        p.hw = [lp(p.x + dir * 0.6, p.x - dir * 1.1, sm(w)), p.y, p.z + lp(7.4, 8.8, w)];
+      } else if (c0.style === "dunk.windmill" && k < 0.75) {
+        // Arm circle: down, back, over the top, forward.
+        const ph = (k / 0.75) * Math.PI * 1.35,
+          R = 2.3;
+        p.hw = [sh[0] - dir * Math.sin(ph) * R, sh[1], sh[2] - Math.cos(ph) * R];
+      } else if (c0.style === "dunk.360" && k < 0.7) {
+        // Ball tucked at the chest while spinning.
+        p.hw = [p.x + Math.cos(p.f) * 0.9, p.y + Math.sin(p.f) * 0.9, p.z + 5.8];
+      }
+    }
     p.hw2 = c0.two ? p.hw : null;
     b.own = -1;
     b.mode = "cut";
@@ -551,6 +589,7 @@ function cutUpd(dt) {
         missed: false,
       });
       score(p.t, 2, p, 1);
+      if (dk && p.t === 0) G.st.dunks++;
       G.rim[p.t] = dk ? 2 : 1;
       if (dk) {
         G.flash = 0.7;
@@ -659,6 +698,7 @@ function ballUpd(dt) {
         b.vz = 4;
         b.made = false;
         toast("BLOCKED!");
+        if (o.t === 0) G.st.blk++;
         return;
       }
     if (oz > 10 && b.z <= 10 && b.vz < 0) {
@@ -974,18 +1014,24 @@ function integ(p, dt) {
   if (p.mv) moveStep(p, dt);
 }
 // ---------- dribble moves: E plays a different one each press (never the same twice running)
+// sw: the ball ends in the other hand. Moves from dribble packs only join your rotation when equipped.
 const MOVES = {
-  cross: { d: 0.3, name: "CROSSOVER", push: 9 },
-  legs: { d: 0.38, name: "BETWEEN THE LEGS", push: 6 },
-  back: { d: 0.4, name: "BEHIND THE BACK", push: 8 },
-  spin: { d: 0.48, name: "SPIN MOVE", push: 8 },
+  cross: { d: 0.3, name: "CROSSOVER", push: 9, sw: 1 },
+  legs: { d: 0.38, name: "BETWEEN THE LEGS", push: 6, sw: 1 },
+  back: { d: 0.4, name: "BEHIND THE BACK", push: 8, sw: 1 },
+  spin: { d: 0.48, name: "SPIN MOVE", push: 8, sw: 1 },
+  hesi: { d: 0.45, name: "HESITATION", push: 12, sw: 0, pack: "dribble.hesi" },
+  snatch: { d: 0.4, name: "SNATCH-BACK", push: 9, sw: 0, pack: "dribble.snatch" },
+  double: { d: 0.55, name: "DOUBLE CROSS", push: 8, sw: 0, pack: "dribble.double" },
 };
+const BASE_MOVES = ["cross", "legs", "back", "spin"];
+const movePool = (p) => (p.t === 0 ? BASE_MOVES.concat(SAVE.equip.moves.map((id) => id.split(".")[1])) : BASE_MOVES);
 function dribbleMove(p) {
   const b = G.ball;
   if (p.mv || G.shot || G.cut || p.z > 0 || b.own !== p.id) return;
   // Your team shares one "last move" so pressing E never repeats, even after switching player.
   const last = p.t === 0 ? G.lastMv : p.lastMv,
-    ks = Object.keys(MOVES).filter((q) => q !== last),
+    ks = movePool(p).filter((q) => q !== last),
     k = ks[(Math.random() * ks.length) | 0],
     M = MOVES[k],
     h = p.hand || -1,
@@ -996,6 +1042,14 @@ function dribbleMove(p) {
   if (k === "spin") {
     p.vx += d.x * M.push;
     p.vy += d.y * M.push;
+  } else if (k === "hesi") {
+    // Fake stop first; the burst comes halfway through (moveStep).
+    p.vx *= 0.25;
+    p.vy *= 0.25;
+  } else if (k === "snatch") {
+    // Hop backwards, away from the defender.
+    p.vx -= d.x * M.push;
+    p.vy -= d.y * M.push;
   } else {
     // Burst toward the side the ball is moving to (local y = -h).
     const side = -h;
@@ -1009,6 +1063,7 @@ function dribbleMove(p) {
       hit = 1;
     }
   if (p.t === 0) toast(hit ? "ANKLE BREAKER!" : M.name, 0.6);
+  if (p.t === 0 && hit) G.st.ankles++;
   p.stam = Math.max(0, p.stam - 4);
 }
 function moveStep(p, dt) {
@@ -1016,9 +1071,22 @@ function moveStep(p, dt) {
   m.t += dt;
   // The spin turns the body a full circle, away from the ball side.
   if (m.k === "spin") p.f = m.f0 + -m.h * 6.2832 * sm(cl(m.t / m.d, 0, 1));
+  // Second half of two-part moves.
+  if (!m.mid && m.t >= m.d * 0.45) {
+    m.mid = 1;
+    const fx = Math.cos(p.f),
+      fy = Math.sin(p.f);
+    if (m.k === "hesi") {
+      p.vx += fx * MOVES.hesi.push;
+      p.vy += fy * MOVES.hesi.push;
+    } else if (m.k === "double") {
+      p.vx += -fy * m.h * 14; // back toward the starting side, hard
+      p.vy += fx * m.h * 14;
+    }
+  }
   if (m.t >= m.d || G.ball.own !== p.id) {
     if (m.k === "spin") p.f = m.f0;
-    p.hand = -m.h;
+    p.hand = MOVES[m.k].sw ? -m.h : m.h;
     // Restart the dribble bounce where the move left the ball.
     G.ball.bph = m.k === "back" ? 0 : Math.PI / 2;
     p.mv = null;
@@ -1046,6 +1114,7 @@ function end() {
   G.run = 0;
   $("vm").style.display = "none";
   hudOn(0);
-  show("menu");
-  $("mt").textContent = `FINAL  ${TM[0].n} ${G.home} – ${G.away} ${TM[1].n}`;
+  document.body.classList.remove("cine", "bars");
+  if (G.prac) show("menu");
+  else showResults();
 }

@@ -17,6 +17,7 @@ const SET = {
   camera: "chase",
   nameTag: 1,
   meter: 1,
+  device: "", // "pc" or "touch", last choice on the device screen
 };
 const SETTINGS = [
   { tab: "VIDEO", k: "pixel", label: "Pixel size", opts: [[2, "SHARP"], [3, "CLASSIC"], [4, "CHUNKY"]] },

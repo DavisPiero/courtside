@@ -1,6 +1,10 @@
 "use strict";
 // Input listeners, button wiring and start-up.
 addEventListener("keydown", (e) => {
+  if (e.target && e.target.tagName === "INPUT") {
+    if (e.code === "Enter") $("bHeroOk").click();
+    return; // typing a name: keys aren't game controls
+  }
   if (e.code === "Space" || e.code.startsWith("Arrow") || (e.ctrlKey && G.run && !G.pause))
     e.preventDefault();
   keys.add(e.code);
@@ -22,6 +26,11 @@ addEventListener("keydown", (e) => {
     }
     if (e.code === "Escape") show("menu");
     return;
+  }
+  // Escape steps back out of menu screens.
+  if (!G.run && e.code === "Escape") {
+    const back = { inv: "menu", camp: "menu", story: "camp", hero: SAVE.name ? "camp" : "menu" };
+    for (const k in back) if ($(k).classList.contains("on")) return show(back[k]);
   }
   if ($("sets").classList.contains("on")) {
     if (e.code === "Escape") $("bSetX").click();
@@ -48,10 +57,9 @@ addEventListener("resize", rs);
 $("bPlay").onclick = () => openSel(0);
 $("bPrac").onclick = () => openSel(1);
 $("bSet").onclick = () => openSettings("menu");
-$("bStart").onclick = () => {
-  setTeams(SEL.a, SEL.b);
-  start(SEL.pr);
-};
+$("bStart").onclick = () => startQuick(SEL.pr);
+$("bCamp").onclick = openCamp;
+$("bInv").onclick = openInv;
 $("bBack").onclick = () => show("menu");
 $("bRes").onclick = pause;
 $("bPSet").onclick = () => openSettings("pause");
@@ -89,7 +97,13 @@ window.addEventListener("error", (e) => {
 rs();
 init();
 if (/[?&]smoke\b/.test(location.search)) smoke();
-else requestAnimationFrame(loop);
+else {
+  requestAnimationFrame(loop);
+  // ?device=pc or ?device=touch skips the loading and device screens (for testing).
+  const dv = (location.search.match(/[?&]device=(pc|touch)/) || [])[1];
+  if (dv) chooseDevice(dv);
+  else bootLoad();
+}
 
 // Smoke test (tools/smoke.sh): AI plays both teams for a 2-minute quarter in every mode, court and difficulty.
 // Your side always plays at Pro, so the score margin shows how hard each level is.

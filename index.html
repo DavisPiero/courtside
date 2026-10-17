@@ -31,16 +31,39 @@
   <div id="vm"><div class="vt"><i class="vz"></i><i class="vf" id="vf"></i><i class="vn" id="vn"></i></div><b id="vl"></b></div>
   <div id="toast"></div>
 </div>
-<div id="ttl"></div><div id="lb1" class="lb"></div><div id="lb2" class="lb"></div>
+<div id="ttl"></div><div id="tip"></div><div id="lb1" class="lb"></div><div id="lb2" class="lb"></div>
+
+<!-- Loading: spinning ball while fonts and models warm up -->
+<div id="load" class="scr on">
+  <div class="ld">
+    <canvas id="ldBall" width="32" height="32"></canvas>
+    <div class="ldt">LOADING</div>
+    <div class="ldbar"><i id="ldFill"></i></div>
+  </div>
+</div>
+
+<!-- Device choice -->
+<div id="device" class="scr">
+  <div class="dv">
+    <h2>HOW ARE YOU PLAYING?</h2>
+    <div class="dvc">
+      <button class="dcard" id="dPC"><b class="ico">⌨</b><b>COMPUTER</b><span>Keyboard and mouse</span><em>RECOMMENDED</em></button>
+      <button class="dcard" id="dTouch"><b class="ico">▣</b><b>MOBILE / TABLET</b><span>Touch joystick and buttons</span><em>RECOMMENDED</em></button>
+    </div>
+  </div>
+</div>
 
 <!-- Main menu -->
-<div id="menu" class="scr on">
+<div id="menu" class="scr">
+  <div class="cc ccbal top">0 CC</div>
   <div class="menu-l">
     <div class="brand">COURT<em>SIDE</em></div>
     <p id="mt">Full-court 3-on-3. Drive to an open rim and the bucket is yours.</p>
     <nav>
-      <button class="btn pri" id="bPlay">PLAY</button>
+      <button class="btn pri" id="bCamp">CAMPAIGN</button>
+      <button class="btn" id="bPlay">QUICK PLAY</button>
       <button class="btn" id="bPrac">PRACTICE</button>
+      <button class="btn" id="bInv">INVENTORY</button>
       <button class="btn" id="bSet">SETTINGS</button>
     </nav>
   </div>
@@ -55,11 +78,78 @@
     <div class="roster" id="roster"></div>
   </div>
   <footer class="su-bot">
-    <div class="opt"><i>MODE</i><div class="seg" data-k="mode"><button data-v="mayhem">MAYHEM</button><button data-v="clean">CLEAN</button></div></div>
+    <div class="opt"><i>MODE</i><div class="seg" data-k="mode"><button data-v="clean" data-tip="Straight basketball: dribble, pass, shoot, steal and block. No punches or slides.">CLEAN</button><button data-v="mayhem" data-tip="No rules: punch to drop players and steal the ball, slide-tackle the ball carrier. Chaos!">MAYHEM</button></div></div>
     <div class="opt"><i>COURT</i><div class="seg" data-k="court"><button data-v="arena">ARENA</button><button data-v="street">STREET</button></div></div>
     <div class="opt"><i>DIFFICULTY</i><div class="seg" data-k="diff"><button data-v="0">ROOKIE</button><button data-v="1">PRO</button><button data-v="2">ALL-STAR</button><button data-v="3">HALL OF FAMER</button></div></div>
     <div class="act"><button class="btn" id="bBack">BACK</button><button class="btn pri" id="bStart">START GAME</button></div>
   </footer>
+</div>
+
+<!-- Campaign: create your hooper -->
+<div id="hero" class="scr dim">
+  <div class="pnl box hero">
+    <h2>YOUR HOOPER</h2>
+    <div class="hbody">
+      <canvas id="heroCv"></canvas>
+      <div class="hform">
+        <label>NAME<input id="heroName" maxlength="12" autocomplete="off" spellcheck="false" placeholder="ROOKIE"></label>
+        <i class="hint">Don't use your real name.</i>
+        <div class="hl">SKIN</div><div class="swatches" id="heroSkin"></div>
+        <div class="hl">HAIR</div><div class="seg" id="heroHair"></div>
+      </div>
+    </div>
+    <div class="act"><button class="btn" id="bHeroX">BACK</button><button class="btn pri" id="bHeroOk">LET'S HOOP</button></div>
+  </div>
+</div>
+
+<!-- Campaign: chapters and games -->
+<div id="camp" class="scr dim">
+  <div class="pnl box camp">
+    <div class="ihead"><h2>CAMPAIGN</h2><div class="cc ccbal">0 CC</div></div>
+    <div class="chead">
+      <button class="arr" id="chPrev" aria-label="Previous chapter">‹</button>
+      <div><b id="chTitle"></b><span id="chSub"></span></div>
+      <button class="arr" id="chNext" aria-label="Next chapter">›</button>
+    </div>
+    <div class="rows" id="campRows"></div>
+    <div class="act"><button class="btn" id="bCampX">BACK</button><button class="btn" id="bHeroEdit">EDIT HOOPER</button></div>
+  </div>
+</div>
+
+<!-- Campaign: story before a game -->
+<div id="story" class="scr dim">
+  <div class="pnl box story">
+    <div class="sline" id="storyLines"></div>
+    <div class="goals" id="storyGoals"></div>
+    <div class="act"><button class="btn" id="bStoryX">BACK</button><button class="btn pri" id="bStoryGo">PLAY</button></div>
+  </div>
+</div>
+
+<!-- Results after a game -->
+<div id="res" class="scr dim">
+  <div class="pnl box res">
+    <h2 id="resTitle">WIN</h2>
+    <div class="rscore" id="resScore"></div>
+    <div class="sline" id="resOutro"></div>
+    <div class="goals" id="resGoals"></div>
+    <div class="pay" id="resPay"></div>
+    <div class="act" id="resAct"></div>
+  </div>
+</div>
+
+<!-- Inventory: buy and equip animation packs -->
+<div id="inv" class="scr dim">
+  <div class="pnl box inv">
+    <div class="ihead"><h2>INVENTORY</h2><div class="cc ccbal">0 CC</div></div>
+    <div class="ibody">
+      <div class="iprev"><canvas id="invCv"></canvas><div id="invName"></div></div>
+      <div class="ilist">
+        <div class="tabs" id="invTabs"></div>
+        <div class="rows" id="invRows"></div>
+      </div>
+    </div>
+    <button class="btn pri" id="bInvX">BACK</button>
+  </div>
 </div>
 
 <!-- Pause -->
@@ -86,6 +176,8 @@
 
 <script src="js/teams.js"></script>
 <script src="js/settings.js"></script>
+<script src="js/save.js"></script>
+<script src="js/packs.js"></script>
 <script src="js/core.js"></script>
 <script src="js/projection.js"></script>
 <script src="js/arena.js"></script>
@@ -95,7 +187,9 @@
 <script src="js/gameplay.js"></script>
 <script src="js/loop.js"></script>
 <script src="js/audio.js"></script>
+<script src="js/campaign.js"></script>
 <script src="js/menus.js"></script>
+<script src="js/campui.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

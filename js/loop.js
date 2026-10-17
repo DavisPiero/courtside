@@ -20,6 +20,12 @@ function step(dt) {
     ballUpd(dt);
     if (G.dead <= 0) {
       G.dead = 0;
+      // First-to-N games end as soon as someone reaches the target.
+      const tg = G.rules.target;
+      if (tg && !G.prac && (G.home >= tg || G.away >= tg)) {
+        end();
+        return;
+      }
       setPoss(G.next);
     }
   } else {
@@ -44,15 +50,15 @@ function step(dt) {
       }
     }
     if (!G.prac) {
-      G.time -= dt;
+      if (!G.rules.target) G.time -= dt; // first-to-N games have no game clock
       G.sc -= dt;
       if (G.time <= 0) {
         G.q++;
-        if (G.q > 4) {
+        if (G.q > G.rules.nq) {
           end();
           return;
         }
-        G.time = 240;
+        G.time = G.rules.qlen;
         toast("END OF Q" + (G.q - 1), 1.5);
         sfx("buzz");
         setPoss(G.q % 2 ? 0 : 1);
@@ -128,10 +134,12 @@ function hud() {
   $("an").textContent = TM[1].c;
   $("hs").textContent = G.home;
   $("as").textContent = G.away;
-  $("qt").textContent = "Q" + G.q;
+  $("qt").textContent = G.rules.target ? "FIRST TO" : "Q" + G.q;
   $("clk").textContent = G.prac
     ? "--"
-    : Math.floor(G.time / 60) + ":" + String(Math.floor(G.time % 60)).padStart(2, "0");
+    : G.rules.target
+      ? G.rules.target
+      : Math.floor(G.time / 60) + ":" + String(Math.floor(G.time % 60)).padStart(2, "0");
   $("sck").textContent = G.prac ? "--" : Math.ceil(G.sc);
   $("pn").textContent = n[0];
   $("pp").textContent = n[1] + " · " + n[2] + " OVR";
@@ -164,6 +172,8 @@ function loop(t) {
   camUpd(dt);
   render();
   portraits();
+  invPreview();
+  heroPreview();
 }
 function pause() {
   G.pause = !G.pause;

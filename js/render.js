@@ -343,18 +343,15 @@ function nameTag() {
     x = Math.round(q[0] * sx),
     y = Math.round(q[1] * sy),
     name = NM[p.id][0],
-    fs = Math.round(cl(H / 52, 11, 16));
+    fs = Math.round(cl(H / 30, 16, 26));
+  // Plain white pixel lettering. A hard 1-pixel shadow keeps it readable on any floor.
   X.save();
-  X.font = `700 ${fs}px Bahnschrift, "DIN Alternate", "Arial Narrow", system-ui, sans-serif`;
+  X.font = `${fs}px "Jersey 10", monospace`;
   X.textAlign = "center";
   X.textBaseline = "alphabetic";
-  const w = X.measureText(name).width + fs;
-  X.globalAlpha = 0.82;
-  X.fillStyle = "#0a0f1e";
-  X.fillRect(x - w / 2, y - fs - 6, w, fs + 10);
-  X.globalAlpha = 1;
-  X.fillStyle = TM[0].t === "#ffffff" ? TM[0].j : lite(TM[0].t);
-  X.fillRect(x - w / 2, y + 3, w, 2);
+  const o = Math.max(1, Math.round(fs / 12));
+  X.fillStyle = "rgba(5,7,15,.85)";
+  X.fillText(name, x + o, y + o);
   X.fillStyle = "#fff";
   X.fillText(name, x, y);
   X.restore();

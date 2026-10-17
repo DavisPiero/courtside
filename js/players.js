@@ -85,6 +85,10 @@ function ballLocal(p) {
       const th = (h * Math.PI) / 2 + h * Math.PI * e;
       return [Math.cos(th) * 0.95, Math.sin(th) * 0.95, u < 0.65 ? 2.3 : lp(2.3, 0.6, (u - 0.65) / 0.35)];
     }
+    if (m.k === "hesi") return [0.9, h * 0.55, u < 0.4 ? 2.4 : 0.55 + 2.2 * Math.abs(Math.cos(((u - 0.4) / 0.6) * Math.PI))];
+    if (m.k === "snatch") return [0.9 - 1.1 * Math.sin(u * Math.PI), h * 0.5, 0.6 + 1.2 * Math.abs(Math.sin(u * Math.PI * 2))];
+    if (m.k === "double")
+      return [1.0, h * 0.6 * Math.cos(u * 6.2832), 0.55 + 2.4 * Math.abs(Math.cos(u * 6.2832))];
     return [0.35, h * 0.85, 2.5]; // spin: ball tucked at the hip while the body turns
   }
   return [0.9, h * 0.55, 0.55 + Math.abs(Math.sin(B.bph)) * 2.7];
@@ -122,9 +126,13 @@ function buildSprite(p) {
     fsx = cf * Rx + sf * Ry,
     b = G.ball,
     air = p.z > 0.3,
-    hold = port ? true : b.own === p.id && b.mode === "held",
-    shooting = !port && G.shot && G.shot.p === p,
-    mvv = port ? null : p.mv,
+    hold = port ? !!port.ball : b.own === p.id && b.mode === "held",
+    shooting = port ? port.pose === "shot" : G.shot && G.shot.p === p,
+    shotU = port ? ((port.t * 0.8) % 1) * 1.2 : shooting ? G.shot.t / G.shot.d : 0, // 0..1 through the shot
+    shotS = styleOf(p, "shot"),
+    celOn = port ? port.pose === "cel" : p.stt === "cel",
+    celS = styleOf(p, "cel"),
+    mvv = port ? port.mv : p.mv,
     land = p.land > 0 ? p.land / 0.18 : 0,
     tt = port ? port.t : T,
     rg = p.rag,
@@ -139,7 +147,9 @@ function buildSprite(p) {
     hz =
       3.25 -
       (p.def ? 0.55 : 0) -
-      (shooting ? 0.25 + 0.45 * (1 - cl(G.shot.t / G.shot.d / 0.6, 0, 1)) : 0) - // jump-shot dip, then rise
+      (shooting ? (shotS === "shot.set" ? 0.15 : 0.25) + 0.45 * (1 - cl(shotU / 0.6, 0, 1)) : 0) - // jump-shot dip, then rise
+      (celOn && celS === "cel.toosmall" ? 0.8 : 0) +
+      (celOn && celS === "cel.dance" ? Math.abs(Math.sin(tt * 9)) * 0.25 : 0) -
       (hold && !shooting ? 0.2 : 0) -
       (mvv ? 0.35 : 0) -
       land * 0.5 +
@@ -148,7 +158,14 @@ function buildSprite(p) {
     s1 = Math.sin(p.ph),
     c1 = Math.cos(p.ph),
     stride = run * 1.25,
-    lean = 0.25 * run + 0.25 * sprint + (hold ? 0.2 : 0) + (p.pun > 0 ? 0.4 : 0) + (mvv ? 0.25 : 0) + land * 0.2,
+    lean =
+      0.25 * run +
+      0.25 * sprint +
+      (hold ? 0.2 : 0) +
+      (p.pun > 0 ? 0.4 : 0) +
+      (mvv ? 0.25 : 0) +
+      land * 0.2 -
+      ((shooting || p.fol > 0) && shotS === "shot.fade" ? 0.75 : 0), // fadeaway leans back
     twist = s1 * 0.2 * run; // shoulders counter-rotate against the hips when running
   // Legs: run cycle with knee lift; a relaxed split stance when standing still.
   let fL = [s1 * stride, 0.5, Math.max(0, c1) * 0.95 * run],
@@ -194,8 +211,10 @@ function buildSprite(p) {
   }
   if (hold) {
     if (shooting) {
-      aL = [0.7, 0.3, hz + 4.9];
-      aR = [0.7, -0.3, hz + 4.9];
+      // Shot forms: set shot from the chest, high release from the sky.
+      const top = shotS === "shot.high" ? 5.7 : shotS === "shot.set" ? 4.2 : 4.9;
+      aL = [0.7, 0.3, hz + top];
+      aR = [0.7, -0.3, hz + top];
     } else {
       // The hand on the ball's side follows it; the other arm guards it.
       let L;
@@ -221,13 +240,29 @@ function buildSprite(p) {
     aR = [1.9, -0.35, hz + 2.1];
   }
   if (p.swp > 0) aR = [2.1, -0.25, hz + 1.1 + p.swp * 2];
-  if (p.fol > 0) {
+  if (p.fol > 0 && !port) {
     aL = [0.8, 0.2, hz + 5.3];
     aR = [0.8, -0.2, hz + 5.3];
   }
-  if (p.stt === "cel") {
-    aL = [0, 1.6, hz + 4.4];
-    aR = [0, -1.6, hz + 4.4];
+  if (celOn) {
+    // Celebration packs.
+    if (celS === "cel.flex") {
+      aL = [0.15, 1.05, hz + 3.0];
+      aR = [0.15, -1.05, hz + 3.0];
+    } else if (celS === "cel.shh") {
+      aR = [0.55, -0.05, hz + 2.7];
+      aL = [0.2, 1.0, hz + 0.6];
+    } else if (celS === "cel.toosmall") {
+      aR = [0.9, -0.7, hz + 0.6];
+      aL = [0.4, 1.1, hz + 1.4];
+    } else if (celS === "cel.dance") {
+      const sw = Math.sin(tt * 9);
+      aL = [0.3, 1.4, hz + 2.4 + sw * 1.4];
+      aR = [0.3, -1.4, hz + 2.4 - sw * 1.4];
+    } else {
+      aL = [0, 1.6, hz + 4.4];
+      aR = [0, -1.6, hz + 4.4];
+    }
   }
   if (p.pun > 0 && !rg) {
     aR = [2.4, -0.2, hz + 2.3];
@@ -325,7 +360,7 @@ function buildSprite(p) {
   const sk = p.sk,
     hr = ["#16100d", "#2a1a10", "#0b0b0b"][look % 3],
     hc = [lean + 0.1, 0, hz + 2.87],
-    hs = HST[look % 12];
+    hs = p.hair !== undefined ? p.hair : HST[look % 12];
   for (const [h, kn, ft, sd] of [
     [hL, kL, ftL, 1],
     [hR, kR, ftR, -1],
