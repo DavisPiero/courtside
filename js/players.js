@@ -291,7 +291,7 @@ function buildSprite(p) {
     },
     mid = (a, q, t) => [lp(a[0], q[0], t), lp(a[1], q[1], t), lp(a[2], q[2], t)];
   const sk = p.sk,
-    hr = ["#16100d", "#2a1a10", "#0b0b0b"][look % 3],
+    hr = p.hcol || ["#16100d", "#2a1a10", "#0b0b0b"][look % 3],
     hc = [lean + 0.1, 0, hz + 2.87],
     hs = p.hair !== undefined ? p.hair : HST[look % 12];
   for (const [h, kn, ft, sd] of [

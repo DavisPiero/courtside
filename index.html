@@ -33,6 +33,7 @@
   <div id="meter" class="pnl"><div class="trk"><i id="nd"></i></div><div class="lb2"><span>EARLY</span><span>GOOD</span><span>LATE</span></div></div>
   <div id="vm"><div class="vt"><i class="vz"></i><i class="vf" id="vf"></i><i class="vn" id="vn"></i></div><b id="vl"></b></div>
   <div id="toast"></div>
+  <div id="say"><b id="sayWho"></b><span id="sayText"></span></div>
 </div>
 <div id="ttl"></div><div id="tip"></div><div id="lb1" class="lb"></div><div id="lb2" class="lb"></div>
 
@@ -110,6 +111,7 @@
 <div id="campPick" class="scr dim">
   <div class="dv">
     <h2>CHOOSE YOUR ROAD</h2>
+    <p class="newstory" id="cpNew">NEW STORY! Campaign progress starts fresh. Your coins and animations are safe.</p>
     <div class="dvc">
       <button class="dcard ccard" id="cpStreet"><b class="ico">◆</b><b>STREET</b><span>King of the Courts</span><span class="cp-rule">Street courts · Mayhem allowed</span><em id="cpStreetStars"></em></button>
       <button class="dcard ccard" id="cpNba"><b class="ico">★</b><b>NBA</b><span>Road to the Ring</span><span class="cp-rule">Arenas · Professional rules only</span><em id="cpNbaStars"></em></button>
@@ -129,17 +131,27 @@
     </div>
     <div class="reward" id="chReward"></div>
     <div class="rows" id="campRows"></div>
-    <div class="act"><button class="btn" id="bCampX">BACK</button></div>
+    <div class="act"><button class="btn" id="bCampX">BACK</button><button class="btn" id="bCampStory">▶ CHAPTER STORY</button></div>
   </div>
 </div>
 
 <!-- Campaign: story before a game -->
 <div id="story" class="scr dim">
   <div class="pnl box story">
+    <div class="vs" id="storyVs"></div>
     <div class="sline" id="storyLines"></div>
     <div class="goals" id="storyGoals"></div>
     <div class="act"><button class="btn" id="bStoryX">BACK</button><button class="btn pri" id="bStoryGo">PLAY</button></div>
   </div>
+</div>
+
+<!-- Campaign: story scene (characters talk; tap to go on) -->
+<div id="scene" class="scr">
+  <div class="scn-bar t"></div><div class="scn-bar b"></div>
+  <canvas id="scnL" class="scn-m"></canvas><canvas id="scnR" class="scn-m r"></canvas>
+  <div id="scnChap"></div>
+  <div id="scnBox"><b id="scnWho"></b><p id="scnText"></p><i class="scn-next">▼</i></div>
+  <button class="btn scn-skip" id="scnSkip">SKIP ▸▸</button>
 </div>
 
 <!-- Results after a game -->
@@ -242,6 +254,7 @@
 <script src="js/campaign.js"></script>
 <script src="js/menus.js"></script>
 <script src="js/campui.js"></script>
+<script src="js/story.js"></script>
 <script src="js/touch.js"></script>
 <script src="js/main.js"></script>
 </body>

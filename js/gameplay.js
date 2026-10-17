@@ -1180,5 +1180,6 @@ function end() {
   hudOn(0);
   document.body.classList.remove("cine", "bars");
   if (G.prac) show("menu");
+  else if (G.camp) campEnd();
   else showResults();
 }

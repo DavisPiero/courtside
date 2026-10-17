@@ -222,6 +222,7 @@ function start(pr) {
   init();
   G.run = 1;
   G.pause = 0;
+  chatterReset();
   show(null);
   hudOn(1);
   initTip();

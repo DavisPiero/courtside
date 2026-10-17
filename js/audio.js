@@ -72,6 +72,7 @@ function sfx(k) {
       tone("sawtooth", 300, 900, 0.16, 0.07);
     },
     pass: () => tone("sine", 320, 180, 0.08, 0.2),
+    blip: () => tone("square", 760, 740, 0.025, 0.035), // story text typing
     buzz: () => tone("square", 220, 215, 0.7, 0.15),
     whistle: () => tone("sine", 2400, 2300, 0.4, 0.1),
     green: () => {

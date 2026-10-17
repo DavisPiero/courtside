@@ -10,7 +10,22 @@ const SAVE = {
   owned: [], // animation ids you have collected
   equip: { dunk: "dunk.basic", layup: "layup.basic", cel: "cel.basic", shot: "shot.basic", moves: [] }, // moves: equipped dribble moves
   stars: {}, // campaign game id -> best stars (0-3)
+  seen: {}, // story scenes already watched (chapter openings play once by themselves)
+  storyV: 0, // story version this save's campaign progress belongs to
 };
+// The story was rewritten in session 2 (2026-10-17), so campaign progress starts again once.
+// Coins, animations and what you have equipped are kept.
+const STORY_V = 2;
+function storyReset() {
+  if (SAVE.storyV >= STORY_V) return;
+  const had = Object.keys(SAVE.stars).length > 0;
+  SAVE.stars = {};
+  SAVE.seen = had ? { newStory: 1 } : {};
+  SAVE.storyV = STORY_V;
+  try {
+    localStorage.setItem(SAVE_GAME_KEY, JSON.stringify(SAVE));
+  } catch (e) {}
+}
 function loadSave() {
   try {
     const s = JSON.parse(localStorage.getItem(SAVE_GAME_KEY) || "{}");
@@ -60,3 +75,4 @@ function payout(won, extra) {
   return { rows, total };
 }
 loadSave();
+storyReset();

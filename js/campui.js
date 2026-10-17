@@ -39,10 +39,18 @@ function openCamp() {
     const g = allGames(cid);
     return `${g.reduce((a, x) => a + starsOf(x.id), 0)} / ${g.length * 3} ★`;
   };
+  $("cpNew").style.display = SAVE.seen.newStory ? "" : "none";
   $("cpStreetStars").textContent = count("street");
   $("cpNbaStars").textContent = count("nba");
-  $("cpStreet").onclick = () => pickCamp("street");
-  $("cpNba").onclick = () => pickCamp("nba");
+  const go = (cid) => {
+    if (SAVE.seen.newStory) {
+      delete SAVE.seen.newStory;
+      writeSave();
+    }
+    pickCamp(cid);
+  };
+  $("cpStreet").onclick = () => go("street");
+  $("cpNba").onclick = () => go("nba");
   $("bCpX").onclick = () => show("menu");
   $("bCpHero").onclick = () => openHero(false);
   show("campPick");
@@ -85,25 +93,64 @@ function drawCamp() {
     .join("");
   $("campRows").querySelectorAll(".cg:not(.lock)").forEach((r) => (r.onclick = () => openStory(CUI.ch, +r.dataset.g)));
   $("bCampX").onclick = openCamp;
+  // Watch the chapter's opening again (and its ending, once you've beaten the boss).
+  $("bCampStory").disabled = !open;
+  $("bCampStory").onclick = () => {
+    const back = () => (drawCamp(), show("camp")),
+      ci = CUI.ch;
+    playScene(ch.intro, () => (got ? playScene(ch.outro, back, null, ci, ["CHAPTER " + (ci + 1) + " COMPLETE", ch.title]) : back()), null, ci, chapCard(ci));
+  };
 }
 
-// ---------- story card and goals
+// ---------- story: the chapter's opening scene (first time only), the game's scene, then the goals card
 const goalText = (gl) => GOAL_TEXT[gl.k](gl);
-function openStory(ci, gi) {
+const chapCard = (ci) => [`${CUI.cid === "nba" ? "ROAD TO THE RING" : "KING OF THE COURTS"} · CHAPTER ${ci + 1}`, CAMP[ci].title];
+// skip: go straight to the goals card (Retry).
+function openStory(ci, gi, skip) {
+  CUI.ch = ci;
   CUI.ci = ci;
   CUI.gi = gi;
-  const gm = CAMP[ci].games[gi];
-  $("storyLines").innerHTML = gm.intro.map(([who, t]) => `<p><b>${who === "HERO" ? SAVE.name : who}</b>${t}</p>`).join("");
+  const ch = CAMP[ci],
+    gm = ch.games[gi],
+    opp = gm.opp(),
+    key = CUI.cid + ci,
+    card = () => storyCard(ci, gi, opp),
+    intro = () => playScene(gm.intro, card, opp, ci);
+  OPT.court = gm.court; // the court behind the story is the one you're about to play on
+  if (skip) return card();
+  if (gi === 0 && !SAVE.seen[key]) {
+    SAVE.seen[key] = 1;
+    writeSave();
+    return playScene(ch.intro, intro, opp, ci, chapCard(ci));
+  }
+  intro();
+}
+function storyCard(ci, gi, opp) {
+  const gm = CAMP[ci].games[gi],
+    last = gm.intro[gm.intro.length - 1];
+  $("storyVs").innerHTML = `<i>${gi === 5 ? "BOSS GAME" : "GAME " + (gi + 1)}</i><b>VS ${opp.n}</b>`;
+  $("storyLines").innerHTML = last ? `<p><b>${last[0] === "HERO" ? SAVE.name : last[0] || "&nbsp;"}</b>${last[1].replace(/HERO/g, SAVE.name)}</p>` : "";
   $("storyGoals").innerHTML =
     gm.goals.map((gl) => `<div>${goalText(gl)}</div>`).join("") +
     (gm.rules.start[1] ? `<div class="meta">You start down ${gm.rules.start[1]}-${gm.rules.start[0]}.</div>` : "");
-  $("bStoryX").onclick = () => show("camp");
+  $("bStoryX").onclick = () => (drawCamp(), show("camp"));
   if (gi === 5) {
     const rw = ANIM[CAMP[ci].reward];
     $("storyGoals").innerHTML += `<div class="meta r-${rw.rarity}">Boss reward: <span class="rtag">${RARITY[rw.rarity].name}</span> ${rw.name}</div>`;
   }
   $("bStoryGo").onclick = () => startCamp(ci, gi);
   show("story");
+}
+// After a campaign game: the win or loss scene, then (first boss win) the chapter's ending, then results.
+const LOSE_LINES = { street: [["DEX", "Shake it off. We run it back."]], nba: [["COACH RAY", "Again. From the top."]] };
+function campEnd() {
+  const c = G.camp,
+    ch = CAMPAIGNS[c.cid].chapters[c.ci],
+    gm = ch.games[c.gi],
+    won = G.home > G.away,
+    firstBoss = won && c.gi === 5 && !(SAVE.stars[gm.id] > 0),
+    then = () => (firstBoss && ch.outro ? playScene(ch.outro, showResults, TM[1], c.ci, ["CHAPTER " + (c.ci + 1) + " COMPLETE", ch.title]) : showResults());
+  playScene(won ? gm.outro : gm.lose || LOSE_LINES[c.cid], then, TM[1], c.ci);
 }
 function startCamp(ci, gi) {
   const gm = CAMP[ci].games[gi];
@@ -114,8 +161,11 @@ function startCamp(ci, gi) {
   setTeamObjs(crewTeam(), gm.opp());
   start(0);
 }
+// Quick Play: four 1-minute quarters.
+const QUICK_RULES = { nq: 4, qlen: 60 };
+const QUICK_BONUS = 100; // every finished Quick Play game pays this, win or lose
 function startQuick(pr) {
-  G.rules = { ...RULES_STD };
+  G.rules = { ...RULES_STD, ...QUICK_RULES };
   G.camp = null;
   setTeams(SEL.a, SEL.b);
   start(pr);
@@ -152,11 +202,12 @@ function showResults() {
       SAVE.stars[gm.id] = n;
     }
   }
+  if (!camp) extra.push(["Game finished", QUICK_BONUS]);
   const pay = payout(won, extra);
   $("res").classList.toggle("won", won);
   $("resTitle").textContent = won ? (camp && gm.outro && camp.gi === 5 ? "BOSS DOWN!" : "WIN!") : G.home === G.away ? "TIE" : "LOSS";
   $("resScore").textContent = `${TM[0].c} ${G.home} – ${G.away} ${TM[1].c}`;
-  $("resOutro").innerHTML = won && gm && gm.outro ? gm.outro.map(([who, t]) => `<p><b>${who}</b>${t}</p>`).join("") : "";
+  $("resOutro").innerHTML = ""; // the story lines played as a scene before this screen
   $("resGoals").innerHTML =
     (unlocked ? `<div class="meta res-unlock r-legendary">LEGENDARY UNLOCKED: ${unlocked.name}! Equip it in the Inventory.</div>` : "") +
     (gm ? gm.goals.map((gl, i) => `<div class="${won && met[i] ? "ok" : ""}">${goalText(gl)}</div>`).join("") : "");
@@ -166,7 +217,7 @@ function showResults() {
   if (camp) {
     const nextG = camp.gi < 5 ? [camp.ci, camp.gi + 1] : camp.ci < CAMP.length - 1 ? [camp.ci + 1, 0] : null;
     if (won && nextG) acts.push(["NEXT GAME", "pri", () => openStory(...nextG)]);
-    acts.push(["RETRY", won ? "" : "pri", () => openStory(camp.ci, camp.gi)]);
+    acts.push(["RETRY", won ? "" : "pri", () => openStory(camp.ci, camp.gi, 1)]);
     acts.push(["CAMPAIGN", "", () => pickCamp(camp.cid)]);
   } else {
     acts.push(["PLAY AGAIN", "pri", () => openSel(0)]);

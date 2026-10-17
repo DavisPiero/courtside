@@ -129,6 +129,7 @@ function vmUpd() {
 }
 function hud() {
   vmUpd();
+  chatterUpd();
   const p = G.pl[G.ctrl],
     n = NM[G.ctrl];
   $("hn").textContent = TM[0].c;
@@ -175,6 +176,7 @@ function loop(t) {
   portraits();
   invPreview();
   heroPreview();
+  scenePreview();
   touchUpd();
 }
 function pause() {
