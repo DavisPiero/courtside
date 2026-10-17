@@ -76,12 +76,13 @@
 
 <!-- Setup: teams, mode, court, difficulty -->
 <div id="setup" class="scr">
-  <header class="su-top"><span>PLAY NOW</span><b>COURTSIDE</b><span>TEAM SELECT</span></header>
+  <header class="su-top"><span>PLAY NOW</span><div class="seg lg" id="lgSeg"><button data-v="nba" data-tip="Today's NBA teams and stars.">NBA</button><button data-v="hof" data-tip="Every team's three best players of all time.">HALL OF FAME</button></div><span>TEAM SELECT</span></header>
   <div class="su-main">
     <section class="side" id="sideA"></section>
     <section class="side r" id="sideB"></section>
     <div class="roster" id="roster"></div>
   </div>
+  <div id="grid"><div class="gbox pnl"><div class="ghead"><b id="gridTitle"></b><button class="btn" id="gridX">CLOSE</button></div><div class="gtiles" id="gridTiles"></div></div></div>
   <footer class="su-bot">
     <div class="opt"><i>MODE</i><div class="seg" data-k="mode"><button data-v="clean" data-tip="Straight basketball: dribble, pass, shoot, steal and block. No punches or slides.">CLEAN</button><button data-v="mayhem" data-tip="No rules: punch to drop players and steal the ball, slide-tackle the ball carrier. Chaos!">MAYHEM</button></div></div>
     <div class="opt"><i>COURT</i><div class="seg" data-k="court"><button data-v="arena">ARENA</button><button data-v="street">STREET</button></div></div>
@@ -238,6 +239,7 @@
 </div>
 
 <script src="js/teams.js"></script>
+<script src="js/hof.js"></script>
 <script src="js/settings.js"></script>
 <script src="js/save.js"></script>
 <script src="js/packs.js"></script>

@@ -46,7 +46,7 @@ const DIFF = [
   { name: "ROOKIE", sp: 0.84, stealRate: 0.08, stealWin: 0.25, gap: 1.4, shotQ: -0.18, pick: 0.4, react: 4, squeeze: 0.25 },
   { name: "PRO", sp: 0.94, stealRate: 0.22, stealWin: 0.4, gap: 0, shotQ: 0, pick: 1, react: 6, squeeze: 0.45 },
   { name: "ALL-STAR", sp: 1.0, stealRate: 0.4, stealWin: 0.5, gap: -0.4, shotQ: 0.1, pick: 1.5, react: 8, squeeze: 0.65 },
-  { name: "HALL OF FAMER", sp: 1.05, stealRate: 0.65, stealWin: 0.6, gap: -0.8, shotQ: 0.2, pick: 2.2, react: 11, squeeze: 0.85 },
+  { name: "HALL OF FAMER", sp: 1.03, stealRate: 0.55, stealWin: 0.55, gap: -0.6, shotQ: 0.16, pick: 1.9, react: 10, squeeze: 0.8 },
 ];
 // Your AI teammates always play at Pro; the opponents play at the chosen level.
 const dk = (p) => (p.t === 1 ? DIFF[OPT.diff] : DIFF[1]);

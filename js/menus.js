@@ -78,7 +78,9 @@ function drawSettings() {
 }
 
 // ---------- setup screen: teams side by side (after the reference), then mode, court and difficulty
-const SEL = { a: DEFAULT_TEAMS[0], b: DEFAULT_TEAMS[1], pr: 0 };
+const SEL = { a: DEFAULT_TEAMS[0], b: DEFAULT_TEAMS[1], pr: 0, lg: "nba", grid: -1 };
+// The teams of the league picked at the top of the setup screen (NBA or Hall of Fame).
+const LT = () => LEAGUES[SEL.lg].teams;
 function openSel(pr) {
   ac();
   SEL.pr = pr;
@@ -100,20 +102,29 @@ const star = (t) => t.p.reduce((a, q, i) => (q[2] > t.p[a][2] ? i : a), 0);
 const accent = (t) => (t.t === "#22242c" ? "#c7cfe0" : t.t);
 function drawSel() {
   const side = (el, ti, right) => {
-    const t = TEAMS[ti],
+    const t = LT()[ti],
       r = ratings(t),
       rings = Object.entries(r).map(([k, v]) => `<div class="ring"><b>${v}</b><i>${k}</i></div>`),
-      arrows = `<button class="arr" data-d="-1" aria-label="Previous team">‹</button><b>${t.n}</b><button class="arr" data-d="1" aria-label="Next team">›</button>`;
+      arrows = `<button class="arr" data-d="-1" aria-label="Previous team">‹</button><button class="tpick" data-tip="Pick from all 30 teams">${t.n}<small>▼</small></button><button class="arr" data-d="1" aria-label="Next team">›</button>`;
     el.style.setProperty("--tc", t.k);
     el.innerHTML = `<div class="wm">${t.c}</div><canvas class="port"></canvas>
       <div class="info"><i class="lbl">${right ? "OPPONENT" : "YOUR TEAM"}</i><div class="tn">${arrows}</div>
       <div class="city">${t.city}</div><div class="rings">${(right ? rings : rings.reverse()).join("")}</div></div>`;
     el.querySelectorAll(".arr").forEach((b) => (b.onclick = () => cycle(right, +b.dataset.d)));
+    el.querySelector(".tpick").onclick = () => openGrid(right);
   };
+  $("lgSeg").querySelectorAll("button").forEach((b) => {
+    b.classList.toggle("on", b.dataset.v === SEL.lg);
+    b.onclick = () => {
+      SEL.lg = b.dataset.v;
+      drawSel();
+    };
+  });
+  $("setup").classList.toggle("hof", SEL.lg === "hof");
   side($("sideA"), SEL.a, 0);
   side($("sideB"), SEL.b, 1);
-  const A = TEAMS[SEL.a].p,
-    B = TEAMS[SEL.b].p;
+  const A = LT()[SEL.a].p,
+    B = LT()[SEL.b].p;
   $("roster").innerHTML =
     `<div class="ra">${A.map((q) => `${q[0]} <u>${q[2]}</u><span>${q[1]}</span>`).join("<br>")}</div><i class="sep"></i>` +
     `<div>${B.map((q) => `<span>${q[1]}</span><u>${q[2]}</u> ${q[0]}`).join("<br>")}</div>`;
@@ -130,10 +141,39 @@ function drawSel() {
 }
 // Step one side through the teams, skipping the team the other side has.
 function cycle(right, d) {
-  const n = TEAMS.length;
+  const n = LT().length;
   if (right) do SEL.b = (SEL.b + d + n) % n; while (SEL.b === SEL.a);
   else do SEL.a = (SEL.a + d + n) % n; while (SEL.a === SEL.b);
   drawSel();
+}
+// Team grid: every team in the league as a colour tile. right: picking the opponent.
+function openGrid(right) {
+  SEL.grid = right;
+  const mine = right ? SEL.b : SEL.a,
+    other = right ? SEL.a : SEL.b;
+  $("gridTitle").textContent = (right ? "CHOOSE THE OPPONENT" : "CHOOSE YOUR TEAM") + " · " + LEAGUES[SEL.lg].name;
+  $("gridTiles").innerHTML = LT()
+    .map((t, i) => {
+      const r = ratings(t);
+      return `<button class="tile${i === mine ? " on" : ""}" data-i="${i}" style="--tc:${t.k};--tt:${accent(t)}"${i === other ? " disabled" : ""}>
+        <b>${t.c}</b><span>${t.n}</span><i>${r.OVR}</i></button>`;
+    })
+    .join("");
+  $("gridTiles").querySelectorAll(".tile").forEach(
+    (b) =>
+      (b.onclick = () => {
+        if (right) SEL.b = +b.dataset.i;
+        else SEL.a = +b.dataset.i;
+        closeGrid();
+        drawSel();
+      }),
+  );
+  $("gridX").onclick = closeGrid;
+  $("grid").classList.add("on");
+}
+function closeGrid() {
+  SEL.grid = -1;
+  $("grid").classList.remove("on");
 }
 // Portraits: the team's star drawn with the in-game model, large, dribbling. Redrawn every frame while visible.
 const PORT = [],
@@ -141,8 +181,8 @@ const PORT = [],
   PW = 260,
   PH = 440;
 // A standalone model for menus: player ti/i of TEAMS, drawn by the in-game sprite builder.
-function portraitPlayer(ti, i, id, hand) {
-  const t = TEAMS[ti],
+function portraitPlayer(ti, i, id, hand, list) {
+  const t = (list || TEAMS)[ti],
     q = t.p[i];
   return {
     ti, pi: i, id, team: t, look: ti * 3 + i, sk: SK[q[10]], pos: q[1], ht: q[3],
@@ -211,7 +251,10 @@ function portraits() {
     const cv2 = el.querySelector("canvas.port");
     if (!cv2) continue;
     let P0 = PORT[right];
-    if (!P0 || P0.ti !== ti) P0 = PORT[right] = portraitPlayer(ti, star(TEAMS[ti]), 6 + right, right ? 1 : -1);
+    if (!P0 || P0.ti !== ti || P0.lg !== SEL.lg) {
+      P0 = PORT[right] = portraitPlayer(ti, star(LT()[ti]), 6 + right, right ? 1 : -1, LT());
+      P0.lg = SEL.lg;
+    }
     P0.port.t = T;
     P0.port.ball = [0.95, P0.hand * 0.6, 0.55 + Math.abs(Math.sin(T * 5.5)) * 2.6];
     renderModel(cv2, P0, right ? -0.75 : 0.75);

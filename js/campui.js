@@ -167,7 +167,7 @@ const QUICK_BONUS = 100; // every finished Quick Play game pays this, win or los
 function startQuick(pr) {
   G.rules = { ...RULES_STD, ...QUICK_RULES };
   G.camp = null;
-  setTeams(SEL.a, SEL.b);
+  setTeamObjs(LT()[SEL.a], LT()[SEL.b]);
   start(pr);
 }
 
