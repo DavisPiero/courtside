@@ -121,12 +121,74 @@ window.addEventListener("error", (e) => {
 rs();
 init();
 if (/[?&]smoke\b/.test(location.search)) smoke();
+else if (/[?&]fitcheck\b/.test(location.search)) document.fonts.ready.then(fitCheck); // sizes need the real font
 else {
   requestAnimationFrame(loop);
   // ?device=pc or ?device=touch skips the loading and device screens (for testing).
   const dv = (location.search.match(/[?&]device=(pc|touch)/) || [])[1];
   if (dv) chooseDevice(dv);
   else bootLoad();
+}
+
+// Fit check (tools/smoke.sh runs it at iPad and phone sizes): opens every menu screen on touch and lists any
+// button that is off the screen or hidden under something. Buttons inside a scrolling list don't count.
+function fitCheck() {
+  const out = [],
+    bad = [],
+    hide = () => document.querySelectorAll(".scr").forEach((s) => s.classList.remove("on"));
+  const check = (id) => {
+    fitScreens();
+    for (const b of $(id).querySelectorAll("button, input")) {
+      const r = b.getBoundingClientRect();
+      // a scrolling list, or the scrolling middle of a panel, may hide buttons; a pinned button row may not
+      if (!r.width || !r.height || b.closest(".rows") || (b.closest(".fitscroll") && !b.closest(".fitscroll > .act"))) continue;
+      const off = r.bottom > innerHeight + 1 || r.right > innerWidth + 1 || r.top < -1 || r.left < -1,
+        h = off ? null : document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+      if (off || !h || !(b === h || b.contains(h))) bad.push(`${id}: ${(b.textContent || b.id).trim().slice(0, 20)}`);
+    }
+    const p = $(id).querySelector(":scope > .box, :scope > .dv, :scope > .menu-l"),
+      m = p && p.style.transform.match(/scale\(([\d.]+)\)/);
+    out.push(`${id.padEnd(9)} ${m ? "shrunk to " + Math.round(m[1] * 100) + "%" : "fits"}${p && p.classList.contains("fitscroll") ? ", scrolls" : ""}`);
+  };
+  const run = (id, fn) => {
+    try {
+      hide();
+      fn();
+      check(id);
+    } catch (e) {
+      bad.push(`${id}: ERROR ${e.message}`);
+    }
+  };
+  chooseDevice("touch");
+  SAVE.name = SAVE.name || "ROOKIE";
+  run("menu", () => show("menu"));
+  run("device", () => show("device"));
+  run("setup", () => openSel());
+  run("hero", () => openHero());
+  run("campPick", () => $("campPick").classList.add("on"));
+  run("camp", () => pickCamp("street"));
+  run("mini", () => openMini());
+  run("shop", () => openShop());
+  run("inv", () => openInv());
+  run("lab", () => openLab());
+  run("sets", () => openSettings("menu"));
+  run("sign", () => openSign(() => {}));
+  run("pause", () => $("pause").classList.add("on"));
+  run("tutc", () => $("tutc").classList.add("on"));
+  run("res", () => {
+    // a won boss game: the longest results screen
+    CUI.cid = "street";
+    CAMP = CAMPAIGNS.street.chapters;
+    startCamp(2, 5);
+    G.home = 22;
+    G.away = 2;
+    G.run = 0;
+    showResults();
+  });
+  const pre = document.createElement("pre");
+  pre.id = "smoke";
+  pre.textContent = `${bad.length ? "FIT FAIL" : "FIT PASS"} ${innerWidth}x${innerHeight}\n${out.join("\n")}${bad.length ? "\nOFF SCREEN:\n" + bad.join("\n") : ""}`;
+  document.body.appendChild(pre);
 }
 
 // Smoke test (tools/smoke.sh): AI plays both teams for a 2-minute quarter in every mode, court and difficulty.

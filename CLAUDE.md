@@ -19,7 +19,8 @@ where we are, HANDOFF.md for how the last session ended.
   http://localhost:8791/?mute (the preview config in `.claude/launch.json` serves it).
   Always test with `?mute` so no sound plays. `&device=pc` or `&device=touch` skips the
   loading and device screens.
-- Smoke test (loads the game headless, plays every mode/court/difficulty and each minigame, reports scores):
+- Smoke test (loads the game headless, plays every mode/court/difficulty and each minigame, reports scores,
+  then opens every menu screen at iPad and phone sizes and fails if a button is off screen):
   `./tools/smoke.sh`
 - Sound: `M` mutes effects. Run it muted when testing.
 

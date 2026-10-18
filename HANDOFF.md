@@ -1,25 +1,26 @@
 # Hand-off for the next session
 
-_Written 2026-10-18 (session 4). Replace this file at the end of each session; don't add a second one._
+_Written 2026-10-18 (session 5, screen fit). Replace this file at the end of each session; don't add a second one._
 
 ## State of the repo
-- Session 4 is merged to `main` and pushed (live). No open branches.
-- `./tools/smoke.sh` passes; it now also plays the 3-point contest, dunk contest and 1-on-1 with the AI.
+- Branch `session5-fit` holds the screen-fit work, committed, not merged. `main` is still session 4 (live).
+- `./tools/smoke.sh` passes, including the new fit check at 1180x688, 1180x760, 844x350, 667x300, 1280x720.
 
-## Read first
-1. `CLAUDE.md` (code map has 5 new files). 2. `STATE.md` for open questions. 3. `SPEC.md` (new Minigames and
-Showtime sections). 4. `DECISIONS.md`.
+## What changed
+- `js/menus.js` "fit to screen": `fitPanel()` shrinks any `.scr.on > .box / .dv / .menu-l` that is too big
+  (down to `FIT_MIN` 0.75), re-centres it, and past that adds `.fitscroll` (panel scrolls, last `.act` row
+  sticks to the bottom). A MutationObserver plus resize re-fits on any screen change.
+- New screens: put the bottom buttons in a `<div class="act">` as the panel's last child so they get pinned.
+- `js/main.js` `fitCheck()` (`index.html?fitcheck`): opens every menu screen on touch, lists off-screen buttons.
+  It waits for the font, because the fallback font is wider and gives false failures.
+- CSS: two-across main menu under 760 px tall; compact menu and team-select footer under 340 px tall;
+  team select stacks only in portrait.
 
 ## How to work on it
-- Test muted: `http://localhost:8791/?mute&device=pc` via the `courtside` preview config.
-- The browser pane caches scripts hard: fetch every script with `{cache: "reload"}`, then reload.
-- A hidden pane pauses the game: set `pause = () => {}` and drive it by hand: `step(1/120); T += 1/120;`.
-- Back up `localStorage["courtside.save.v1"]` before testing and restore it after (testing writes `SAVE.hooper`).
-- Players can be left out of a game with `p.gone = 1` (minigames, tutorial); `park()` keeps them off court.
-- `G.mg` is the running minigame, `G.win` the win celebration, `G.bb` a live buzzer shot, `G.fire[t]` On Fire.
-- New dunks with special motion go in `RIM_FX` (js/anim.js): high, slow, spin (count), glide, honey, trail, turn.
-- `styleOf()` returns the dunk-contest round's dunk while one is running.
+- Test muted: `http://localhost:8791/?mute&device=touch` via the `courtside` preview config.
+- The browser pane caches scripts hard: fetch every changed file with `{cache: "reload"}`, then reload.
+- Back up `localStorage["courtside.save.v1"]` before testing and restore it after.
 
 ## What comes next
-- David's notes and answers to STATE.md's open questions.
-- Phone/iPad check (the tutorial panel and OOP button on touch especially) and an outside playtest.
+- David checks it on the real iPad (Safari with the tab bar) and signs off, then merge.
+- STATE.md's open questions; an outside playtest.
