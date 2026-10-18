@@ -102,3 +102,6 @@ One line each, newest last.
 - 2026-10-18 · Codes on touch use Courtside's own keyboard; the iPad keyboard failed twice. Keys use pointerdown so the double-tap blocker can't eat fast taps.
 - 2026-10-18 · Shop, Inventory and Settings BACK no longer follows the scroll; it sits at the end (David). Pop-ups and other panels keep the pinned row.
 - 2026-10-18 · Every coin reward up about 25% (David: more things to buy); prices unchanged.
+- 2026-10-18 · Daily challenges plus a daily reward (David). Reward ladder never resets on a missed day (kinder for a kid); challenges picked from the date so everyone gets the same three.
+- 2026-10-18 · Launched sneaker look confirmed by David (purple and black high-top, orange rocket flame, glowing purple sole).
+- 2026-10-18 · Win streak not built (David unsure).

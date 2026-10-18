@@ -848,3 +848,46 @@ body .ckeys .ckey.del { flex-basis: 84px; color: var(--gold); }
   body.touch .chip { padding: 5px 10px 7px; } .chip i { font-size: 12px; }
   .su-bot .act .btn { padding: 8px 14px 10px; font-size: 19px; }
 }
+
+/* ---------- DAILY: today's reward and three challenges (js/daily.js) */
+.mtop { position: absolute; top: 18px; right: 18px; display: flex; gap: 10px; align-items: center; z-index: 4; }
+.dailyb { position: relative; padding: 8px 14px 10px; font-size: 22px; color: var(--gold); }
+body.touch .dailyb { padding: 8px 14px 10px; font-size: 22px; }
+.dailyb.new::after { content: ""; position: absolute; top: 4px; right: 4px; width: 10px; height: 10px; background: #ff3d5a; box-shadow: 0 0 0 2px #0a0f22; animation: dlyPulse 1s steps(2) infinite; }
+@keyframes dlyPulse { 50% { opacity: 0.35; } }
+#daily { position: absolute; inset: 0; z-index: 9; display: none; place-items: center; background: rgba(4, 6, 14, 0.82); }
+#daily.on { display: grid; }
+.dlybox { width: min(760px, 94vw); max-height: calc(100vh - 20px); max-height: calc(100dvh - 20px); overflow-y: auto; padding: 18px 22px 22px; display: flex; flex-direction: column; gap: 12px; }
+.dlybox h2 { font: 400 44px/1 var(--px); margin: 0; }
+.dlybox h3 { margin: 4px 0 0; font: 400 22px/1 var(--px); letter-spacing: 0.1em; color: var(--gold); display: flex; justify-content: space-between; gap: 10px; }
+.dlybox h3 small { font-size: 17px; color: var(--muted); letter-spacing: 0.04em; }
+.ddays { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.dday { display: grid; justify-items: center; gap: 4px; padding: 8px 4px 10px; background: var(--panel2); clip-path: var(--notch); box-shadow: inset 0 0 0 2px var(--edge); }
+.dday i { font: 400 14px/1 var(--px); font-style: normal; color: var(--muted); letter-spacing: 0.08em; }
+.dday b { font: 400 26px/1 var(--px); color: #fff; }
+.dday span { font: 400 14px/1 var(--px); color: var(--muted); text-align: center; }
+.dday.now { background: var(--gold); box-shadow: inset 0 0 0 2px #fff1c2; }
+.dday.now i, .dday.now b, .dday.now span { color: #1a1408; }
+.dday.got { opacity: 0.45; }
+.dday.got b::after { content: " ✓"; color: var(--good); }
+.dlybox > .btn.pri { align-self: center; }
+.dchs { display: grid; gap: 8px; }
+.dch { display: grid; grid-template-columns: 1fr auto auto; gap: 14px; align-items: center; padding: 10px 14px 12px; background: var(--panel2); clip-path: var(--notch); }
+.dch b { display: block; font: 400 21px/1.1 var(--px); }
+.dch div i { display: block; height: 6px; margin-top: 6px; background: linear-gradient(90deg, var(--gold) var(--p), #0a0f22 var(--p)); }
+.dch span { font: 400 20px/1 var(--px); color: var(--muted); }
+.dch em { font: 400 20px/1 var(--px); font-style: normal; color: var(--gold); }
+.dch.ok { box-shadow: inset 0 0 0 2px var(--good); }
+.dch.ok span { color: var(--good); }
+.dlybox .act { justify-content: center; }
+/* small phones: the pop-up scrolls a little and CLOSE stays pinned at the bottom */
+.dlybox .act { position: sticky; bottom: -22px; margin: 0 -22px -22px; padding: 8px 22px 12px; background: var(--panel); box-shadow: 0 -2px 0 var(--edge); }
+@media (max-height: 520px) {
+  .mtop { top: 10px; right: 10px; }
+  .dlybox { gap: 6px; padding: 10px 14px 12px; } .dlybox h2 { display: none; }
+  .dlybox h3 { font-size: 18px; } .dday { padding: 4px 2px 6px; } .dday b { font-size: 20px; } .dday span { display: none; }
+  .dch { padding: 4px 10px 5px; gap: 10px; } .dch b { font-size: 17px; } .dch span, .dch em { font-size: 17px; } .dch div i { height: 4px; margin-top: 3px; } .dchs { gap: 5px; }
+  body .dlybox .btn { padding: 5px 16px 7px; font-size: 19px; }
+  .dlybox .act { bottom: -12px; margin: 0 -14px -12px; padding: 6px 14px 8px; }
+}
+.dlybox > .btn:disabled { opacity: 0.5; filter: saturate(0.4); }

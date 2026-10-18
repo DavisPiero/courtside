@@ -8,6 +8,8 @@ function show(id) {
   for (const s of SCREENS) $(s) && $(s).classList.toggle("on", s === id);
   if (typeof ccShow === "function") ccShow();
   if (id === "menu" && typeof payday === "function") payday();
+  if (id === "menu" && typeof dailyAuto === "function") dailyAuto();
+  else if (typeof closeDaily === "function") closeDaily();
 }
 // Main menu: PLAY slides the main buttons out to the left and Campaign, Quick Play and Minigames in from the
 // right; BACK slides them back. now: jump there without the slide (coming back from another screen).

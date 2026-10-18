@@ -207,8 +207,10 @@ function mgEnd() {
   const pay = M.pay(score, won);
   rows.push([m.k === "1v1" ? (won ? "Win" : "Played") : `Score ${score}`, pay]);
   if (best) rows.push(["New best!", MINI_BEST_BONUS]);
+  SAVE.cc += rows.reduce((a, r) => a + r[1], 0);
+  // daily challenges pay themselves
+  rows.push(...dailyEvent({ mini: m.k, won, margin: G.home - G.away, st: G.st, court: OPT.court, diff: OPT.diff, score }));
   const total = rows.reduce((a, r) => a + r[1], 0);
-  SAVE.cc += total;
   writeSave();
   G.mg = null;
   $("res").classList.toggle("won", won);

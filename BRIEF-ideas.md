@@ -1,6 +1,7 @@
 # Brief: new things to add
 
-Status (2026-10-18, session 6b): ideas only. Nothing here is built until David picks it. The core-game ideas
+Status (2026-10-18, session 6b): ideas only, except daily challenges (1), built in 6b together with a daily reward.
+David isn't sure about the win streak (2). The core-game ideas
 (fluid controls, choices that beat each other) are in BRIEF-gameplay.md; this list is everything around the game.
 Each has a size: S (an afternoon), M (a session), L (more than a session).
 

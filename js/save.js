@@ -23,6 +23,7 @@ const SAVE = {
   codes: [], // codes already redeemed in the Shop
   hooper: null, // your hooper's eight stats (js/hooper.js); null until first worked out from your progress
   best: {}, // best scores in the minigames
+  daily: null, // today's challenges and the daily-reward ladder (js/daily.js)
 };
 // The story was rewritten in session 2 (2026-10-17), so campaign progress starts again once.
 // Coins, animations and what you have equipped are kept.

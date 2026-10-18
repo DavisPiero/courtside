@@ -32,6 +32,7 @@ addEventListener("keydown", (e) => {
     const back = { inv: "menu", shop: "menu", open: "shop", campPick: "play", camp: "campPick", story: "camp", hero: "play", mini: "play" };
     if ($("open").classList.contains("on")) return openShop();
     if ($("lab").classList.contains("on")) return $("bLabX").click();
+    if ($("daily").classList.contains("on")) return closeDaily();
     if ($("menu").classList.contains("on")) return menuSlide(0);
     for (const k in back) if ($(k).classList.contains("on")) return back[k] === "play" ? showPlay() : show(back[k]);
   }
@@ -153,7 +154,7 @@ function fitCheck() {
   const check = (id) => {
     fitScreens();
     // with a pop-up open, only its buttons matter (the screen behind is covered on purpose)
-    const root = pickOpen() && id === "setup" ? $("pick") : $(id);
+    const root = pickOpen() && id === "setup" ? $("pick") : id === "menu" && $("daily").classList.contains("on") ? $("daily") : $(id);
     for (const b of root.querySelectorAll("button, input")) {
       const r = b.getBoundingClientRect();
       // a scrolling list, or the scrolling middle of a panel, may hide buttons; a pinned button row may not
@@ -187,6 +188,7 @@ function fitCheck() {
   run("setup", () => (closePick(), openSel()));
   run("hero", () => openHero());
   run("menu", showPlay);
+  run("menu", () => (show("menu"), openDaily()));
   run("campPick", () => $("campPick").classList.add("on"));
   run("camp", () => pickCamp("street"));
   run("mini", () => openMini());

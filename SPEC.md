@@ -52,6 +52,15 @@ bubble under the scoreboard (dunks, ankle breakers, comebacks, half time, close 
 Beating a chapter's boss for the first time wins a free All-Star Pack (open it from the results, or later from
 the Shop's Packs tab). Campaign progress was reset once for the new story (2026-10-17); coins and animations kept.
 
+## Daily
+A ★ DAILY button next to your coins on the main menu (a red dot while today's reward is waiting). It opens by
+itself the first time the menu shows each day.
+- **Daily reward:** a 7-day ladder, one step each day you play (missing a day doesn't reset it), then it starts
+  again: 100 CC, 150 CC, Street Pack, 250 CC, Shoebox, 400 CC, All-Star Pack. Packs and boxes wait in the Shop.
+- **Daily challenges:** three a day (easy 75 CC, medium 100, hard 150), the same for everyone on the same date,
+  new at midnight. Quick Play, campaign games and minigames count (not Practice). A challenge pays as soon as it's
+  done, shown on the results screen; punches don't cut it. Examples: play 2 games, dunk 6 times, win by 10 or more.
+
 ## Court Coins (CC), the Shop and the Inventory
 Earn CC for winning and for style (perfect releases, dunks, ankle breakers, threes, steals, blocks), plus new
 stars and first wins in the campaign, plus 125 CC for every finished Quick Play game, minigames and your NBA

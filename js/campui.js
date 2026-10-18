@@ -217,6 +217,8 @@ function showResults() {
   // Punches a "drop N players" goal needs are free: two thrown for each drop asked for.
   const dropGoal = gm && gm.goals.find((gl) => gl.k === "drops");
   const pay = payout(won, extra, dropGoal ? dropGoal.n * 2 : 0);
+  // daily challenges are paid on top (punches don't cut them)
+  for (const r of dailyEvent({ mini: "", won, margin: G.home - G.away, st: G.st, court: OPT.court, diff: OPT.diff, score: G.home })) pay.rows.push(r), (pay.total += r[1]);
   $("res").classList.toggle("won", won);
   $("resTitle").textContent = won ? (camp && gm.outro && camp.gi === 5 ? "BOSS DOWN!" : "WIN!") : G.home === G.away ? "TIE" : "LOSS";
   $("resScore").textContent = `${TM[0].c} ${G.home} – ${G.away} ${TM[1].c}`;

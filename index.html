@@ -61,8 +61,18 @@
 
 <!-- Main menu -->
 <div id="menu" class="scr">
-  <div class="cc ccbal top">0 CC</div>
+  <div class="mtop"><button class="btn dailyb" id="bDaily">★ DAILY</button><div class="cc ccbal">0 CC</div></div>
   <div class="payday" id="payday"></div>
+  <!-- DAILY: today's reward and three challenges (js/daily.js) -->
+  <div id="daily"><div class="pnl dlybox">
+    <h2>DAILY</h2>
+    <h3>DAILY REWARD</h3>
+    <div class="ddays" id="dlyDays"></div>
+    <button class="btn pri" id="bDlyClaim">CLAIM</button>
+    <h3>TODAY'S CHALLENGES <small id="dlyTime"></small></h3>
+    <div class="dchs" id="dlyList"></div>
+    <div class="act"><button class="btn" id="bDlyX">CLOSE</button></div>
+  </div></div>
   <div class="menu-l">
     <div class="brand">COURT<em>SIDE</em></div>
     <button class="btn tutb" id="bTut">▶ TUTORIAL</button>
@@ -314,6 +324,7 @@
 <script src="js/tutorial.js"></script>
 <script src="js/story.js"></script>
 <script src="js/shop.js"></script>
+<script src="js/daily.js"></script>
 <script src="js/touch.js"></script>
 <script src="js/main.js"></script>
 </body>

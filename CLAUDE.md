@@ -36,6 +36,7 @@ where we are, HANDOFF.md for how the last session ended.
 - `js/campaign.js` campaign chapters, games, every story line, goals; your crew; NBA career (teams, offers, salary)
 - `js/campui.js` campaign, hooper, story card, results, team choice screens; daily payday
 - `js/story.js` story scenes (characters talking) and in-game chatter
+- `js/daily.js` daily reward ladder and three daily challenges (pool, rewards), the DAILY pop-up
 - `js/shop.js` Shop (Daily Shop, Packs, Player Packs, Shoeboxes, Codes), pack opening and unboxing
 - `js/touch.js` touch controls for Mobile / Tablet
 - `js/core.js` helpers, options and difficulty, global state, screen sizing
