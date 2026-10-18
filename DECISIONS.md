@@ -92,3 +92,8 @@ One line each, newest last.
 - 2026-10-18 · Smoke test checks every menu screen at 5 sizes (iPad with/without tab bar, two iPhones, laptop) for off-screen buttons.
 - 2026-10-18 · Session 6: "ragdolly" means fluid controls, not floppy bodies (David). Real ragdoll only for ankle breakers and punches; no trailing arms, no hit-freeze or glitch on punches, they just drop.
 - 2026-10-18 · Screen fit, second round: panels no longer shrink by scale (caused floating buttons and tab-to-tab size jumps); fixed frame per screen, scrolling middle, button row at the bottom.
+- 2026-10-18 · Main menu: one big yellow PLAY (Campaign, Quick Play, Minigames behind it); Practice stays on the main menu as the quick way in.
+- 2026-10-18 · Quick Play mode/court/difficulty are chips with pop-ups (David); the pop-up shows what each choice means, which also works on touch (no hover tips).
+- 2026-10-18 · Bloom off by default and half strength (David); old saved settings switched off once.
+- 2026-10-18 · On Fire outline on the whole team plus the ball; meter zone glows orange (David's idea).
+- 2026-10-18 · Code SNEAKERHEAD: Launched (Gametime sneaker) + a free Premium Shoebox, saved like free packs (SAVE.freeBox).
