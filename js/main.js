@@ -140,10 +140,12 @@ function fitCheck() {
     hide = () => document.querySelectorAll(".scr").forEach((s) => s.classList.remove("on"));
   const check = (id) => {
     fitScreens();
-    for (const b of $(id).querySelectorAll("button, input")) {
+    // with a pop-up open, only its buttons matter (the screen behind is covered on purpose)
+    const root = pickOpen() && id === "setup" ? $("pick") : $(id);
+    for (const b of root.querySelectorAll("button, input")) {
       const r = b.getBoundingClientRect();
       // a scrolling list, or the scrolling middle of a panel, may hide buttons; a pinned button row may not
-      if (!r.width || !r.height || b.closest(".rows") || (b.closest(".fitscroll") && !b.closest(".fitscroll > .act"))) continue;
+      if (!r.width || !r.height || b.closest(".rows") || b.closest(".pgrid") || (b.closest(".fitscroll") && !b.closest(".fitscroll > .act"))) continue;
       const off = r.bottom > innerHeight + 1 || r.right > innerWidth + 1 || r.top < -1 || r.left < -1,
         h = off ? null : document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
       if (off || !h || !(b === h || b.contains(h))) bad.push(`${id}: ${(b.textContent || b.id).trim().slice(0, 20)}`);

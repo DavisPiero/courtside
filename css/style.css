@@ -562,7 +562,9 @@ body.cine #say { opacity: 0; }
 body.touch .chip { padding: 12px 18px 14px; } body.touch .chip b { font-size: 27px; }
 #pick { position: absolute; inset: 0; z-index: 9; display: none; place-items: center; background: rgba(4, 6, 14, 0.82); }
 #pick.on { display: grid; }
-.pickbox { width: min(820px, 94vw); max-height: calc(100dvh - 20px); overflow: auto; padding: 18px 22px 22px; display: grid; gap: 14px; }
+.pickbox { width: min(820px, 94vw); max-height: calc(100vh - 20px); max-height: calc(100dvh - 20px); padding: 18px 22px 22px; display: flex; flex-direction: column; gap: 14px; }
+/* the options scroll on a short screen; CLOSE stays put */
+.pickbox .pgrid { overflow-y: auto; min-height: 0; flex: 1 1 auto; overscroll-behavior: contain; }
 .pickbox h2 { font: 400 44px/1 var(--px); margin: 0; }
 .pgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
 .pg-mode, .pg-diff { grid-template-columns: 1fr 1fr; }
@@ -575,7 +577,7 @@ body.touch .chip { padding: 12px 18px 14px; } body.touch .chip b { font-size: 27
 .popt.on b::after { content: " ✓"; color: var(--gold); }
 :root { --c-arena: linear-gradient(160deg, #1d2a5a, #8a5428); --c-street: linear-gradient(160deg, #3a2f52, #c0602e); --c-roof: linear-gradient(160deg, #0f1636, #4b3a8f);
   --c-beach: linear-gradient(160deg, #a8502a, #1f5f7a); --c-cage: linear-gradient(160deg, #1d2420, #9a6a20); }
-@media (max-height: 520px) { .pickbox h2 { font-size: 32px; } .popt { padding: 10px 12px 12px; } .popt b { font-size: 24px; } .popt span { font-size: 15px; } .chip { padding: 6px 12px 8px; min-width: 120px; } .chip b, body.touch .chip b { font-size: 20px; } }
+@media (max-height: 520px) { .pickbox { gap: 8px; padding: 10px 14px 12px; } .pgrid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 6px; } .pickbox h2 { font-size: 32px; } .popt { padding: 10px 12px 12px; } .popt b { font-size: 24px; } .popt span { font-size: 15px; } .chip { padding: 6px 12px 8px; min-width: 120px; } .chip b, body.touch .chip b { font-size: 20px; } }
 #grid { position: absolute; inset: 0; z-index: 8; display: none; place-items: center; background: rgba(4, 6, 14, 0.82); }
 #grid.on { display: grid; }
 .gbox { width: min(980px, 96vw); max-height: 92vh; overflow: auto; padding: 18px 20px 22px; }
