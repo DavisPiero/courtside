@@ -11,8 +11,9 @@
 ## Start-up
 Loading screen with a spinning pixel basketball, then "How are you playing?": Computer (keyboard
 and mouse) or Mobile / Tablet (touch controls). Main menu: a TUTORIAL button under the logo, one big yellow PLAY
-button, then Practice, Shop, Inventory, Settings, plus your Court Coins. PLAY opens a screen with Campaign, Quick
-Play and Minigames.
+button, then Practice, Shop, Inventory, Settings, plus your Court Coins. PLAY slides those buttons out to the left
+and brings in Campaign (big, yellow), Quick Play and Minigames (yellow) and BACK from the right, laid out the same
+way; coming back from any of them lands on these buttons.
 - **Tutorial** (first draft): on-court steps on an empty practice court that tick themselves off (move, sprint,
   dribble move, shoot, perfect release, layup/dunk, pass), then tips (alley-oops, On Fire, defence, Mayhem,
   buzzer beaters), then cards about the campaign, your hooper, the NBA career, Quick Play and minigames, coins,
@@ -35,9 +36,9 @@ Every campaign game shows a recommended rating (Street 50 to 74, NBA 75 to 90).
   If you'd play your own team, a team close to it in the rankings plays instead. Summer League, The League, The
   Finals. Rival: Zeke Knox, a made-up lottery pick (Washington, then traded to the champs, OKC, for the Finals;
   another team if you play for one of those).
-- **Contract**: signing with a new team pays a 1000 CC signing bonus (staying pays none). The contract pays once
-  a day, the first time the menu opens that day ("PAYDAY!"): 200 a day, 350 after NBA chapter 1, 500 after
-  chapter 2, 750 as champion. Missed days add up to a week.
+- **Contract**: signing with a new team pays a 1250 CC signing bonus (staying pays none). The contract pays once
+  a day, the first time the menu opens that day ("PAYDAY!"): 250 a day, 440 after NBA chapter 1, 625 after
+  chapter 2, 940 as champion. Missed days add up to a week.
 - **NBA games** are four 30-second quarters (about two minutes); goals are scaled to fit.
 - **Getting harder**: Street runs Rookie to All-Star with Hall of Famer only for its last two games; NBA runs
   Pro/All-Star to Hall of Famer. Dex and Big Lou improve with every boss beaten, up to six times; you improve by
@@ -51,10 +52,19 @@ bubble under the scoreboard (dunks, ankle breakers, comebacks, half time, close 
 Beating a chapter's boss for the first time wins a free All-Star Pack (open it from the results, or later from
 the Shop's Packs tab). Campaign progress was reset once for the new story (2026-10-17); coins and animations kept.
 
+## Daily
+A ★ DAILY button next to your coins on the main menu (a red dot while today's reward is waiting). It opens by
+itself the first time the menu shows each day.
+- **Daily reward:** a 7-day ladder, one step each day you play (missing a day doesn't reset it), then it starts
+  again: 100 CC, 150 CC, Street Pack, 250 CC, Shoebox, 400 CC, All-Star Pack. Packs and boxes wait in the Shop.
+- **Daily challenges:** three a day (easy 75 CC, medium 100, hard 150), the same for everyone on the same date,
+  new at midnight. Quick Play, campaign games and minigames count (not Practice). A challenge pays as soon as it's
+  done, shown on the results screen; punches don't cut it. Examples: play 2 games, dunk 6 times, win by 10 or more.
+
 ## Court Coins (CC), the Shop and the Inventory
 Earn CC for winning and for style (perfect releases, dunks, ankle breakers, threes, steals, blocks), plus new
-stars and first wins in the campaign, plus 100 CC for every finished Quick Play game, minigames and your NBA
-contract. Spend it in the Shop and on hooper upgrades. The **Shop** has five tabs:
+stars and first wins in the campaign, plus 125 CC for every finished Quick Play game, minigames and your NBA
+contract. (A win pays 38, a loss 13; every reward went up about a quarter in session 6b, prices did not.) Spend it in the Shop and on hooper upgrades. The **Shop** has five tabs:
 - **Daily Shop**: five single animations (a featured Iconic or Legendary, sometimes Mythic, rarely Godlike; an
   Epic, two Rares, a Common) and one shoe, the same for everyone in the same hour, **new every hour** with a
   countdown. Prices: Common 120, Rare 300, Epic 700, Legendary 1400, Iconic 2000, Mythic 4000, Godlike 10000.
@@ -67,7 +77,8 @@ contract. Spend it in the Shop and on hooper upgrades. The **Shop** has five tab
 - **Shoeboxes**: one mystery shoe each: Shoebox (100 CC), Premium Shoebox (300), Grail Box (800, the only box
   with Mythic 5% and Godlike 1%). Unboxing: the box shakes, the lid flies off, tissue paper bursts out and the
   shoe card rises out of the box and builds up like a pack card.
-- **Codes**: type a code for a reward, once per save, case sensitive. LAUNCHED: the Gametime animation
+- **Codes**: type a code for a reward, once per save, case sensitive. On touch devices the box uses Courtside's
+  own on-screen keyboard (capitals and numbers), never the iPad's. LAUNCHED: the Gametime animation
   (Liftoff) and 1000 CC. SNEAKERHEAD: the Gametime sneaker (Launched) and a free Premium Shoebox. Codes are stored scrambled, but the game is public, so a determined player could find them.
 **Opening a pack** is a show: the pack shakes and tears, cards deal out face down, and you tap each one. A card
 shakes and its glow climbs through the rarity colours (with a rising tick) before it flips; sometimes a low card
@@ -84,10 +95,10 @@ of shoes) and **sells** animations for a quarter of their shop price (press twic
 anything equipped). No real money, ever.
 
 ## Minigames
-3-POINT CONTEST (60 s, five racks of five around the arc, last ball 2 points, you just shoot; 4 CC a point),
+3-POINT CONTEST (60 s, five racks of five around the arc, last ball 2 points, you just shoot; 5 CC a point),
 DUNK CONTEST (three dunks from half court, five judges out of 10 each for rarity, speed, dribble moves on the way
-in and long take-offs; each round uses the next dunk you own, repeats lose points; CC = half the score),
-1-ON-1 (you against a top-ten team's star, full court on The Cage, first to 11; 80 CC a win). New best +25.
+in and long take-offs; each round uses the next dunk you own, repeats lose points; CC = 0.625 x the score),
+1-ON-1 (you against a top-ten team's star, full court on The Cage, first to 11; 100 CC a win, 25 a loss). New best +30.
 
 ## Showtime
 - **On Fire**: three baskets in a row without the other team scoring: flaming ball, green zone 1.5x as big (the
@@ -111,7 +122,8 @@ from the front, side or back.
 Floating joystick on the left (edge = sprint), right-thumb cluster: one big button plus two, with
 labels that change with possession (SHOOT/PASS/MOVE, or JUMP-BLOCK/SWITCH/STEAL). Punch and Slide
 in Mayhem only. Pause and camera top-left. Bigger menus on touch; compact layout on phones; every panel stays full size and
-scrolls if it's taller than the screen, with its buttons pinned at the bottom (a tabbed screen keeps one size);
+scrolls if it's taller than the screen, with its buttons pinned at the bottom, except the Shop, Inventory and
+Settings, whose BACK sits at the end of the page (a tabbed screen keeps one size);
 "turn sideways" prompt in portrait. No accidental zoom: double taps and pinches are blocked, and the
 page snaps back if a browser zooms anyway.
 

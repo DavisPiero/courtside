@@ -24,15 +24,17 @@ addEventListener("keydown", (e) => {
       e.preventDefault(); // stop the focused button (e.g. PLAY) from also being pressed
       $("bStart").click();
     }
-    if (e.code === "Escape") pickOpen() ? closePick() : SEL.grid >= 0 ? closeGrid() : show(SEL.pr ? "menu" : "playPick");
+    if (e.code === "Escape") pickOpen() ? closePick() : SEL.grid >= 0 ? closeGrid() : (SEL.pr ? show("menu") : showPlay());
     return;
   }
   // Escape steps back out of menu screens.
   if (!G.run && e.code === "Escape") {
-    const back = { inv: "menu", shop: "menu", open: "shop", campPick: "playPick", camp: "campPick", story: "camp", hero: "playPick", mini: "playPick", playPick: "menu" };
+    const back = { inv: "menu", shop: "menu", open: "shop", campPick: "play", camp: "campPick", story: "camp", hero: "play", mini: "play" };
     if ($("open").classList.contains("on")) return openShop();
     if ($("lab").classList.contains("on")) return $("bLabX").click();
-    for (const k in back) if ($(k).classList.contains("on")) return show(back[k]);
+    if ($("daily").classList.contains("on")) return closeDaily();
+    if ($("menu").classList.contains("on")) return menuSlide(0);
+    for (const k in back) if ($(k).classList.contains("on")) return back[k] === "play" ? showPlay() : show(back[k]);
   }
   if ($("sets").classList.contains("on")) {
     if (e.code === "Escape") $("bSetX").click();
@@ -75,15 +77,15 @@ $("bPlay").onclick = () => openSel(0);
 $("bPrac").onclick = () => openSel(1);
 $("bSet").onclick = () => openSettings("menu");
 $("bStart").onclick = () => startQuick(SEL.pr);
-$("bGo").onclick = () => show("playPick");
-$("bPlayX").onclick = () => show("menu");
+$("bGo").onclick = () => menuSlide(1);
+$("bPlayX").onclick = () => menuSlide(0);
 $("bCamp").onclick = openCamp;
 $("bMini").onclick = openMini;
 $("bTut").onclick = () => openTutorial();
 $("bInv").onclick = openInv;
 $("bShop").onclick = openShop;
 $("bLab").onclick = openLab;
-$("bBack").onclick = () => show(SEL.pr ? "menu" : "playPick");
+$("bBack").onclick = () => (SEL.pr ? show("menu") : showPlay());
 $("bRes").onclick = pause;
 $("bPSet").onclick = () => openSettings("pause");
 $("bQuit").onclick = quitToMenu;
@@ -138,18 +140,31 @@ function fitCheck() {
   const out = [],
     bad = [],
     hide = () => document.querySelectorAll(".scr").forEach((s) => s.classList.remove("on"));
+  // Cut off sideways by a parent that hides what's wider than itself? (A button's middle can still show.)
+  const cutSide = (el, w) => {
+    const r = el.getBoundingClientRect(),
+      right = r.left + (w || r.width);
+    for (let a = el.parentElement; a && a !== document.body; a = a.parentElement) {
+      if (getComputedStyle(a).overflowX === "visible") continue;
+      const ar = a.getBoundingClientRect();
+      if (r.left < ar.left - 1 || right > ar.right + 1) return true;
+    }
+    return right > innerWidth + 1;
+  };
   const check = (id) => {
     fitScreens();
     // with a pop-up open, only its buttons matter (the screen behind is covered on purpose)
-    const root = pickOpen() && id === "setup" ? $("pick") : $(id);
+    const root = pickOpen() && id === "setup" ? $("pick") : id === "menu" && $("daily").classList.contains("on") ? $("daily") : $(id);
     for (const b of root.querySelectorAll("button, input")) {
       const r = b.getBoundingClientRect();
       // a scrolling list, or the scrolling middle of a panel, may hide buttons; a pinned button row may not
-      if (!r.width || !r.height || b.closest(".rows") || b.closest(".pgrid") || (b.closest(".fitscroll") && !b.closest(".fitscroll > .act"))) continue;
+      if (!r.width || !r.height || b.closest(".rows") || b.closest(".pgrid") || b.closest("[inert]") || (b.closest(".fitscroll") && !b.closest(".fitscroll:not(.nopin) > .act"))) continue;
       const off = r.bottom > innerHeight + 1 || r.right > innerWidth + 1 || r.top < -1 || r.left < -1,
         h = off ? null : document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
-      if (off || !h || !(b === h || b.contains(h))) bad.push(`${id}: ${(b.textContent || b.id).trim().slice(0, 20)}`);
+      if (off || !h || !(b === h || b.contains(h)) || cutSide(b)) bad.push(`${id}: ${(b.textContent || b.id).trim().slice(0, 20)}`);
     }
+    // the logo too (David's iPad, 6b: the menu column cut off the E and the right-hand buttons)
+    for (const t of root.querySelectorAll(".brand")) if (cutSide(t, t.scrollWidth)) bad.push(`${id}: logo cut off`);
     const p = $(id).querySelector(":scope > .box, :scope > .dv, :scope > .menu-l");
     out.push(`${id.padEnd(9)} ${p && p.classList.contains("fitscroll") ? "scrolls" : "fits"}`);
     return p && p.getBoundingClientRect();
@@ -172,7 +187,8 @@ function fitCheck() {
   run("setup", () => (openSel(), openPick("diff")));
   run("setup", () => (closePick(), openSel()));
   run("hero", () => openHero());
-  run("playPick", () => show("playPick"));
+  run("menu", showPlay);
+  run("menu", () => (show("menu"), openDaily()));
   run("campPick", () => $("campPick").classList.add("on"));
   run("camp", () => pickCamp("street"));
   run("mini", () => openMini());

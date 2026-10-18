@@ -23,6 +23,7 @@ const SAVE = {
   codes: [], // codes already redeemed in the Shop
   hooper: null, // your hooper's eight stats (js/hooper.js); null until first worked out from your progress
   best: {}, // best scores in the minigames
+  daily: null, // today's challenges and the daily-reward ladder (js/daily.js)
 };
 // The story was rewritten in session 2 (2026-10-17), so campaign progress starts again once.
 // Coins, animations and what you have equipped are kept.
@@ -69,14 +70,15 @@ function ccShow() {
 }
 
 // ---------- earning Court Coins: play with style, not just win
+// (every reward went up about a quarter in session 6b, prices stayed the same)
 // Each entry: [label, stat in G.st, coins each]
 const STYLE_PAY = [
-  ["Perfect releases", "greens", 4],
-  ["Dunks", "dunks", 6],
-  ["Ankle breakers", "ankles", 5],
-  ["Threes", "threes", 3],
-  ["Steals", "stl", 3],
-  ["Blocks", "blk", 4],
+  ["Perfect releases", "greens", 5],
+  ["Dunks", "dunks", 8],
+  ["Ankle breakers", "ankles", 6],
+  ["Threes", "threes", 4],
+  ["Steals", "stl", 4],
+  ["Blocks", "blk", 5],
 ];
 // Mayhem's punch is strong, so it costs you: every punch thrown takes PUNCH_CUT % off the game's coins,
 // up to PUNCH_CAP %. free: punches a campaign goal asks for (they don't count).
@@ -84,7 +86,7 @@ const PUNCH_CUT = 6,
   PUNCH_CAP = 50;
 // Coins for a finished game. extra: [label, coins] rows from the campaign (stars, first clear).
 function payout(won, extra, free) {
-  const rows = [[won ? "Win" : "Played", won ? 30 : 10]];
+  const rows = [[won ? "Win" : "Played", won ? 38 : 13]];
   for (const [label, k, each] of STYLE_PAY) if (G.st[k]) rows.push([`${label} ×${G.st[k]}`, G.st[k] * each]);
   for (const r of extra || []) rows.push(r);
   let total = rows.reduce((a, r) => a + r[1], 0);

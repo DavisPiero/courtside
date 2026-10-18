@@ -379,8 +379,8 @@ const gameUnlocked = (ci, gi) => (gi === 0 ? ci === 0 || starsOf(CAMP[ci - 1].ga
 // with an NBA team and play alongside its two best players. First offers come from the league's ten worst
 // teams; every NBA chapter you clear brings offers from better ones (the middle ten, then the top ten).
 // Your contract pays Court Coins once a day (see payday() in js/campui.js), more for every chapter cleared.
-const SALARY = [200, 350, 500, 750]; // CC a day, by NBA chapters cleared (3 = champion)
-const SIGN_BONUS = 1000; // paid every time you sign with a new team (staying put pays nothing extra)
+const SALARY = [250, 440, 625, 940]; // CC a day, by NBA chapters cleared (3 = champion)
+const SIGN_BONUS = 1250; // paid every time you sign with a new team (staying put pays nothing extra)
 const PAY_DAYS_MAX = 7; // missed paydays add up, to a week at most
 const STREET_FINAL = "s3-6";
 const nbaCleared = () => CAMPAIGNS.nba.chapters.filter((ch) => starsOf(ch.games[5].id) > 0).length;

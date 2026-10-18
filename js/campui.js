@@ -1,7 +1,7 @@
 "use strict";
 // Campaign screens: create your hooper, chapter map, story card, results (also used after Quick Play).
 const CUI = { cid: "street", ch: 0, ci: 0, gi: 0, heroP: null };
-SCREENS.push("playPick", "hero", "campPick", "camp", "sign", "story", "res", "inv", "shop", "open", "lab");
+SCREENS.push("hero", "campPick", "camp", "sign", "story", "res", "inv", "shop", "open", "lab");
 
 // ---------- your hooper: name, skin tone, hair
 function openHero(first) {
@@ -14,7 +14,7 @@ function openHero(first) {
   };
   draw();
   drawUpgrades();
-  $("bHeroX").onclick = () => (first ? show("playPick") : openCamp());
+  $("bHeroX").onclick = () => (first ? showPlay() : openCamp());
   $("bHeroOk").onclick = () => {
     SAVE.name = ($("heroName").value || "ROOKIE").toUpperCase().replace(/[^A-Z0-9 .'-]/g, "").trim().slice(0, 12) || "ROOKIE";
     writeSave();
@@ -55,7 +55,7 @@ function openCamp() {
   };
   $("cpStreet").onclick = () => go("street");
   $("cpNba").onclick = () => (!open ? null : SAVE.nba.team ? go("nba") : openSign(() => go("nba")));
-  $("bCpX").onclick = () => show("playPick");
+  $("bCpX").onclick = () => showPlay();
   $("bCpHero").onclick = () => openHero(false);
   show("campPick");
 }
@@ -179,7 +179,7 @@ function startCamp(ci, gi) {
 }
 // Quick Play: four 1-minute quarters.
 const QUICK_RULES = { nq: 4, qlen: 60 };
-const QUICK_BONUS = 100; // every finished Quick Play game pays this, win or lose
+const QUICK_BONUS = 125; // every finished Quick Play game pays this, win or lose
 function startQuick(pr) {
   G.rules = { ...RULES_STD, ...QUICK_RULES };
   G.camp = G.mg = null;
@@ -203,8 +203,8 @@ function showResults() {
     const n = won ? met.filter(Boolean).length : 0,
       prev = starsOf(gm.id);
     if (n > prev) {
-      extra.push([`New stars ×${n - prev}`, (n - prev) * 25]);
-      if (prev === 0) extra.push(["First win bonus", 50 + camp.ci * 25]);
+      extra.push([`New stars ×${n - prev}`, (n - prev) * 31]);
+      if (prev === 0) extra.push(["First win bonus", 63 + camp.ci * 31]);
       // Beating a chapter boss for the first time wins a free All-Star Pack.
       if (prev === 0 && camp.gi === 5) {
         SAVE.free.allstar = (SAVE.free.allstar || 0) + 1;
@@ -217,6 +217,8 @@ function showResults() {
   // Punches a "drop N players" goal needs are free: two thrown for each drop asked for.
   const dropGoal = gm && gm.goals.find((gl) => gl.k === "drops");
   const pay = payout(won, extra, dropGoal ? dropGoal.n * 2 : 0);
+  // daily challenges are paid on top (punches don't cut them)
+  for (const r of dailyEvent({ mini: "", won, margin: G.home - G.away, st: G.st, court: OPT.court, diff: OPT.diff, score: G.home })) pay.rows.push(r), (pay.total += r[1]);
   $("res").classList.toggle("won", won);
   $("resTitle").textContent = won ? (camp && gm.outro && camp.gi === 5 ? "BOSS DOWN!" : "WIN!") : G.home === G.away ? "TIE" : "LOSS";
   $("resScore").textContent = `${TM[0].c} ${G.home} – ${G.away} ${TM[1].c}`;
