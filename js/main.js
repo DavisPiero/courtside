@@ -24,12 +24,12 @@ addEventListener("keydown", (e) => {
       e.preventDefault(); // stop the focused button (e.g. PLAY) from also being pressed
       $("bStart").click();
     }
-    if (e.code === "Escape") SEL.grid >= 0 ? closeGrid() : show("menu");
+    if (e.code === "Escape") SEL.grid >= 0 ? closeGrid() : show(SEL.pr ? "menu" : "playPick");
     return;
   }
   // Escape steps back out of menu screens.
   if (!G.run && e.code === "Escape") {
-    const back = { inv: "menu", shop: "menu", open: "shop", campPick: "menu", camp: "campPick", story: "camp", hero: "menu", mini: "menu" };
+    const back = { inv: "menu", shop: "menu", open: "shop", campPick: "playPick", camp: "campPick", story: "camp", hero: "playPick", mini: "playPick", playPick: "menu" };
     if ($("open").classList.contains("on")) return openShop();
     if ($("lab").classList.contains("on")) return $("bLabX").click();
     for (const k in back) if ($(k).classList.contains("on")) return show(back[k]);
@@ -75,13 +75,15 @@ $("bPlay").onclick = () => openSel(0);
 $("bPrac").onclick = () => openSel(1);
 $("bSet").onclick = () => openSettings("menu");
 $("bStart").onclick = () => startQuick(SEL.pr);
+$("bGo").onclick = () => show("playPick");
+$("bPlayX").onclick = () => show("menu");
 $("bCamp").onclick = openCamp;
 $("bMini").onclick = openMini;
 $("bTut").onclick = () => openTutorial();
 $("bInv").onclick = openInv;
 $("bShop").onclick = openShop;
 $("bLab").onclick = openLab;
-$("bBack").onclick = () => show("menu");
+$("bBack").onclick = () => show(SEL.pr ? "menu" : "playPick");
 $("bRes").onclick = pause;
 $("bPSet").onclick = () => openSettings("pause");
 $("bQuit").onclick = quitToMenu;
@@ -165,6 +167,7 @@ function fitCheck() {
   run("device", () => show("device"));
   run("setup", () => openSel());
   run("hero", () => openHero());
+  run("playPick", () => show("playPick"));
   run("campPick", () => $("campPick").classList.add("on"));
   run("camp", () => pickCamp("street"));
   run("mini", () => openMini());

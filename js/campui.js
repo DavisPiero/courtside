@@ -1,7 +1,7 @@
 "use strict";
 // Campaign screens: create your hooper, chapter map, story card, results (also used after Quick Play).
 const CUI = { cid: "street", ch: 0, ci: 0, gi: 0, heroP: null };
-SCREENS.push("hero", "campPick", "camp", "sign", "story", "res", "inv", "shop", "open", "lab");
+SCREENS.push("playPick", "hero", "campPick", "camp", "sign", "story", "res", "inv", "shop", "open", "lab");
 
 // ---------- your hooper: name, skin tone, hair
 function openHero(first) {
@@ -14,7 +14,7 @@ function openHero(first) {
   };
   draw();
   drawUpgrades();
-  $("bHeroX").onclick = () => (first ? show("menu") : openCamp());
+  $("bHeroX").onclick = () => (first ? show("playPick") : openCamp());
   $("bHeroOk").onclick = () => {
     SAVE.name = ($("heroName").value || "ROOKIE").toUpperCase().replace(/[^A-Z0-9 .'-]/g, "").trim().slice(0, 12) || "ROOKIE";
     writeSave();
@@ -55,7 +55,7 @@ function openCamp() {
   };
   $("cpStreet").onclick = () => go("street");
   $("cpNba").onclick = () => (!open ? null : SAVE.nba.team ? go("nba") : openSign(() => go("nba")));
-  $("bCpX").onclick = () => show("menu");
+  $("bCpX").onclick = () => show("playPick");
   $("bCpHero").onclick = () => openHero(false);
   show("campPick");
 }

@@ -64,7 +64,11 @@ kbd {
 .brand em { color: var(--gold); font-style: normal; text-shadow: 4px 4px 0 var(--gold-dk); }
 /* the tutorial button sits under the logo, where the tagline used to be */
 .tutb { display: block; margin: 16px 0 28px; font-size: 20px; padding: 10px 18px 12px; color: var(--gold); }
-.menu-l nav { display: grid; gap: 10px; width: 250px; }
+.menu-l nav { display: grid; gap: 10px; width: min(460px, 90vw); grid-template-columns: 1fr 1fr; }
+/* one big yellow PLAY button; Campaign, Quick Play and Minigames are on the PLAY screen behind it */
+.menu-l nav .playb { grid-column: 1 / -1; font-size: 46px; padding: 18px 24px 22px; letter-spacing: 0.1em; }
+.pcard { width: 250px; }
+.pcard span { min-height: 2.2em; }
 
 /* ---------- settings */
 #sets .box { width: min(680px, 94vw); }
@@ -352,7 +356,8 @@ body.touch .tabs button { padding: 14px 16px; font-size: 24px; }
 body.touch .arr { width: 52px; height: 52px; font-size: 26px; }
 body.touch .row > span, body.touch .pack span, body.touch .cg span { font-size: 21px; }
 body.touch .rows { gap: 10px; }
-body.touch .menu-l nav { width: 290px; }
+body.touch .menu-l nav { width: min(500px, 90vw); }
+body.touch .menu-l nav .playb { font-size: 50px; }
 /* Short screens (phones in landscape): compact everything so it all fits */
 @media (max-height: 520px) {
   .brand { font-size: 64px; }
@@ -367,6 +372,8 @@ body.touch .menu-l nav { width: 290px; }
   .su-bot { padding: 8px 12px 10px; gap: 8px 14px; }
   .box { padding: 16px 18px 18px; --bp: 18px; } .box h2 { font-size: 38px; margin-bottom: 10px; }
   .rows { max-height: 52vh; }
+  .menu-l nav .playb, body.touch .menu-l nav .playb { font-size: 36px; padding: 10px 18px 12px; }
+  .pcard { width: 200px; }
   .tb.big { width: 96px; height: 96px; } .tbtns { transform: scale(0.88); transform-origin: bottom right; }
   .ibody { grid-template-columns: 170px 1fr; } .iprev { min-height: 200px; } #invCv { height: 190px; }
   .hbody { grid-template-columns: 150px 1fr; } #heroCv { height: 190px; }
@@ -767,7 +774,7 @@ canvas.shcv { width: 100%; height: 54px; }
 /* ---------- fit to screen (js/menus.js fitPanel): panels stay full size, never taller than the visible screen.
    A panel that is too tall scrolls, and its button row stays pinned to the bottom. */
 .scr > .box, .scr > .dv { max-height: calc(100vh - 20px); max-height: calc(100dvh - 20px); overflow-y: auto; overscroll-behavior: contain; }
-.scr > .menu-l { max-height: 100vh; max-height: 100dvh; overflow-y: auto; }
+.scr > .menu-l { max-height: 100vh; max-height: 100dvh; overflow: hidden auto; scrollbar-width: none; }
 /* tabbed screens keep one size whatever the tab */
 .box.shopbox, .box.inv, #sets .box { height: min(860px, calc(100vh - 20px)); height: min(860px, calc(100dvh - 20px)); }
 .fitscroll > .act:last-child {
@@ -788,6 +795,7 @@ canvas.shcv { width: 100%; height: 54px; }
   .tutb { margin: 6px 0 8px; padding: 6px 12px 8px; font-size: 17px; }
   .menu-l nav { gap: 6px; }
   .menu-l nav .btn { padding: 8px 14px 10px; font-size: 19px; }
+  .menu-l nav .playb, body.touch .menu-l nav .playb { font-size: 30px; padding: 8px 14px 10px; }
   /* team select: a smaller footer so the teams keep some room */
   .su-bot { gap: 4px 10px; padding: 6px 10px 8px; }
   .opt i { font-size: 13px; margin-bottom: 3px; }
