@@ -22,7 +22,7 @@ Smoke test passes (all modes, courts, levels, minigames; fit check at 5 sizes in
 - Code BIG LEAGUE (2000 CC) and a SPACE key on the code keyboard.
 - BRIEF-league.md: a draft of the Career League after the NBA campaign.
 
-## On the branch `session6d` (not merged)
+## Session 6d (merged to `main` and live)
 - Up to 5 extra dribble moves; Quick Play quarters are 30 seconds; steals a little easier.
 - Movement: you slide past players you brush against; defenders don't crowd inside bumping range.
 - Hooper stats verified in game; Hops raises your block jump, Accuracy widens the green zone more.
