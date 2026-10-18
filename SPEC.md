@@ -14,9 +14,10 @@ and mouse) or Mobile / Tablet (touch controls). Main menu: a TUTORIAL button und
 button, then Practice, Shop, Inventory, Settings, plus your Court Coins. PLAY slides those buttons out to the left
 and brings in Campaign (big, yellow), Quick Play and Minigames (yellow) and BACK from the right, laid out the same
 way; coming back from any of them lands on these buttons.
-- **Tutorial** (first draft): on-court steps on an empty practice court that tick themselves off (move, sprint,
-  dribble move, shoot, perfect release, layup/dunk, pass), then tips (alley-oops, On Fire, defence, Mayhem,
-  buzzer beaters), then cards about the campaign, your hooper, the NBA career, Quick Play and minigames, coins,
+- **Tutorial**: on-court steps on an empty practice court that tick themselves off (move, sprint,
+  dribble move, shoot, perfect release, layup/dunk, pass), an alley-oop tip, then real drills: ON FIRE (score
+  three in a row), DEFENCE (a slow dummy brings the ball up: steal it or block it), MAYHEM (punch or slide-tackle
+  the dummy) and BUZZER BEATERS (a 6-second clock: make a shot that's in the air at 0), then cards about the campaign, your hooper, the NBA career, Quick Play and minigames, coins,
   the Shop and the Inventory. Keyboard or touch wording to match your device.
 
 ## Campaigns
@@ -76,19 +77,23 @@ contract. (A win pays 38, a loss 13; every reward went up about a quarter in ses
   signature moves plus a bonus card (Rare 60%, Epic 32%, Legendary 8%).
 - **Shoeboxes**: one mystery shoe each: Shoebox (100 CC), Premium Shoebox (300), Grail Box (800, the only box
   with Mythic 5% and Godlike 1%). Unboxing: the box shakes, the lid flies off, tissue paper bursts out and the
-  shoe card rises out of the box and builds up like a pack card.
+  shoe card rises out of the box and builds up like a pack card. The three boxes are pixel models: a brown
+  cardboard Shoebox with a size label, a matte black Premium box with a gold band and star, and a purple Grail
+  Box with glowing trim, a gold clasp and twinkles. The lid blasts off and light pours out of the box.
 - **Codes**: type a code for a reward, once per save, case sensitive. On touch devices the box uses Courtside's
   own on-screen keyboard (capitals and numbers), never the iPad's. LAUNCHED: the Gametime animation
   (Liftoff) and 1000 CC. SNEAKERHEAD: the Gametime sneaker (Launched) and a free Premium Shoebox. Codes are stored scrambled, but the game is public, so a determined player could find them.
-**Opening a pack** is a show: the pack shakes and tears, cards deal out face down, and you tap each one. A card
+**Opening a pack** is a show: the pack shakes, its top strip rips off and light pours out (white for Common and
+Rare, the best card's rarity colour from Epic up, so you know something good is coming), the cards slide up out of
+the pack face down, and you tap each one. A card
 shakes and its glow climbs through the rarity colours (with a rising tick) before it flips; sometimes a low card
 flickers one step higher first. Epic and up flash; Legendary and up shake the screen, burst confetti and
 show a banner. REVEAL ALL plays them quickly. Duplicates turn into coins.
-84 animations in five categories (dunks, layups, dribble moves, jump shots, celebrations). Rarities, low to high:
+100 animations in five categories (dunks, layups, dribble moves, jump shots, celebrations). Rarities, low to high:
 Common, Rare, Epic, Legendary, Iconic (18 player signatures), Mythic (4: Honey Dip, Double 360, Yo-Yo,
 Skywalker), Godlike (2: Moonwalk dunk from way out, Levitate), Gametime (from codes only; purple): the Liftoff dunk and the
 Launched sneaker.
-**Shoes**: 33 real shoes (no logos) in Common to Godlike (Air Mag, Jordan 4 'Undefeated'), plus Courtside's own
+**Shoes**: 45 real shoes (no logos) in Common to Godlike (Air Mag, Jordan 4 'Undefeated'), plus Courtside's own
 Launched (Gametime: purple and black, rocket flame, glowing sole); your whole team wears
 the pair you pick. The **Inventory** equips what you own (one per category, up to 3 extra dribble moves, a pair
 of shoes) and **sells** animations for a quarter of their shop price (press twice; not starters, Gametime or

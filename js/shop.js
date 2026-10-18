@@ -144,7 +144,8 @@ function drawPlayerPacks() {
 }
 
 // ---------- Shoeboxes: one mystery shoe each
-const boxArt = (bx) => `<div class="sbox" style="--bc:${bx.col};--lc:${bx.lid}"><i class="lid"></i><i class="bod"><b>?</b></i></div>`;
+const boxArt = (bx) => `<canvas class="sboxcv" data-box="${bx.id}"></canvas>`;
+const drawBoxArt = (root) => root.querySelectorAll("canvas.sboxcv").forEach((cv) => boxCanvas(cv, SHOEBOXES.find((b) => b.id === cv.dataset.box)));
 function drawBoxes() {
   $("shopBody").innerHTML =
     `<p class="pnote">Every shoebox has <b>1 mystery shoe</b>. Your whole team wears the pair you equip in the Inventory.</p>` +
@@ -156,6 +157,7 @@ function drawBoxes() {
         <button class="btn${can ? " pri" : ""}" data-box="${bx.id}"${can ? "" : " disabled"}>${free ? `OPEN FREE${free > 1 ? " ×" + free : ""}` : bx.price.toLocaleString() + " CC"}</button></div>`;
     }).join("")}</div>`;
   $("shopBody").querySelectorAll("button[data-box]").forEach((b) => (b.onclick = () => openBoxScreen(b.dataset.box)));
+  requestAnimationFrame(() => drawBoxArt($("shopBody")));
 }
 
 // ---------- Codes: type a code, get a reward. Codes are stored scrambled (FNV-1a hash) so they aren't sitting in
@@ -266,8 +268,27 @@ function openBoxScreen(id) {
   openStage(bx, [card], 1, () => openBoxScreen(id), SAVE.freeBox[id] > 0 || SAVE.cc >= bx.price);
   $("openTitle").textContent = bx.name;
   $("openPack").className = "opack obox";
-  $("openPack").innerHTML = boxArt(bx) + `<i>TAP TO OPEN</i>`;
+  $("openPack").innerHTML = `<canvas class="sboxcv big"></canvas><i>TAP TO OPEN</i>`;
   $("openPack").onclick = () => popBox(bx);
+  // The box sits there with its lid twinkling until you tap it.
+  const cv = $("openPack").querySelector("canvas"),
+    t0 = performance.now(),
+    idle = () => {
+      if (OPEN.stage !== "pack" || !cv.isConnected) return;
+      boxCanvas(cv, bx, { t: (performance.now() - t0) / 1000 }, 26);
+      requestAnimationFrame(idle);
+    };
+  idle();
+}
+// The light that pours out of a pack or box hints at the best thing inside: white for Common and Rare,
+// the rarity's colour from Epic up.
+function hintCol() {
+  const top = Math.max(...OPEN.cards.map((c) => TIERS.indexOf(c.a.rarity)));
+  return top >= 2 ? RARITY[TIERS[top]].col : "#fff6d8";
+}
+function rays(on) {
+  $("openRays").style.setProperty("--hc", hintCol());
+  $("openRays").className = "orays" + (on ? " on" : "");
 }
 function openStage(pk, cards, box, again, canAgain) {
   OPEN.timers.forEach(clearTimeout);
@@ -275,6 +296,7 @@ function openStage(pk, cards, box, again, canAgain) {
   $("open").style.setProperty("--pc", pk.col);
   $("openPack").className = "opack";
   $("openCards").innerHTML = "";
+  $("openRays").className = "orays";
   $("openInfo").className = "oinfo";
   $("openAct").className = "act hide";
   $("bOpenAll").style.display = "none";
@@ -302,39 +324,69 @@ function openStage(pk, cards, box, again, canAgain) {
   show("open");
   sfx("whoosh");
 }
+// The box shakes, the lid blasts off, tissue paper flies, light pours out of the box, and the shoe card rises out.
 function popBox(bx) {
   if (OPEN.stage !== "pack") return;
   OPEN.stage = "tear";
+  const cv = $("openPack").querySelector("canvas"),
+    hc = hintCol(),
+    t0 = performance.now();
   $("openPack").classList.add("tear");
   for (let i = 0; i < 5; i++) later(() => sfxTick(i), i * 140);
+  // lid: still while it shakes, then up and away from 750 ms
+  const anim = () => {
+    if (!cv.isConnected || OPEN.stage === "pack") return;
+    const ms = performance.now() - t0,
+      k = cl((ms - 750) / 380, 0, 1);
+    boxCanvas(cv, bx, { lift: ease(k) * 34 + (ms < 750 ? Math.random() * 1.5 : 0), drift: k * 14, fade: 1 - k * k, glow: k > 0 ? hc : null, t: ms / 1000 }, 26);
+    if (ms < 1500) requestAnimationFrame(anim);
+  };
+  anim();
   later(() => {
+    $("openPack").classList.remove("tear");
     $("openPack").classList.add("pop");
     sfx("pop");
+    rays(1);
+    flashScreen(hc);
     burst($("openPack"), "#f4efe2", 40); // tissue paper
     burst($("openPack"), bx.lid, 14);
   }, 750);
   later(() => {
-    $("openPack").classList.add("gone");
+    $("openPack").classList.add("sink");
     dealCards(bx);
     $("openCards").firstElementChild.classList.add("rise");
-    later(() => chargeCard(0), 450);
-  }, 1150);
+    later(() => chargeCard(0), 550);
+  }, 1250);
+  later(() => rays(0), 2400);
 }
-// The pack shakes harder and harder, flashes, and the cards fly out face down.
+// The pack shakes harder and harder, the top strip rips off, light pours out (its colour hints at the best
+// card inside), and the cards slide up out of the pack face down.
 function tearPack(pk) {
   if (OPEN.stage !== "pack") return;
   OPEN.stage = "tear";
+  const hc = hintCol();
+  $("open").style.setProperty("--hc", hc);
   $("openPack").classList.add("tear");
   for (let i = 0; i < 4; i++) later(() => sfxTick(i), i * 160);
   later(() => {
-    $("openPack").classList.add("gone");
-    flashScreen("#fff");
+    $("openPack").classList.remove("tear");
+    $("openPack").classList.add("rip");
+    sfx("pop");
+    rays(1);
+    flashScreen(hc);
+    burst($("openPack"), hc, 24);
+  }, 700);
+  later(() => {
+    $("openPack").classList.add("sink");
     sfx("dunk");
     dealCards(pk);
-  }, 700);
+    $("openCards").classList.add("frompack");
+  }, 1150);
+  later(() => rays(0), 2200);
 }
 function dealCards(pk) {
   OPEN.stage = "cards";
+  $("openCards").classList.remove("frompack");
   $("openCards").innerHTML = OPEN.cards
     .map(
       (c, i) => `<div class="card r-${c.a.rarity}" data-i="${i}" style="--pc:${pk.col};--d:${i * 0.12}s"><div class="in">

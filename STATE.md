@@ -11,12 +11,13 @@ _Updated 2026-10-18, session 6b, merged to `main` and live (David: merge and pus
 - Every coin reward up about 25% (prices unchanged).
 - DAILY: a 7-day reward ladder and three daily challenges, from a button by the coins on the main menu.
 - BRIEF-ideas.md: 13 ideas for new things.
+- Roadmap items done the same day: tutorial steps 9 to 12 are real drills; pack and shoebox opening reworked
+  (rip strip, light that hints at rarity, three pixel shoebox models, lid blasts off); 12 more shoes (45) and
+  16 more animations (100).
 Smoke test passes (all modes, courts, levels, minigames; fit check at 5 sizes including the DAILY pop-up).
 
 ## Next
 - David checks 6b on the iPad: the code keyboard, the menu, the DAILY pop-up.
-- Roadmap (planned, not started): tutorial lessons 9 onwards as real drills; better pack and shoebox opening
-  and shoebox models; 12 more shoes and 16 more animations.
 - 6c: fluid controls, ragdoll only for ankle breakers and punches; rebuild The Cage.
 - First outside playtest (still not done).
 
@@ -26,4 +27,6 @@ Smoke test passes (all modes, courts, levels, minigames; fit check at 5 sizes in
 2. Which other ideas from BRIEF-ideas.md and BRIEF-gameplay.md to build; two players on one device.
 3. Carried over: punch penalty, upgrade, shoebox and shoe prices, Gametime purple vs Epic, shoe art and
    trophy as first passes, minigame rewards, no buzzer replay.
-4. The 3-point contest bot scores 0 in the smoke test (the bot, not the game, as far as I can tell).
+4. New shoes, animations and their rarities are my picks; Scorpion dunk's heel kick is milder than I wanted
+   (the legs can only reach so far). The Griddy replaced Push-Ups.
+5. The 3-point contest bot scores 0 in the smoke test (the bot, not the game, as far as I can tell).

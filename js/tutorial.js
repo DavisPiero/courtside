@@ -6,7 +6,8 @@
 // upgrading your hooper and Court Coins.
 SCREENS.push("tutc");
 // Each court step: title, keyboard text, touch text, and a check that's true once you've done it.
-// info: no check, just a NEXT button.
+// info: no check, just a NEXT button. Drills from step 9 on (session 6b): opp brings one defender-dummy onto the
+// court with the ball, mayhem switches Mayhem on for the step, fire resets the streak, buzz runs a 6-second clock.
 const TUT_STEPS = [
   { t: "MOVE", k: "Move with W A S D (or the arrow keys).", m: "Touch the left side of the screen and drag to move.", ok: (s) => s.moved > 10 },
   { t: "SPRINT", k: "Hold SHIFT while you move to sprint. Watch the ring under you: that's your stamina.", m: "Push the joystick all the way to the edge to sprint. The ring under you is your stamina.", ok: (s) => s.sprint > 1 },
@@ -16,10 +17,10 @@ const TUT_STEPS = [
   { t: "LAYUPS AND DUNKS", k: "Run at the rim with the ball and press SPACE close to it: layup, or a dunk if you're moving fast.", m: "Run at the rim with the ball and press SHOOT close to it: layup, or a dunk if you're moving fast.", ok: () => !!G.cut },
   { t: "PASS", k: "Press Q to pass to the open teammate. Steer with WASD to pick who.", m: "Press PASS to pass to the open teammate.", ok: () => G.ball.mode === "pass" || (G.st.oops || 0) > 0 },
   { t: "ALLEY-OOP", k: "Teammates cut to the rim. When a gold arrow shows over one, press Q: they catch the lob and dunk it.", m: "Teammates cut to the rim. When a gold arrow shows over one, PASS turns into OOP!: press it for the lob.", ok: () => (G.st.oops || 0) > 0, info: 1 },
-  { t: "ON FIRE", k: "Score three times in a row without the other team scoring and your team is ON FIRE: a flaming ball and a bigger green zone.", m: "Score three times in a row without the other team scoring and your team is ON FIRE: a flaming ball and a bigger green zone.", info: 1 },
-  { t: "DEFENCE", k: "Without the ball: F to steal, SPACE to jump and block, Q to switch to the teammate nearest the ball.", m: "Without the ball: STEAL, JUMP to block, SWITCH to the teammate nearest the ball.", info: 1 },
-  { t: "MAYHEM", k: "In MAYHEM mode anything goes: CLICK to punch (drop them and take the ball), CTRL to slide-tackle. Every punch costs a few coins.", m: "In MAYHEM mode anything goes: PUNCH to drop them and take the ball, SLIDE to tackle. Every punch costs a few coins.", info: 1 },
-  { t: "BUZZER BEATERS", k: "A shot in the air when the clock hits zero still counts. Time slows down while it flies.", m: "A shot in the air when the clock hits zero still counts. Time slows down while it flies.", info: 1 },
+  { t: "ON FIRE", k: "Score three times in a row without the other team scoring and your team is ON FIRE: a flaming ball and a bigger green zone. Go: score three!", m: "Score three times in a row without the other team scoring and your team is ON FIRE: a flaming ball and a bigger green zone. Go: score three!", fire: 1, ok: () => G.fire[0] },
+  { t: "DEFENCE", k: "Now they have the ball. Get close and press F to steal it, or SPACE to jump and block their shot. Q switches to the teammate nearest the ball.", m: "Now they have the ball. Get close and press STEAL, or JUMP to block their shot. SWITCH picks the teammate nearest the ball.", opp: 1, ok: (s) => G.st.stl > s.stl0 || G.st.blk > s.blk0 },
+  { t: "MAYHEM", k: "In MAYHEM mode anything goes. CLICK to punch them, or CTRL to slide-tackle: drop them and take the ball. (In real games every punch costs a few coins.)", m: "In MAYHEM mode anything goes. PUNCH them, or SLIDE to tackle: drop them and take the ball. (In real games every punch costs a few coins.)", opp: 1, mayhem: 1, ok: (s) => G.st.drops > s.drops0 },
+  { t: "BUZZER BEATERS", k: "A shot in the air when the clock hits zero still counts. Watch the clock: let the shot go just before 0 and make it!", m: "A shot in the air when the clock hits zero still counts. Watch the clock: let the shot go just before 0 and make it!", buzz: 1, ok: (s) => s.bbMade },
 ];
 // Part 2: the rest of the game.
 const TUT_CARDS = [
@@ -30,6 +31,7 @@ const TUT_CARDS = [
   ["COURT COINS", "You earn CC for winning, for style (perfect releases, dunks, ankle breakers, threes, steals, blocks), for campaign stars, minigames and your NBA contract."],
   ["THE SHOP", "The Daily Shop changes every hour. Packs and Player Packs have random animations, Shoeboxes have one mystery shoe. Got a code? Type it in the CODES tab."],
   ["INVENTORY", "Equip your dunk, layup, jump shot, celebration and up to 3 extra dribble moves, and pick the shoes your team wears. Don't need an animation? SELL it for coins."],
+  ["DAILY", "Tap ★ DAILY on the main menu: a reward every day you play, and three new challenges every day for extra coins."],
   ["THAT'S IT!", "Settings has video, sound and controls, and the Animation Lab to watch every move slowly. Now go hoop."],
 ];
 const TUT = { on: 0, i: 0, s: null, done: 0, card: 0 };
@@ -51,7 +53,19 @@ function openTutorial() {
 }
 function tutStep() {
   const st = TUT_STEPS[TUT.i];
-  TUT.s = { moved: 0, sprint: 0, x: G.pl[G.ctrl].x, y: G.pl[G.ctrl].y, t: T };
+  // Set the court up for this step: the dummy defender only in the drills that need one, Mayhem only for its step.
+  OPT.mode = st.mayhem ? "mayhem" : "clean";
+  G.pl.forEach((p) => (p.gone = p.t === 1 && !(st.opp && p.id === 3)));
+  if (st.opp) {
+    const d = G.pl[3];
+    d.sp0 = d.sp0 || d.sp;
+    d.sp = d.sp0 * 0.75; // a slower dummy, so you can catch them
+    setPoss(1);
+  }
+  else if (G.poss === 1) setPoss(0);
+  if (st.fire) (G.streak = [0, 0]), (G.fire = [0, 0]);
+  TUT.s = { moved: 0, sprint: 0, x: G.pl[G.ctrl].x, y: G.pl[G.ctrl].y, t: T, stl0: G.st.stl, blk0: G.st.blk, drops0: G.st.drops, clock: 6, air: 0, bbMade: 0 };
+  if (st.buzz) setPoss(0);
   TUT.done = 0;
   $("tut").className = "on";
   $("tutN").textContent = `${TUT.i + 1} / ${TUT_STEPS.length}`;
@@ -67,9 +81,11 @@ function tutUpd(dt) {
   const st = TUT_STEPS[TUT.i],
     s = TUT.s,
     p = G.pl[G.ctrl];
-  // Keep the ball on your side and nobody else on the court.
+  // Keep the ball on your side (in the defence drills, theirs) and nobody else on the court.
   G.pl.forEach((q) => q.gone && Object.assign(q, { x: -400 - q.id * 10, y: -400 }));
-  if (G.poss === 1 && !G.dead && !G.cut) setPoss(0);
+  if (!st.opp && G.poss === 1 && !G.dead && !G.cut) setPoss(0);
+  if (st.opp && !TUT.done && G.poss === 0 && !G.dead && !G.cut && !(st.ok && st.ok(s))) setPoss(1); // they scored: again
+  if (st.buzz && !TUT.done) tutClock(st, s, dt);
   s.moved += hy(p.x - s.x, p.y - s.y);
   s.x = p.x;
   s.y = p.y;
@@ -81,6 +97,35 @@ function tutUpd(dt) {
     setTimeout(() => TUT.on && TUT_STEPS[TUT.i] === st && tutNext(), 1100);
   }
 }
+// Buzzer drill: a 6-second clock in the tutorial box. A shot in the air at 0 that goes in ticks it off;
+// otherwise the clock starts again.
+function tutClock(st, s, dt) {
+  const b = G.ball;
+  if (s.clock > 0) {
+    s.clock = Math.max(0, s.clock - dt);
+    $("tutT").textContent = `${st.t} · 0:0${Math.ceil(s.clock)}`;
+    if (s.clock === 0) {
+      if (b.mode === "shot" && b.h === 0) {
+        s.air = 1;
+        sfx("buzz");
+        toast("AT THE BUZZER!", 1);
+      } else {
+        sfx("buzz");
+        toast("TOO LATE! AGAIN", 1);
+        s.clock = 6;
+        setPoss(0);
+      }
+    }
+  } else if (s.air && b.mode !== "shot") {
+    s.air = 0;
+    if (b.made) s.bbMade = 1;
+    else {
+      toast("SO CLOSE! AGAIN", 1);
+      s.clock = 6;
+      setTimeout(() => TUT.on && TUT_STEPS[TUT.i] === st && setPoss(0), 900);
+    }
+  }
+}
 function tutNext() {
   TUT.i++;
   if (TUT.i >= TUT_STEPS.length) return tutCards();
@@ -88,12 +133,14 @@ function tutNext() {
 }
 function tutQuit() {
   TUT.on = 0;
+  OPT.mode = "clean";
   $("tut").className = "";
   quitToMenu();
 }
 // Part 2: cards about the rest of the game.
 function tutCards() {
   TUT.on = 0;
+  OPT.mode = "clean";
   $("tut").className = "";
   quitToMenu();
   TUT.card = 0;

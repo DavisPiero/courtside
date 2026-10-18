@@ -105,3 +105,7 @@ One line each, newest last.
 - 2026-10-18 · Daily challenges plus a daily reward (David). Reward ladder never resets on a missed day (kinder for a kid); challenges picked from the date so everyone gets the same three.
 - 2026-10-18 · Launched sneaker look confirmed by David (purple and black high-top, orange rocket flame, glowing purple sole).
 - 2026-10-18 · Win streak not built (David unsure).
+- 2026-10-18 · 16 more animations (3 dunks, 3 layups, 3 dribble moves, 3 shots, 4 celebrations) and 12 more shoes; my picks of names and rarities.
+- 2026-10-18 · Push-Ups celebration dropped for The Griddy: the rig's forward tilt lifts the body off the floor, so a face-down pose can't work without changing the rig.
+- 2026-10-18 · Pack/box light hints at the best card (white below Epic, rarity colour from Epic up) to build suspense.
+- 2026-10-18 · Tutorial steps 9 to 12 are real drills with one slow dummy opponent; the Alley-oop step stays a tip.

@@ -1231,6 +1231,9 @@ const MOVES = {
   ai: { d: 0.62, name: "THE CROSSOVER", push: 15, sw: 1, ankle: 1.9 },
   halfspin: { d: 0.55, name: "HALF SPIN", push: 9, sw: 0, ankle: 1.3 },
   yoyo: { d: 0.75, name: "YO-YO", push: 13, sw: 0, ankle: 1.8 },
+  pound: { d: 0.5, name: "POUND DRIBBLE", push: 11, sw: 0 },
+  rocker: { d: 0.55, name: "ROCKER STEP", push: 13, sw: 0, ankle: 1.3 },
+  world: { d: 0.7, name: "AROUND THE WORLD", push: 11, sw: 1, ankle: 1.6 },
 };
 const BASE_MOVES = ["cross", "legs", "back", "spin"];
 const movePool = (p) => (p.t === 0 ? BASE_MOVES.concat(SAVE.equip.moves.map((id) => id.split(".")[1])) : BASE_MOVES);
@@ -1251,7 +1254,7 @@ function dribbleMove(p) {
   if (k === "spin" || k === "tornado" || k === "halfspin") {
     p.vx += d.x * M.push;
     p.vy += d.y * M.push;
-  } else if (k === "hesi" || k === "stutter" || k === "ai" || k === "yoyo") {
+  } else if (k === "hesi" || k === "stutter" || k === "ai" || k === "yoyo" || k === "pound" || k === "rocker") {
     // Fake stop first; the burst comes halfway through (moveStep).
     p.vx *= 0.25;
     p.vy *= 0.25;
@@ -1294,7 +1297,7 @@ function moveStep(p, dt) {
     m.mid = 1;
     const fx = Math.cos(p.f),
       fy = Math.sin(p.f);
-    if (m.k === "hesi" || m.k === "stutter" || m.k === "yoyo") {
+    if (m.k === "hesi" || m.k === "stutter" || m.k === "yoyo" || m.k === "pound" || m.k === "rocker") {
       p.vx += fx * MOVES[m.k].push;
       p.vy += fy * MOVES[m.k].push;
     } else if (m.k === "inout") {
