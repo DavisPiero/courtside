@@ -82,7 +82,8 @@ contract. (A win pays 38, a loss 13; every reward went up about a quarter in ses
   Box with glowing trim, a gold clasp and twinkles. The lid blasts off and light pours out of the box.
 - **Codes**: type a code for a reward, once per save, case sensitive. On touch devices the box uses Courtside's
   own on-screen keyboard (capitals and numbers), never the iPad's. LAUNCHED: the Gametime animation
-  (Liftoff) and 1000 CC. SNEAKERHEAD: the Gametime sneaker (Launched) and a free Premium Shoebox. Codes are stored scrambled, but the game is public, so a determined player could find them.
+  (Liftoff) and 1000 CC. SNEAKERHEAD: the Gametime sneaker (Launched) and a free Premium Shoebox. BIG LEAGUE: 2000 CC (the on-screen
+  keyboard has a SPACE key). Codes are stored scrambled, but the game is public, so a determined player could find them.
 **Opening a pack** is a show: the pack shakes, its top strip rips off and light pours out (white for Common and
 Rare, the best card's rarity colour from Epic up, so you know something good is coming), the cards slide up out of
 the pack face down, and you tap each one. A card
@@ -143,7 +144,16 @@ with every option and what it means.
   ocean and a lifeguard tower) or The Cage (under a highway bridge, graffiti wall, tall fence, orange lights).
   All outdoor courts use pole hoops. Drawn in js/courts.js.
 - **Difficulty:** Rookie (easy), Pro (normal), All-Star (hard), Hall of Famer (expert).
-  Changes opponent speed, shooting, steal attempts, defensive tightness and decisions.
+  Changes opponent speed, shooting, steal attempts, defensive tightness and basketball sense (getting the ball out
+  of pressure, attacking when you're beaten, shooting when open, keeping the ball away from you, sprinting back on
+  defence). **Your STEAL** is a reach: one swipe every 0.6 s, it mostly fails when the ball is on the far side of
+  the handler or mid dribble move, better teams are harder to strip, and on harder levels a miss can leave you off
+  balance ("REACHED!"). Better teams' defenders get their ankles broken less.
+  **Adaptive AI:** the further ahead you get (from 4 points, full at 20) and the later in the game, the sharper the
+  other team plays ("THEY'RE ADJUSTING!"); it eases off if they catch up. Not in Practice or the contests.
+  Measured by `./tools/bench.sh`: a bot that plays like a good kid (sprints, dribble moves, human-timed shots,
+  mashes STEAL) wins 3-minute games by about +37 on Rookie, +17 on Pro, +3 on All-Star, and loses by 13 on Hall of
+  Famer (it won by 88, 69, 62 and 43 before session 6c).
 - **League:** a switch at the top: NBA (today's teams) or HALL OF FAME (each franchise's three best players
   of all time, rated at their peak, in js/hof.js). Click a team's name for a grid of all 30.
 - **Quick Play length:** four 1-minute quarters.

@@ -35,7 +35,7 @@ function contest(p) {
 // Long shots shrink it too: to under half by half court, and to a sliver past it.
 function greenZone(p) {
   const base = 0.06 + (p.sht / 99) * 0.035,
-    squeeze = (p.t === 0 ? DIFF[OPT.diff] : DIFF[1]).squeeze,
+    squeeze = (p.t === 0 ? oppD() : DIFF[1]).squeeze,
     dh = hy(HX(p.t) - p.x, 25 - p.y),
     rk = ((p.rng || 75) - 75) / 25, // range rating: -1 at 50, about +1 at 99
     R0 = RANGE + rk * 3,
@@ -65,6 +65,8 @@ function init() {
   G.st = { pts: 0, reb: 0, ast: 0, stl: 0, greens: 0, dunks: 0, ankles: 0, threes: 0, blk: 0, drops: 0, pun: 0, oops: 0, bb: 0 };
   // Showtime (js/showtime.js): baskets in a row and who's on fire, a live buzzer shot, the win celebration.
   G.streak = [0, 0];
+  G.adapt = 0;
+  G.adaptSaid = 0;
   G.fire = [0, 0];
   G.bb = G.win = null;
   G.winDone = 0;
@@ -101,6 +103,7 @@ function init() {
   setPoss(0);
 }
 function setPoss(t) {
+  if (G.bc && t === 1) G.bc.pos++;
   const d = t ? -1 : 1,
     b = G.ball;
   G.poss = t;
@@ -458,12 +461,13 @@ function beginShot(p) {
   // Right under the rim it's always a layup, never a jump shot. With a defender on you it can rim out,
   // more often on harder difficulties; strong finishers miss less.
   if (dh < 6.5) {
-    const D = p.t === 0 ? DIFF[OPT.diff] : DIFF[1],
+    const D = p.t === 0 ? oppD() : DIFF[1],
       miss = cl((4.5 - df) / 4.5, 0, 1) * D.layup * cl(1 - (p.fin - 75) / 60, 0.5, 1.3);
     scripted(p, "layup", Math.random() < miss);
     return;
   }
   G.shot = { p, t: 0, d: 0.85, zw: greenZone(p) };
+  if (G.auto === 2) G.shot.rel = 0.72 + (Math.random() + Math.random() + Math.random() - 1.5) * 0.09; // the bot's timing, like a good kid's
   p.shotJumped = 0;
   const SH = SHOTS[styleOf(p, "shot")] || {},
     hop = SH.hop || 0,
@@ -490,6 +494,7 @@ function launch(p, q, ai) {
     ),
     rm = rangeMake(p, dh),
     made = (q > 0.82 && !ai) || Math.random() < ch * rm;
+  if (G.bc && h === 1) (G.bc.sh++, made && G.bc.mk++);
   const Tm = 0.7 + dh * 0.024,
     z0 = p.z + 7.2,
     tx = hx + (made ? 0 : rn(-0.9, 0.9)),
@@ -537,6 +542,7 @@ function launch(p, q, ai) {
 // miss: a contested layup that rolls off the rim instead of dropping.
 function scripted(p, kind, miss) {
   if (G.cut) return;
+  if (G.bc && p.t === 1) G.bc.rim++;
   if (G.mg && G.mg.k === "dunk") (kind = "dunk"), (miss = false); // the dunk contest only has dunks, and they go in
   mgDunkStart(p);
   const dir = p.t ? -1 : 1,
@@ -708,7 +714,9 @@ function cutUpd(dt) {
 }
 function steal(th, v) {
   th.swp = 0.25;
-  if (Math.random() < dk(th).stealWin * (th.dfn / 80) * (1.35 - v.hnd / 150)) {
+  // your AI teammates find the better levels' ball handlers harder to strip too (scaled from Pro)
+  const sec = th.t === 0 ? oppD().secure / 0.17 : 1;
+  if (Math.random() < dk(th).stealWin * sec * exposed(v, th) * 1.6 * (th.dfn / 80) * (1.35 - v.hnd / 150)) {
     v.stun = 0.6;
     stealBall(th, v);
   }
@@ -755,7 +763,7 @@ function ballUpd(dt) {
     b.z = lp(b.sz, 4.4, u) + Math.sin(u * Math.PI) * 0.7;
     b.spin += dt * 12;
     for (const o of PL)
-      if (o.t !== q.t && dist(o, b) < 2.1 && u > 0.15 && u < 0.95 && !b.tip && Math.random() < dt * 3 * dk(o).pick) {
+      if (o.t !== q.t && dist(o, b) < 2.1 && u > 0.15 && u < 0.95 && !b.tip && Math.random() < dt * 3 * dk(o).pick * (o.t === 0 ? oppD().secure / 0.17 : 1)) {
         stealBall(o);
         return;
       }
@@ -952,18 +960,41 @@ function jumpForShot(p, u) {
 }
 function handler(p, dt) {
   if (p.aishot) return aiShotStep(p, dt);
+  if (G.auto === 2 && p.t === 0) return botHandler(p, dt);
   const h = HX(p.t),
     d = p.t ? -1 : 1,
     dh = hy(h - p.x, 25 - p.y),
     df = minDef(p);
   p.ai = (p.ai || 0) + dt;
-  mv(p, h - d * 3, 25 + Math.sin(T * 1.4 + p.id) * 6, 0.92, dt);
+  const iq = dk(p).iq || 0;
+  // Smarter teams attack when the defender is beaten or off balance, and get the ball out of pressure fast.
+  const beaten = df > 4.5 || G.pl.some((q) => q.t !== p.t && q.stun > 0 && dist(p, q) < 6);
+  // ... and on a fresh possession they go at you straight away instead of drifting.
+  if (iq && (beaten || G.sc > 24 - 5 * iq) && dh < 34 && Math.random() < iq) mv(p, h - d * 1.5, 25, 1 + 0.4 * iq, dt);
+  else mv(p, h - d * 3, 25 + Math.sin(T * 1.4 + p.id) * 6, 0.92, dt);
+  // Keep the ball in the hand away from the closest defender (a quick switch, like a real handler).
+  if (iq && df < 4 && !p.mv && Math.random() < dt * 4 * iq) {
+    const q = G.pl.filter((o) => o.t !== p.t && !o.gone).sort((a, c) => dist(a, p) - dist(c, p))[0],
+      away = (q.x - p.x) * -Math.sin(p.f) + (q.y - p.y) * Math.cos(p.f) > 0 ? -1 : 1; // q on our left (+y): ball right (-1)
+    p.hand = away;
+  }
+  if (iq && df < 3.4 && p.ai > 0.8 - 0.5 * iq && Math.random() < dt * 3 * iq) {
+    p.ai = 0;
+    passTo(p, bestMate(p, null));
+    return;
+  }
+  if (iq && df > 5 && dh < 24 && dh > 10 && p.ai > 0.6 && Math.random() < dt * 2 * iq) {
+    p.ai = 0;
+    p.ft = Math.atan2(25 - p.y, h - p.x);
+    p.aishot = { t: 0, d: 0.55, q: cl(0.45 + dk(p).shotQ + (G.fire[p.t] ? 0.15 : 0) + (df - 3) * 0.07 + rn(-0.2, 0.2), 0.1, 1) };
+    return;
+  }
   if (dh < 10 && df > 4 && p.ai > 0.5) {
     p.ai = 0;
     scripted(p, Math.random() < 0.55 ? "dunk" : "layup");
     return;
   }
-  if (p.ai > 1.2 && (G.sc < 4 || (dh < 24 && Math.random() < dt * 0.8))) {
+  if (p.ai > 1.0 && (G.sc < 4 || (dh < 24 && Math.random() < dt * 1.2))) {
     p.ai = 0;
     p.ft = Math.atan2(25 - p.y, h - p.x);
     // Wind up the jump shot; it's released in aiShotStep().
@@ -978,7 +1009,7 @@ function handler(p, dt) {
     return;
   }
   // Under pressure the AI breaks out a dribble move now and then.
-  if (df < 3.5 && !p.mv && Math.random() < dt * 0.5) dribbleMove(p);
+  if (df < 3.5 && !p.mv && Math.random() < dt * (0.5 + 1.6 * iq)) dribbleMove(p);
   if (p.ai > 0.8 && df < 3.2 && Math.random() < dt * 1.2) {
     p.ai = 0;
     passTo(p, bestMate(p, null));
@@ -1030,10 +1061,16 @@ function ai(dt) {
         dy = 25 - o.y,
         dl = hy(dx, dy) || 1,
         g = Math.max(1.6, (b.own === o.id ? 2.6 : 3.6) + dk(p).gap);
-      mv(p, o.x + (dx / dl) * g, o.y + (dy / dl) * g, 1, dt);
+      // Better defenders sprint to get back in front when they've been beaten.
+      const tx = o.x + (dx / dl) * g,
+        ty = o.y + (dy / dl) * g,
+        lag = hy(tx - p.x, ty - p.y);
+      mv(p, tx, ty, 1 + (lag > 2 ? 0.45 * (dk(p).iq || 0) : 0), dt);
       p.def = true;
       p.ft = Math.atan2(o.y - p.y, o.x - p.x);
       if (b.own === o.id && dist(p, o) < 3.4 && !G.shot && Math.random() < dt * dk(p).stealRate) steal(p, o);
+      // the bench bot mashes STEAL whenever it's close to the ball, like a kid does
+      if (G.auto === 2 && i === G.ctrl && b.own === o.id && dist(p, o) < 4.2 && T - (p.botSw || 0) > 0.3) (p.botSw = T), humanSteal(p, o);
     }
   });
 }
@@ -1125,13 +1162,53 @@ function human(dt) {
     }
   }
   if (pr("KeyE") && b.own === p.id) dribbleMove(p);
-  if (pr("KeyF") && b.own >= 0 && G.pl[b.own].t !== p.t) {
-    const o = G.pl[b.own];
-    p.swp = 0.25;
-    if (dist(p, o) < 4.2) {
-      if (Math.random() < 0.32 * (p.dfn / 80) * (1.35 - o.hnd / 150)) stealBall(p, o);
-      else toast("CONTEST", 0.4);
-    } else toast("HANDS UP", 0.4);
+  if (pr("KeyF") && b.own >= 0 && G.pl[b.own].t !== p.t) humanSteal(p, G.pl[b.own]);
+}
+// Is the ball out on the side facing defender q (easy to poke), or shielded by the handler's body?
+// During a dribble move the ball is on the move and hard to time: about half as easy.
+function exposed(v, q) {
+  const b = G.ball,
+    side = (b.x - v.x) * (q.x - v.x) + (b.y - v.y) * (q.y - v.y);
+  return (side > 0 ? 1 : 0.25) * (v.mv ? 0.5 : 1);
+}
+// Your STEAL. Every swipe is a reach: you can't swipe again for a moment, and on harder levels a miss can leave
+// you off balance while they go by. How often it works depends on the level (DIFF secure) and the handler.
+function humanSteal(p, o) {
+  if (T - (p.swT || -9) < 0.6) return;
+  p.swT = T;
+  p.swp = 0.25;
+  const D = oppD();
+  if (dist(p, o) < 4.2) {
+    if (Math.random() < D.secure * exposed(o, p) * (p.dfn / 80) * (1.35 - o.hnd / 150)) (G.bc && (G.bc.mash = (G.bc.mash || 0) + 1), stealBall(p, o));
+    else if (o.t === 1 && Math.random() < D.reach) {
+      p.stun = 0.45;
+      toast("REACHED!", 0.5);
+    } else toast("CONTEST", 0.4);
+  } else toast("HANDS UP", 0.4);
+}
+// ---------- the bench bot (tools/bench.sh): plays your side like a good kid. Sprints at the rim or pulls up,
+// breaks out dribble moves under pressure, times jump shots with a human-sized error (beginShot), mashes STEAL.
+function botHandler(p, dt) {
+  const h = HX(p.t),
+    d = p.t ? -1 : 1,
+    dh = hy(h - p.x, 25 - p.y),
+    df = minDef(p),
+    spr = p.stam > 15;
+  p.ai = (p.ai || 0) + dt;
+  if (!p.plan) p.plan = { k: Math.random() < 0.55 ? "drive" : "pull", y: rn(10, 40) };
+  p.stam = cl(p.stam + (spr ? -17 : 9) * dt, 0, 100);
+  if (p.plan.k === "drive") mv(p, h - d * 2, 25, spr ? 1.5 : 1, dt);
+  else mv(p, h - d * 21, p.plan.y, spr ? 1.4 : 1, dt);
+  if (df < 3.5 && !p.mv && Math.random() < dt * 1.5) dribbleMove(p);
+  const go = () => ((p.ai = 0), (p.plan = null), beginShot(p));
+  if (G.shot) return;
+  if (dh < 10.5 && p.ai > 0.25) return go();
+  if (p.plan.k === "pull" && p.ai > 1.0 && (df > 4 || G.sc < 5) && dh < 27) return go();
+  if (G.sc < 3) return go();
+  if (p.ai > 3) {
+    p.ai = 0;
+    p.plan = null;
+    passTo(p, bestMate(p, null));
   }
 }
 function ctrlSel(dt) {
@@ -1278,7 +1355,7 @@ function dribbleMove(p) {
   }
   let hit = 0;
   for (const q of G.pl)
-    if (q.t !== p.t && dist(q, p) < 6 && Math.random() < (k === "spin" ? 0.45 : 0.35) * (M.ankle || 1) * (p.hnd / 82)) {
+    if (q.t !== p.t && dist(q, p) < 5 && Math.random() < (k === "spin" ? 0.45 : 0.35) * (M.ankle || 1) * (p.hnd / 82) * (q.t === 1 ? oppD().ankleRes : 1)) {
       q.stun = 0.8;
       hit = 1;
     }

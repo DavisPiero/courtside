@@ -125,6 +125,7 @@ window.addEventListener("error", (e) => {
 rs();
 init();
 if (/[?&]smoke\b/.test(location.search)) smoke();
+else if (/[?&]bench\b/.test(location.search)) bench();
 else if (/[?&]fitcheck\b/.test(location.search)) document.fonts.ready.then(fitCheck); // sizes need the real font
 else {
   requestAnimationFrame(loop);
@@ -228,6 +229,48 @@ function fitCheck() {
   document.body.appendChild(pre);
 }
 
+// Difficulty bench (tools/bench.sh): a bot that plays like a good kid (js/gameplay.js botHandler) against each level,
+// several 3-minute games on the Arena, Clean. The average margin is the number to tune: a real kid should win
+// on Rookie, win close on Pro, have a fight on All-Star and usually lose on Hall of Famer.
+function bench() {
+  const out = [],
+    N = +(location.search.match(/[?&]n=(\d+)/) || [0, 6])[1];
+  for (let diff = 0; diff < 4; diff++) {
+    const m = [],
+      st = {};
+    for (let g = 0; g < N; g++) {
+      Object.assign(OPT, { mode: "clean", court: "arena", diff });
+      setTeams(...DEFAULT_TEAMS);
+      start(0);
+      G.tip = null;
+      G.auto = 2;
+      G.time = 180;
+      G.bc = { sh: 0, mk: 0, rim: 0, pos: 0 };
+      document.body.classList.remove("bars");
+      setPoss(g % 2);
+      let n = 0;
+      while (G.run && G.q === 1 && n < 120 * 400) {
+        step(1 / 120);
+        T += 1 / 120;
+        n++;
+      }
+      m.push(G.home - G.away);
+      for (const k of ["dunks", "greens", "threes", "stl", "ankles"]) (st[k] = (st[k] || 0) + (G.st[k] || 0) / N);
+      st.them = (st.them || 0) + G.away / N;
+      for (const k in G.bc) st["ai" + k] = (st["ai" + k] || 0) + G.bc[k] / N;
+    }
+    const avg = m.reduce((a, b) => a + b, 0) / N;
+    out.push(`BENCH ${DIFF[diff].name.padEnd(14)} avg ${(avg >= 0 ? "+" : "") + avg.toFixed(1)}  (${m.join(" ")})`);
+    if (/[?&]v\b/.test(location.search)) out.push("   per game: " + Object.entries(st).map(([k, v]) => k + " " + v.toFixed(1)).join(", "));
+  }
+  G.run = 0;
+  G.auto = 0;
+  G.bc = null;
+  const pre = document.createElement("pre");
+  pre.id = "smoke";
+  pre.textContent = out.join("\n");
+  document.body.appendChild(pre);
+}
 // Smoke test (tools/smoke.sh): AI plays both teams for a 2-minute quarter in every mode, court and difficulty.
 // Your side always plays at Pro, so the score margin shows how hard each level is.
 function smoke() {

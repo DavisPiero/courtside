@@ -155,6 +155,21 @@ function buzzerUpd(dt) {
     quarterEnd();
   }
 }
+// ---------- Adaptive AI (js/core.js oppD): every step, the opponents' boost eases toward a target set by your lead
+// (from 4 points up, full at 20) plus a little for how far into the game it is. It drops back if they catch up.
+function adaptUpd(dt) {
+  if (G.prac || (G.mg && G.mg.k !== "1v1")) return (G.adapt = 0);
+  const lead = G.home - G.away,
+    nq = (G.rules && G.rules.nq) || 4,
+    qlen = (G.rules && G.rules.qlen) || 60,
+    prog = G.rules && G.rules.target ? Math.max(G.home, G.away) / G.rules.target : cl((G.q - 1 + 1 - G.time / qlen) / nq, 0, 1),
+    target = cl(cl((lead - 4) / 16, 0, 1) * 0.85 + prog * 0.25, 0, 1);
+  G.adapt = Math.round((G.adapt + (target - G.adapt) * Math.min(1, dt * 0.12)) * 1000) / 1000;
+  if (G.adapt > 0.5 && !G.adaptSaid && !G.auto) {
+    G.adaptSaid = 1;
+    toast("THEY'RE ADJUSTING!", 1.4);
+  }
+}
 // Slow motion while the buzzer shot flies.
 const bbSlow = () => (G.bb && !G.bb.done ? 0.35 : 1);
 function quarterEnd() {

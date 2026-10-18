@@ -16,12 +16,20 @@ _Updated 2026-10-18, session 6b, merged to `main` and live (David: merge and pus
   16 more animations (100).
 Smoke test passes (all modes, courts, levels, minigames; fit check at 5 sizes including the DAILY pop-up).
 
+## On the branch `session6c-difficulty` (not merged)
+- Every difficulty is harder, plus adaptive AI; `tools/bench.sh` measures it (bot margins +37 / +17 / +3 / -13,
+  down from +88 / +69 / +62 / +43).
+- Code BIG LEAGUE (2000 CC) and a SPACE key on the code keyboard.
+- BRIEF-league.md: a draft of the Career League after the NBA campaign.
+
 ## Next
 - David checks 6b on the iPad: the code keyboard, the menu, the DAILY pop-up.
 - 6c: fluid controls, ragdoll only for ankle breakers and punches; rebuild The Cage.
 - First outside playtest (still not done).
 
 ## Open with David (guesses until confirmed)
+- Is the new difficulty right in his hands? The bench bot is a guess at a good kid; tune DIFF in js/core.js.
+- The questions at the end of BRIEF-league.md.
 1. Daily numbers: reward ladder (100, 150, Street Pack, 250, Shoebox, 400, All-Star Pack) and challenge pay
    (75 / 100 / 150). A missed day doesn't reset the ladder (my guess).
 2. Which other ideas from BRIEF-ideas.md and BRIEF-gameplay.md to build; two players on one device.
