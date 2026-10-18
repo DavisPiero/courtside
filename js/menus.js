@@ -4,9 +4,25 @@
 // Only one full-screen layer shows at a time: menu, setup, pause or settings. The HUD shows during play.
 const SCREENS = ["load", "device", "menu", "setup", "pause", "sets"];
 function show(id) {
+  if (id === "menu" && !$("menu").classList.contains("on")) menuSlide(0, 1); // the menu always opens on its main buttons
   for (const s of SCREENS) $(s) && $(s).classList.toggle("on", s === id);
   if (typeof ccShow === "function") ccShow();
   if (id === "menu" && typeof payday === "function") payday();
+}
+// Main menu: PLAY slides the main buttons out to the left and Campaign, Quick Play and Minigames in from the
+// right; BACK slides them back. now: jump there without the slide (coming back from another screen).
+function menuSlide(on, now) {
+  const m = $("menu").querySelector(".menu-l");
+  if (now) m.classList.add("still");
+  m.classList.toggle("play", !!on);
+  $("navMain").inert = !!on;
+  $("navPlay").inert = !on;
+  if (now) void m.offsetWidth, m.classList.remove("still");
+}
+// Campaign, Quick Play and Minigames go back here.
+function showPlay() {
+  show("menu");
+  menuSlide(1, 1);
 }
 // ---------- fit to screen
 // Panels never shrink: every panel is full size and at most as tall as the visible screen (CSS max-height on

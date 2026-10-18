@@ -9,17 +9,17 @@
 // You play as your hooper (or OKC's star if you haven't made one).
 SCREENS.push("mini");
 const MINIS = [
-  { k: "three", n: "3-POINT CONTEST", d: "60 seconds. Five racks around the arc. Release in the green. Last ball on each rack is worth 2.", pay: (s) => s * 4 },
-  { k: "dunk", n: "DUNK CONTEST", d: "Three dunks for the judges. Rarer dunks, more speed and a dribble move on the way in all score more.", pay: (s) => Math.round(s / 2) },
-  { k: "1v1", n: "1-ON-1", d: "You against one NBA star, full court. First to 11.", pay: (s, won) => (won ? 80 : 20) },
+  { k: "three", n: "3-POINT CONTEST", d: "60 seconds. Five racks around the arc. Release in the green. Last ball on each rack is worth 2.", pay: (s) => s * 5 },
+  { k: "dunk", n: "DUNK CONTEST", d: "Three dunks for the judges. Rarer dunks, more speed and a dribble move on the way in all score more.", pay: (s) => Math.round(s * 0.625) },
+  { k: "1v1", n: "1-ON-1", d: "You against one NBA star, full court. First to 11.", pay: (s, won) => (won ? 100 : 25) },
 ];
-const MINI_BEST_BONUS = 25;
+const MINI_BEST_BONUS = 30;
 function openMini() {
   $("miniCards").innerHTML = MINIS.map(
     (m) => `<button class="dcard mcard" data-k="${m.k}"><b>${m.n}</b><span>${m.d}</span><em>${SAVE.best[m.k] !== undefined ? (m.k === "1v1" ? `WINS: ${SAVE.best[m.k]}` : `BEST: ${SAVE.best[m.k]}`) : "NEW!"}</em></button>`,
   ).join("");
   $("miniCards").querySelectorAll(".mcard").forEach((b) => (b.onclick = () => startMini(b.dataset.k)));
-  $("bMiniX").onclick = () => show("playPick");
+  $("bMiniX").onclick = () => showPlay();
   show("mini");
 }
 // You: your hooper's crew colours, or the Thunder.

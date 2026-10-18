@@ -97,3 +97,8 @@ One line each, newest last.
 - 2026-10-18 · Bloom off by default and half strength (David); old saved settings switched off once.
 - 2026-10-18 · On Fire outline on the whole team plus the ball; meter zone glows orange (David's idea).
 - 2026-10-18 · Code SNEAKERHEAD: Launched (Gametime sneaker) + a free Premium Shoebox, saved like free packs (SAVE.freeBox).
+- 2026-10-18 · Main menu column no longer has a max width: it clipped the logo and right-hand buttons on iPad (David's screenshot). Fit check now fails on anything cut off sideways.
+- 2026-10-18 · PLAY slides the main buttons out left and Campaign / Quick Play / Minigames in from the right (David); the PLAY screen with cards is gone. Laid out like the main set (big CAMPAIGN, two halves, BACK) so the menu never changes size.
+- 2026-10-18 · Codes on touch use Courtside's own keyboard; the iPad keyboard failed twice. Keys use pointerdown so the double-tap blocker can't eat fast taps.
+- 2026-10-18 · Shop, Inventory and Settings BACK no longer follows the scroll; it sits at the end (David). Pop-ups and other panels keep the pinned row.
+- 2026-10-18 · Every coin reward up about 25% (David: more things to buy); prices unchanged.

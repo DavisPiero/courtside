@@ -196,12 +196,17 @@ function redeemCode(str) {
   writeSave();
   return ["ok", "Unlocked: " + got.join(" + ") + "!", c];
 }
+// On touch the iPad keyboard kept refusing to type into the code box (sessions 6a and 6b), so touch devices get
+// Courtside's own keyboard instead: the box is read-only and the keys below type into it.
+const CODE_KEYS = ["1234567890", "QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM<"];
 function drawCodes() {
-  const [cls, text] = SHOPUI.msg || ["", ""];
+  const [cls, text] = SHOPUI.msg || ["", ""],
+    pad = G.touch;
   $("shopBody").innerHTML = `<div class="codes">
-    <p class="pnote">Got a code? Type it in exactly as it's written.</p>
-    <div class="crow"><input id="codeIn" maxlength="24" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" enterkeyhint="go" placeholder="ENTER CODE"><button class="btn pri" id="bCode">REDEEM</button></div>
-    <div class="cmsg ${cls}" id="codeMsg">${text}</div></div>`;
+    <h3 class="chead">ENTER A CODE</h3>
+    <div class="crow"><input id="codeIn" maxlength="24" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" enterkeyhint="go"${pad ? ' readonly inputmode="none"' : ""}><button class="btn pri" id="bCode">REDEEM</button></div>
+    <div class="cmsg ${cls}" id="codeMsg">${text}</div>
+    ${pad ? `<div class="ckeys" id="codeKeys">${CODE_KEYS.map((r) => `<div>${[...r].map((k) => `<button class="btn ckey${k === "<" ? " del" : ""}" data-k="${k}">${k === "<" ? "⌫" : k}</button>`).join("")}</div>`).join("")}</div>` : ""}</div>`;
   SHOPUI.msg = "";
   const go = () => {
     const r = redeemCode($("codeIn").value.trim());
@@ -217,6 +222,23 @@ function drawCodes() {
   $("bCode").onclick = go;
   // iPad keyboards send key "Enter" with an empty code
   $("codeIn").onkeydown = (e) => (e.key === "Enter" || e.code === "Enter") && (e.preventDefault(), go());
+  // pointerdown, not click: fast taps would otherwise be eaten by the double-tap-zoom blocker (js/touch.js)
+  if (!pad) return;
+  // short screens (phones): scroll so the code box and every key show together
+  requestAnimationFrame(() => {
+    const box = $("shopBody").closest(".shopbox"),
+      h = $("shopBody").querySelector(".chead");
+    if (box && h) box.scrollTop += h.getBoundingClientRect().top - box.getBoundingClientRect().top - 12;
+  });
+  $("codeKeys").addEventListener("pointerdown", (e) => {
+      const b = e.target.closest(".ckey");
+      if (!b) return;
+      e.preventDefault();
+      const f = $("codeIn"),
+        k = b.dataset.k;
+      f.value = k === "<" ? f.value.slice(0, -1) : (f.value + k).slice(0, 24);
+      $("codeMsg").textContent = "";
+    });
 }
 
 // ---------- pack opening (and shoebox unboxing: same cards, one shoe)

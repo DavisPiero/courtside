@@ -59,16 +59,24 @@ kbd {
 
 /* ---------- main menu */
 #menu { background: linear-gradient(90deg, rgba(4, 6, 14, 0.94) 0%, rgba(4, 6, 14, 0.6) 45%, rgba(4, 6, 14, 0) 75%); }
-.menu-l { align-self: center; padding: 0 clamp(20px, 7vw, 96px); max-width: 560px; }
+.menu-l { align-self: center; padding: 0 clamp(20px, 7vw, 96px); }
 .brand { font: 400 clamp(70px, 12.5vw, 140px)/0.9 var(--px); letter-spacing: 0.01em; text-shadow: 4px 4px 0 #1d3fb0; }
 .brand em { color: var(--gold); font-style: normal; text-shadow: 4px 4px 0 var(--gold-dk); }
 /* the tutorial button sits under the logo, where the tagline used to be */
 .tutb { display: block; margin: 16px 0 28px; font-size: 20px; padding: 10px 18px 12px; color: var(--gold); }
 .menu-l nav { display: grid; gap: 10px; width: min(460px, 90vw); grid-template-columns: 1fr 1fr; }
-/* one big yellow PLAY button; Campaign, Quick Play and Minigames are on the PLAY screen behind it */
-.menu-l nav .playb { grid-column: 1 / -1; font-size: 46px; padding: 18px 24px 22px; letter-spacing: 0.1em; }
-.pcard { width: 250px; }
-.pcard span { min-height: 2.2em; }
+/* one big yellow PLAY button. PLAY slides the button set left and Campaign, Quick Play and Minigames in from the
+   right (js/main.js menuSlide); both sets are laid out the same, so the menu never changes size */
+.menu-l nav .playb, .menu-l nav .wide { grid-column: 1 / -1; }
+.menu-l nav .playb { font-size: 46px; padding: 18px 24px 22px; letter-spacing: 0.1em; }
+.menu-l #navPlay .playb { letter-spacing: 0.06em; }
+.mtrack { overflow-x: clip; overflow-clip-margin: 8px; }
+.mrow { display: grid; }
+.mrow > nav { grid-area: 1 / 1; transition: transform 0.32s cubic-bezier(0.3, 0.9, 0.3, 1), opacity 0.32s; }
+#navPlay, .menu-l.play #navMain { transform: translateX(calc(100% + 60px)); opacity: 0; }
+.menu-l.play #navMain { transform: translateX(calc(-100% - 60px)); }
+.menu-l.play #navPlay { transform: none; opacity: 1; }
+.menu-l.still nav { transition: none; }
 
 /* ---------- settings */
 #sets .box { width: min(680px, 94vw); }
@@ -369,7 +377,6 @@ body.touch .menu-l nav .playb { font-size: 50px; }
   .brand { font-size: 64px; }
   .tutb { margin: 8px 0 12px; }
   .menu-l nav { grid-template-columns: 1fr 1fr; width: min(520px, 90vw) !important; }
-  .menu-l nav .btn.pri { grid-column: 1 / -1; }
   #setup { grid-template-rows: 44px 1fr auto; }
   .su-top { font-size: 16px; } .su-top b { font-size: 24px; }
   .tn b { font-size: 40px; } .city { font-size: 18px; } .rings { margin-top: 8px; }
@@ -379,7 +386,6 @@ body.touch .menu-l nav .playb { font-size: 50px; }
   .box { padding: 16px 18px 18px; --bp: 18px; } .box h2 { font-size: 38px; margin-bottom: 10px; }
   .rows { max-height: 52vh; }
   .menu-l nav .playb, body.touch .menu-l nav .playb { font-size: 36px; padding: 10px 18px 12px; }
-  .pcard { width: 200px; }
   .tb.big { width: 96px; height: 96px; } .tbtns { transform: scale(0.88); transform-origin: bottom right; }
   .ibody { grid-template-columns: 170px 1fr; } .iprev { min-height: 200px; } #invCv { height: 190px; }
   .hbody { grid-template-columns: 150px 1fr; } #heroCv { height: 190px; }
@@ -747,6 +753,14 @@ canvas.shcv { width: 100%; height: 54px; }
 .crow { display: flex; gap: 8px; }
 .crow input { font: 400 26px/1 var(--px); letter-spacing: 0.12em; padding: 10px 14px; width: min(340px, 60vw); background: #0a0f22; color: #fff; border: 0; clip-path: var(--notch); box-shadow: inset 0 0 0 2px var(--edge-hi); outline: none; text-transform: none; -webkit-user-select: text; user-select: text; }
 .cmsg { font: 400 22px/1.2 var(--px); min-height: 26px; }
+.chead { margin: 0; font: 400 24px/1 var(--px); letter-spacing: 0.1em; color: var(--gold); }
+.crow input[readonly] { caret-color: transparent; }
+/* Courtside's own keyboard for codes on touch devices (js/shop.js drawCodes) */
+.ckeys { display: grid; gap: 6px; justify-self: stretch; max-width: 640px; }
+.ckeys > div { display: flex; gap: 6px; justify-content: center; }
+body .ckeys .ckey { flex: 0 1 56px; min-width: 0; height: 52px; padding: 0 0 4px; display: flex; align-items: center; justify-content: center; font-size: 26px; line-height: 1; touch-action: manipulation; }
+body .ckeys .ckey.del { flex-basis: 84px; color: var(--gold); }
+@media (max-height: 520px) { .ckeys { gap: 4px; } .ckeys > div { gap: 4px; } body .ckeys .ckey { height: 32px; font-size: 20px; } .codes { gap: 6px; } .chead { font-size: 20px; } .cmsg { font-size: 18px; min-height: 20px; } .crow input { font-size: 22px; padding: 6px 12px; } body .crow .btn { padding-top: 6px; padding-bottom: 8px; } }
 .cmsg.ok { color: var(--good); } .cmsg.bad { color: #ff6b6b; }
 /* a big notice over any screen (signing bonus) */
 #notice { position: fixed; left: 50%; top: 14%; z-index: 40; transform: translateX(-50%); pointer-events: none; opacity: 0; padding: 14px 22px; background: var(--gold); color: #1a1408; font: 400 clamp(26px, 4vw, 40px)/1 var(--px); clip-path: var(--notch); white-space: nowrap; }
@@ -809,7 +823,8 @@ canvas.shcv { width: 100%; height: 54px; }
 .scr > .menu-l { max-height: 100vh; max-height: 100dvh; overflow: hidden auto; scrollbar-width: none; }
 /* tabbed screens keep one size whatever the tab */
 .box.shopbox, .box.inv, #sets .box { height: min(860px, calc(100vh - 20px)); height: min(860px, calc(100dvh - 20px)); }
-.fitscroll > .act:last-child {
+/* except the Shop, Inventory and Settings (.nopin): their BACK button stays at the end of the page (David, 6b) */
+.fitscroll:not(.nopin) > .act:last-child {
   position: sticky; bottom: calc(4px - var(--bp, 28px)); z-index: 3; /* sticky measures from inside the padding */
   /* stretch to the panel's inner edges, leaving its 2px border and 4px bottom lip showing */
   margin: 0 calc(2px - var(--bp, 28px)) calc(4px - var(--bp, 28px)); padding: 12px calc(var(--bp, 28px) - 2px) calc(var(--bp, 28px) - 4px);
@@ -818,7 +833,6 @@ canvas.shcv { width: 100%; height: 54px; }
 /* iPads and short laptops: the main menu buttons go two across so SETTINGS isn't off the bottom */
 @media (max-height: 760px) {
   .menu-l nav { grid-template-columns: 1fr 1fr; width: min(520px, 90vw) !important; }
-  .menu-l nav .btn.pri { grid-column: 1 / -1; }
   .tutb { margin: 12px 0 18px; }
 }
 /* small phones in landscape (~300 px tall) */

@@ -25,7 +25,7 @@ const TUT_STEPS = [
 const TUT_CARDS = [
   ["CAMPAIGN", "Make your hooper and start on the Street: The Block, The City, the Summer Jam. Win the Summer Jam and NBA scouts call. Every game has three stars to win. Beating a chapter boss wins a free All-Star Pack."],
   ["YOUR HOOPER", "On EDIT HOOPER, spend Court Coins to upgrade Speed, Accuracy, Range, Finishing, Handling, Defence, Hops and Stamina. Each upgrade costs a bit more. Campaign games show a recommended rating."],
-  ["NBA CAREER", "Choose a team and sign: 1000 CC signing bonus, and your contract pays Court Coins every day. Clear a chapter and better teams make offers."],
+  ["NBA CAREER", "Choose a team and sign: 1250 CC signing bonus, and your contract pays Court Coins every day. Clear a chapter and better teams make offers."],
   ["QUICK PLAY AND MINIGAMES", "Quick Play: any two teams, today's NBA or the Hall of Fame. Minigames: the 3-point contest, the dunk contest and 1-on-1."],
   ["COURT COINS", "You earn CC for winning, for style (perfect releases, dunks, ankle breakers, threes, steals, blocks), for campaign stars, minigames and your NBA contract."],
   ["THE SHOP", "The Daily Shop changes every hour. Packs and Player Packs have random animations, Shoeboxes have one mystery shoe. Got a code? Type it in the CODES tab."],
