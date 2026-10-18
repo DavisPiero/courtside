@@ -151,16 +151,57 @@ function drawSel() {
   $("roster").innerHTML =
     `<div class="ra">${A.map((q) => `${q[0]} <u>${q[2]}</u><span>${q[1]}</span>`).join("<br>")}</div><i class="sep"></i>` +
     `<div>${B.map((q) => `<span>${q[1]}</span><u>${q[2]}</u> ${q[0]}`).join("<br>")}</div>`;
-  document.querySelectorAll("#setup .seg[data-k]").forEach((g) =>
-    g.querySelectorAll("button").forEach((b) => {
-      b.classList.toggle("on", String(OPT[g.dataset.k]) === b.dataset.v);
-      b.onclick = () => {
-        OPT[g.dataset.k] = g.dataset.k === "diff" ? +b.dataset.v : b.dataset.v;
-        drawSel();
-      };
-    }),
-  );
+  drawChips();
   PORT.length = 0;
+}
+// Quick Play options: each is a small chip showing the current choice; tapping it opens a pop-up to pick from.
+const SU_OPTS = {
+  mode: {
+    t: "MODE",
+    o: () => [
+      ["clean", "CLEAN", "Straight basketball: dribble, pass, shoot, steal and block. No punches or slides."],
+      ["mayhem", "MAYHEM", "No rules: punch to drop players and steal the ball, slide-tackle the ball carrier. Chaos!"],
+    ],
+  },
+  court: { t: "COURT", o: () => COURT_IDS.map((k) => [k, COURTS[k].name, COURTS[k].tip]) },
+  diff: {
+    t: "DIFFICULTY",
+    o: () => [
+      [0, "ROOKIE", "Easy. Slow defenders who miss a lot. Good for learning."],
+      [1, "PRO", "Normal. A fair game."],
+      [2, "ALL-STAR", "Hard. Tight defence, steals and good shooters."],
+      [3, "HALL OF FAMER", "Expert. They punish every mistake."],
+    ],
+  },
+};
+function drawChips() {
+  $("suChips").innerHTML = Object.entries(SU_OPTS)
+    .map(([k, d]) => `<button class="chip" data-k="${k}"><i>${d.t}</i><b>${d.o().find((o) => o[0] === OPT[k])[1]} <u>▾</u></b></button>`)
+    .join("");
+  $("suChips").querySelectorAll(".chip").forEach((b) => (b.onclick = () => openPick(b.dataset.k)));
+}
+function openPick(k) {
+  const d = SU_OPTS[k];
+  $("pickT").textContent = d.t;
+  $("pickG").className = "pgrid pg-" + k;
+  $("pickG").innerHTML = d
+    .o()
+    .map(([v, n, tip]) => `<button class="popt ${OPT[k] === v ? "on" : ""}" data-v="${v}"${k === "court" ? ` style="--cbg:var(--c-${v})"` : ""}><b>${n}</b><span>${tip}</span></button>`)
+    .join("");
+  $("pickG").querySelectorAll(".popt").forEach(
+    (b) =>
+      (b.onclick = () => {
+        OPT[k] = k === "diff" ? +b.dataset.v : b.dataset.v;
+        closePick();
+        drawSel();
+      }),
+  );
+  $("pickX").onclick = closePick;
+  $("pick").classList.add("on");
+}
+const pickOpen = () => $("pick").classList.contains("on");
+function closePick() {
+  $("pick").classList.remove("on");
 }
 // Step one side through the teams, skipping the team the other side has.
 function cycle(right, d) {

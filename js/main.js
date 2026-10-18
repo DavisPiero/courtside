@@ -24,7 +24,7 @@ addEventListener("keydown", (e) => {
       e.preventDefault(); // stop the focused button (e.g. PLAY) from also being pressed
       $("bStart").click();
     }
-    if (e.code === "Escape") SEL.grid >= 0 ? closeGrid() : show(SEL.pr ? "menu" : "playPick");
+    if (e.code === "Escape") pickOpen() ? closePick() : SEL.grid >= 0 ? closeGrid() : show(SEL.pr ? "menu" : "playPick");
     return;
   }
   // Escape steps back out of menu screens.
@@ -166,6 +166,9 @@ function fitCheck() {
   run("menu", () => show("menu"));
   run("device", () => show("device"));
   run("setup", () => openSel());
+  run("setup", () => (openSel(), openPick("court")));
+  run("setup", () => (openSel(), openPick("diff")));
+  run("setup", () => (closePick(), openSel()));
   run("hero", () => openHero());
   run("playPick", () => show("playPick"));
   run("campPick", () => $("campPick").classList.add("on"));
