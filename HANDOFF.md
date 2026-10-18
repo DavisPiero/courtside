@@ -3,7 +3,7 @@
 _Written 2026-10-18 (session 6a). Replace this file at the end of each session; don't add a second one._
 
 ## State of the repo
-- Branch `session6a` has 6a, committed, not merged. `main` is unchanged and live (session 5).
+- Session 6a is merged to `main` and pushed (live). No open branches.
 - `./tools/smoke.sh` passes. Scores vary from run to run; this session changed no rules.
 
 ## What changed (where to look)
@@ -24,4 +24,4 @@ _Written 2026-10-18 (session 6a). Replace this file at the end of each session; 
 - The iPad keyboard can't be tested here: the code box fix is checked on desktop only.
 
 ## What comes next
-- David: test 6a on the iPad, then sign off. Then 6b and 6c (see STATE.md).
+- David tests 6a on the iPad. Then 6b and 6c (see STATE.md).
