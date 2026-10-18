@@ -276,14 +276,14 @@ function post() {
       bl.height = bh;
     }
     const g = bl.getContext("2d");
-    g.filter = "brightness(0.75) contrast(2.6) saturate(1.3)";
+    g.filter = "brightness(0.7) contrast(3.2) saturate(1.2)"; // only the brightest things glow
     g.imageSmoothingEnabled = true;
     g.clearRect(0, 0, bw, bh);
     g.drawImage(buf, 0, 0, bw, bh);
     g.filter = "none";
     X.save();
     X.globalCompositeOperation = "lighter";
-    X.globalAlpha = SET.lighting === "high" ? 0.32 : 0.22;
+    X.globalAlpha = SET.lighting === "high" ? 0.15 : 0.1; // about half what it was (David: tone it down)
     X.imageSmoothingEnabled = true;
     X.drawImage(bl, 0, 0, w, h);
     X.restore();

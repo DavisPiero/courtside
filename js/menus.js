@@ -9,33 +9,12 @@ function show(id) {
   if (id === "menu" && typeof payday === "function") payday();
 }
 // ---------- fit to screen
-// Every panel must fit the visible screen (an iPad with Safari's bars leaves ~690 px). A panel that is too
-// tall shrinks evenly, down to FIT_MIN. If it still doesn't fit, its middle scrolls and its button row stays
-// pinned to the bottom (CSS .fitscroll), so BACK / PLAY are always on screen.
-const FIT_MIN = 0.75,
-  FIT_PAD = 10;
+// Panels never shrink: every panel is full size and at most as tall as the visible screen (CSS max-height on
+// .scr > .box). A panel taller than that scrolls its middle and its last button row (.act) stays pinned to the
+// bottom (.fitscroll). Tabbed screens (Shop, Inventory, Settings) have a fixed height, so switching tabs never
+// changes their size.
 function fitPanel(p) {
-  const st = p.style;
-  st.transform = st.maxHeight = st.overflowY = "";
-  p.classList.remove("fitscroll");
-  st.maxHeight = "none"; // measure the natural height, ignoring any max-height from the stylesheet
-  const h = Math.max(p.offsetHeight, p.scrollHeight),
-    w = p.offsetWidth;
-  if (!h || !w) return (st.maxHeight = "");
-  const H = innerHeight - 2 * FIT_PAD,
-    W = innerWidth - 2 * FIT_PAD,
-    s = Math.max(FIT_MIN, Math.min(1, H / h, W / w));
-  if (h * s > H + 1) {
-    st.maxHeight = Math.floor(H / s) + "px";
-    st.overflowY = "auto";
-    p.classList.add("fitscroll");
-  }
-  if (s < 1) st.transform = `scale(${s.toFixed(3)})`;
-  // A panel taller than the screen gets pinned to the top before it shrinks, so re-centre what is drawn.
-  const r = p.getBoundingClientRect(),
-    dy = Math.round(innerHeight / 2 - (r.top + r.bottom) / 2),
-    dx = r.left < 0 || r.right > innerWidth ? Math.round(innerWidth / 2 - (r.left + r.right) / 2) : 0;
-  if (Math.abs(dy) > 1 || dx) st.transform = `translate(${dx}px, ${dy}px) ${st.transform}`;
+  p.classList.toggle("fitscroll", p.scrollHeight > p.clientHeight + 1);
 }
 function fitScreens() {
   for (const p of document.querySelectorAll(".scr.on > .box, .scr.on > .dv, .scr.on > .menu-l")) fitPanel(p);
@@ -172,16 +151,57 @@ function drawSel() {
   $("roster").innerHTML =
     `<div class="ra">${A.map((q) => `${q[0]} <u>${q[2]}</u><span>${q[1]}</span>`).join("<br>")}</div><i class="sep"></i>` +
     `<div>${B.map((q) => `<span>${q[1]}</span><u>${q[2]}</u> ${q[0]}`).join("<br>")}</div>`;
-  document.querySelectorAll("#setup .seg[data-k]").forEach((g) =>
-    g.querySelectorAll("button").forEach((b) => {
-      b.classList.toggle("on", String(OPT[g.dataset.k]) === b.dataset.v);
-      b.onclick = () => {
-        OPT[g.dataset.k] = g.dataset.k === "diff" ? +b.dataset.v : b.dataset.v;
-        drawSel();
-      };
-    }),
-  );
+  drawChips();
   PORT.length = 0;
+}
+// Quick Play options: each is a small chip showing the current choice; tapping it opens a pop-up to pick from.
+const SU_OPTS = {
+  mode: {
+    t: "MODE",
+    o: () => [
+      ["clean", "CLEAN", "Straight basketball: dribble, pass, shoot, steal and block. No punches or slides."],
+      ["mayhem", "MAYHEM", "No rules: punch to drop players and steal the ball, slide-tackle the ball carrier. Chaos!"],
+    ],
+  },
+  court: { t: "COURT", o: () => COURT_IDS.map((k) => [k, COURTS[k].name, COURTS[k].tip]) },
+  diff: {
+    t: "DIFFICULTY",
+    o: () => [
+      [0, "ROOKIE", "Easy. Slow defenders who miss a lot. Good for learning."],
+      [1, "PRO", "Normal. A fair game."],
+      [2, "ALL-STAR", "Hard. Tight defence, steals and good shooters."],
+      [3, "HALL OF FAMER", "Expert. They punish every mistake."],
+    ],
+  },
+};
+function drawChips() {
+  $("suChips").innerHTML = Object.entries(SU_OPTS)
+    .map(([k, d]) => `<button class="chip" data-k="${k}"><i>${d.t}</i><b>${d.o().find((o) => o[0] === OPT[k])[1]} <u>▾</u></b></button>`)
+    .join("");
+  $("suChips").querySelectorAll(".chip").forEach((b) => (b.onclick = () => openPick(b.dataset.k)));
+}
+function openPick(k) {
+  const d = SU_OPTS[k];
+  $("pickT").textContent = d.t;
+  $("pickG").className = "pgrid pg-" + k;
+  $("pickG").innerHTML = d
+    .o()
+    .map(([v, n, tip]) => `<button class="popt ${OPT[k] === v ? "on" : ""}" data-v="${v}"${k === "court" ? ` style="--cbg:var(--c-${v})"` : ""}><b>${n}</b><span>${tip}</span></button>`)
+    .join("");
+  $("pickG").querySelectorAll(".popt").forEach(
+    (b) =>
+      (b.onclick = () => {
+        OPT[k] = k === "diff" ? +b.dataset.v : b.dataset.v;
+        closePick();
+        drawSel();
+      }),
+  );
+  $("pickX").onclick = closePick;
+  $("pick").classList.add("on");
+}
+const pickOpen = () => $("pick").classList.contains("on");
+function closePick() {
+  $("pick").classList.remove("on");
 }
 // Step one side through the teams, skipping the team the other side has.
 function cycle(right, d) {

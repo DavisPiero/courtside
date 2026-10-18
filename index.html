@@ -67,14 +67,25 @@
     <div class="brand">COURT<em>SIDE</em></div>
     <button class="btn tutb" id="bTut">▶ TUTORIAL</button>
     <nav>
-      <button class="btn pri" id="bCamp">CAMPAIGN</button>
-      <button class="btn" id="bPlay">QUICK PLAY</button>
-      <button class="btn" id="bMini">MINIGAMES</button>
+      <button class="btn pri playb" id="bGo">PLAY</button>
       <button class="btn" id="bPrac">PRACTICE</button>
       <button class="btn" id="bShop">SHOP</button>
       <button class="btn" id="bInv">INVENTORY</button>
       <button class="btn" id="bSet">SETTINGS</button>
     </nav>
+  </div>
+</div>
+
+<!-- PLAY: choose what to play -->
+<div id="playPick" class="scr dim">
+  <div class="dv">
+    <h2>PLAY</h2>
+    <div class="dvc">
+      <button class="dcard pcard" id="bCamp"><b class="ico">◆</b><b>CAMPAIGN</b><span>Your hooper's story, from the Street to the NBA</span></button>
+      <button class="dcard pcard" id="bPlay"><b class="ico">▶</b><b>QUICK PLAY</b><span>Pick any two teams and play</span></button>
+      <button class="dcard pcard" id="bMini"><b class="ico">●</b><b>MINIGAMES</b><span>3-point contest, dunk contest, 1-on-1</span></button>
+    </div>
+    <div class="act cpact"><button class="btn" id="bPlayX">BACK</button></div>
   </div>
 </div>
 
@@ -86,11 +97,10 @@
     <section class="side r" id="sideB"></section>
     <div class="roster" id="roster"></div>
   </div>
+  <div id="pick"><div class="pickbox pnl"><h2 id="pickT"></h2><div class="pgrid" id="pickG"></div><div class="act"><button class="btn" id="pickX">CLOSE</button></div></div></div>
   <div id="grid"><div class="gbox pnl"><div class="ghead"><b id="gridTitle"></b><button class="btn" id="gridX">CLOSE</button></div><div class="gtiles" id="gridTiles"></div></div></div>
   <footer class="su-bot">
-    <div class="opt"><i>MODE</i><div class="seg" data-k="mode"><button data-v="clean" data-tip="Straight basketball: dribble, pass, shoot, steal and block. No punches or slides.">CLEAN</button><button data-v="mayhem" data-tip="No rules: punch to drop players and steal the ball, slide-tackle the ball carrier. Chaos!">MAYHEM</button></div></div>
-    <div class="opt"><i>COURT</i><div class="seg" data-k="court"><button data-v="arena" data-tip="The official indoor court: crowd, jumbotron, hardwood.">ARENA</button><button data-v="street" data-tip="Asphalt at dusk, chain-link fences, chain nets.">STREET</button><button data-v="roof" data-tip="A painted court on top of a tower at night. The whole city below you.">ROOFTOP</button><button data-v="beach" data-tip="A boardwalk court at sunset: sand, palms, the ocean behind the hoop.">BEACH</button><button data-v="cage" data-tip="Under the highway bridge: a tall fence, graffiti walls, orange street lights.">CAGE</button></div></div>
-    <div class="opt"><i>DIFFICULTY</i><div class="seg" data-k="diff"><button data-v="0">ROOKIE</button><button data-v="1">PRO</button><button data-v="2">ALL-STAR</button><button data-v="3">HALL OF FAMER</button></div></div>
+    <div class="chips" id="suChips"></div>
     <div class="act"><button class="btn" id="bBack">BACK</button><button class="btn pri" id="bStart">START GAME</button></div>
   </footer>
 </div>
@@ -102,7 +112,7 @@
     <div class="hbody">
       <canvas id="heroCv"></canvas>
       <div class="hform">
-        <label>NAME<input id="heroName" maxlength="12" autocomplete="off" spellcheck="false" placeholder="ROOKIE"></label>
+        <label>NAME<input id="heroName" maxlength="12" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" placeholder="ROOKIE"></label>
         <i class="hint">Don't use your real name.</i>
         <div class="hl">SKIN</div><div class="swatches" id="heroSkin"></div>
         <div class="hl">HAIR</div><div class="seg" id="heroHair"></div>

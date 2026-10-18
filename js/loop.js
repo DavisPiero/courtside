@@ -137,7 +137,7 @@ function vmUpd() {
   z.style.height = zw * 200 + "%";
   $("vf").style.height = m * 100 + "%";
   $("vn").style.bottom = "calc(" + m * 100 + "% - 2px)";
-  vm.className = cls;
+  vm.className = cls + (G.fire && G.fire[sp.t] ? " fire" : ""); // On Fire: the bigger green zone glows orange
   $("vl").textContent = cls === "g" ? "PERFECT!" : cls === "e" ? "EARLY" : cls === "l" ? "LATE" : "";
 }
 function hud() {

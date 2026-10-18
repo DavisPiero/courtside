@@ -5,7 +5,8 @@ const SET = {
   pixel: 3, // screen pixels per game pixel: 2 sharp, 3 classic, 4 chunky
   lighting: "high", // high: light shafts, light pools, rim light on players. low: flat and fast.
   fog: 1,
-  bloom: 1,
+  bloom: 0, // off by default (David, session 6); softer when on
+  bloomV: 2, // settings saved before session 6 had bloom on: switch it off once
   vignette: 1,
   scanlines: 0,
   grain: 0,
@@ -41,6 +42,8 @@ function loadSettings() {
   try {
     const s = JSON.parse(localStorage.getItem(SAVE_KEY) || "{}");
     for (const k in SET) if (k in s) SET[k] = s[k];
+    if ((s.bloomV || 1) < 2) SET.bloom = 0;
+    SET.bloomV = 2;
   } catch (e) {
     /* private window or blocked storage: keep defaults */
   }

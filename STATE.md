@@ -1,37 +1,32 @@
 # Courtside: state
 
-_Updated 2026-10-18, session 5 (screen fit), merged to `main` and live._
+_Updated 2026-10-18, session 6a, on branch `session6a`. Not merged: waiting for David's sign-off._
 
 ## Where we are
-Session 4 is merged to `main` and live at https://davispiero.github.io/courtside/ (David: "merge and push").
-Smoke test passes: 5 courts × 2 modes × 4 difficulties, plus all three minigames.
-
-New in session 4:
-- Money: contract 200/350/500/750 a day, 1000 CC signing bonus per new team, free All-Star Pack per chapter boss.
-- Hooper upgrades on EDIT HOOPER (8 stats, rating = average, start 50 / NBA 75); recommended rating on every game.
-- NBA games are 4 × 30 s. A perfect release always goes in, from anywhere.
-- Shop: Daily Shop every hour with a shoe slot, Shoeboxes (3 tiers, unboxing), Codes (LAUNCHED), "Street Pack" names.
-- 33 shoes your team wears; sell animations in the Inventory; Mythic, Godlike and Gametime rarities; 13 new animations.
-- Showtime: On Fire, alley-oops (PASS becomes OOP!), buzzer beaters in slow motion, a trophy win celebration.
-- Minigames: 3-point contest, dunk contest, 1-on-1. Tutorial (first draft) under the logo.
-- Fixes: ball layering in hands, ball bounces off board and rim, dunk cutscene has no text and is a bit slower.
-- Sounds: clicks, hover, story garble talk, coins, pop, squeaks, board, fire, cheer, horn.
-
-## Session 5 (merged and live; David: "ship it")
-- Every menu screen fits the visible screen on iPad and phone: too-tall panels shrink (to 75% at most), then
-  scroll with BACK / PLAY pinned at the bottom. Main menu goes two-across on iPads. Team select works on small phones.
-- Smoke test now also checks for off-screen buttons at 5 screen sizes.
+`main` (live) has sessions 1 to 5. Branch `session6a` has David's first batch of session-6 notes:
+- Screens no longer shrink to fit. Every panel is full size, scrolls when it's taller than the screen, and keeps
+  its buttons pinned at the bottom. The Shop, Inventory and Settings stay one size on every tab.
+- Code box: fixes for iPad typing (text selection, the iPad Enter key, no autocorrect, auto capitals).
+- Bloom is off by default (switched off once for old settings) and about half as strong when it's on.
+- Main menu: one big yellow PLAY button that opens Campaign, Quick Play and Minigames.
+- Quick Play: mode, court and difficulty are chips that open a pop-up.
+- On Fire: red outline on the players and ball, the meter glows orange with ON FIRE, and an orange flash.
+- Code SNEAKERHEAD: the Gametime "Launched" sneaker plus a free Premium Shoebox.
+- BRIEF-gameplay.md: ideas for making the core game more fun for longer.
+Smoke test passes (all modes, courts, levels, minigames; fit check at 5 sizes, now also same size across tabs).
 
 ## Next
-- David's notes after playing it.
-- Real iPad/phone check; first outside playtest (still not done). The tutorial is the thing to test on a new player.
+- David checks 6a on the real iPad, above all the code box. Then sign-off and merge.
+- 6b: tutorial lessons 9 onwards as real drills; better pack and shoebox opening and shoebox models;
+  12 more shoes and 16 more animations.
+- 6c: fluid controls, with ragdoll only for ankle breakers and punches (no hit-freeze or glitch); rebuild
+  The Cage (a fenced night cage under the bridge, green and teal, pillars, trains overhead, a burning barrel).
+- First outside playtest (still not done).
 
 ## Open with David (guesses until confirmed)
-0. Screen fit: is 75% the smallest panels should shrink to before scrolling? Needs a look on the real iPad.
-1. Punch penalty (6% a punch, max half), the new courts' looks, Coach Ray as scout: carried from session 3.
-2. Upgrade prices (50 CC at 50 up to ~500 near 99) and +2 a buy.
-3. Shoebox prices (100/300/800) and odds; Daily Shop shoe prices; sell price = a quarter of the shop price.
-4. Gametime purple is close to Epic's purple: it pulses to tell them apart. Change the colour?
-5. Shoe pixel art and the trophy are first passes; the Air Mag sole glows only in menus.
-6. Minigame rewards (4 CC a 3-point make, half the dunk score, 80 for a 1-on-1 win).
-7. Buzzer beaters have no replay yet.
+1. Launched look: purple and black high-top, orange rocket-flame stripe, glowing purple sole (my guess).
+2. Which ideas from BRIEF-gameplay.md to build, and whether to do two players on one device.
+3. Carried over: punch penalty, upgrade, shoebox and shoe prices, Gametime purple vs Epic, shoe art and
+   trophy as first passes, minigame rewards, no buzzer replay.
+4. The 3-point contest bot scores 0 in the smoke test (it did before this session too): the bot, not the game,
+   as far as I can tell. Not looked into yet.

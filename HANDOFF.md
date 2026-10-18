@@ -1,26 +1,27 @@
 # Hand-off for the next session
 
-_Written 2026-10-18 (session 5, screen fit). Replace this file at the end of each session; don't add a second one._
+_Written 2026-10-18 (session 6a). Replace this file at the end of each session; don't add a second one._
 
 ## State of the repo
-- Session 5 (screen fit) is merged to `main` and pushed (live). No open branches.
-- `./tools/smoke.sh` passes, including the new fit check at 1180x688, 1180x760, 844x350, 667x300, 1280x720.
+- Branch `session6a` has 6a, committed, not merged. `main` is unchanged and live (session 5).
+- `./tools/smoke.sh` passes. Scores vary from run to run; this session changed no rules.
 
-## What changed
-- `js/menus.js` "fit to screen": `fitPanel()` shrinks any `.scr.on > .box / .dv / .menu-l` that is too big
-  (down to `FIT_MIN` 0.75), re-centres it, and past that adds `.fitscroll` (panel scrolls, last `.act` row
-  sticks to the bottom). A MutationObserver plus resize re-fits on any screen change.
-- New screens: put the bottom buttons in a `<div class="act">` as the panel's last child so they get pinned.
-- `js/main.js` `fitCheck()` (`index.html?fitcheck`): opens every menu screen on touch, lists off-screen buttons.
-  It waits for the font, because the fallback font is wider and gives false failures.
-- CSS: two-across main menu under 760 px tall; compact menu and team-select footer under 340 px tall;
-  team select stacks only in portrait.
+## What changed (where to look)
+- Fit: `js/menus.js` `fitPanel()` now only toggles `.fitscroll` (no scaling). CSS "fit to screen" block:
+  `.scr > .box` has a max-height of the screen and scrolls; `.shopbox`, `.inv` and `#sets .box` have a fixed height.
+  `fitCheck()` in `js/main.js` also fails if a Shop or Settings tab changes the panel's size.
+- PLAY screen: `#playPick` in index.html; back buttons from Campaign, Minigames and Quick Play return there.
+- Quick Play pop-ups: `SU_OPTS`, `drawChips()` and `openPick()` in `js/menus.js`; `#pick` in index.html.
+- On Fire: `drawP()` / `fireSil()` / `ringPix()` in `js/players.js`; `#vm.fire` in CSS; flash in `js/showtime.js`.
+- Codes: `CODES` in `js/shop.js` (SNEAKERHEAD = e01fa49e); `SAVE.freeBox` for free shoeboxes; the `launched` shoe
+  in `js/shoes.js` (`mark: "flame"`, `glow` can be a colour).
+- Bloom: `SET.bloom` 0 and `bloomV` 2 in `js/settings.js`; strength in `js/render.js`.
 
 ## How to work on it
 - Test muted: `http://localhost:8791/?mute&device=touch` via the `courtside` preview config.
 - The browser pane caches scripts hard: fetch every changed file with `{cache: "reload"}`, then reload.
 - Back up `localStorage["courtside.save.v1"]` before testing and restore it after.
+- The iPad keyboard can't be tested here: the code box fix is checked on desktop only.
 
 ## What comes next
-- David checks it on the real iPad (Safari with the tab bar) and answers open question 0 (the 75% limit).
-- STATE.md's open questions; an outside playtest.
+- David: test 6a on the iPad, then sign off. Then 6b and 6c (see STATE.md).

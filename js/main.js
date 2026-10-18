@@ -2,7 +2,7 @@
 // Input listeners, button wiring and start-up.
 addEventListener("keydown", (e) => {
   if (e.target && e.target.tagName === "INPUT") {
-    if (e.code === "Enter" && e.target.id === "heroName") $("bHeroOk").click();
+    if ((e.key === "Enter" || e.code === "Enter") && e.target.id === "heroName") $("bHeroOk").click();
     return; // typing a name: keys aren't game controls
   }
   if (e.code === "Space" || e.code.startsWith("Arrow") || (e.ctrlKey && G.run && !G.pause))
@@ -24,12 +24,12 @@ addEventListener("keydown", (e) => {
       e.preventDefault(); // stop the focused button (e.g. PLAY) from also being pressed
       $("bStart").click();
     }
-    if (e.code === "Escape") SEL.grid >= 0 ? closeGrid() : show("menu");
+    if (e.code === "Escape") pickOpen() ? closePick() : SEL.grid >= 0 ? closeGrid() : show(SEL.pr ? "menu" : "playPick");
     return;
   }
   // Escape steps back out of menu screens.
   if (!G.run && e.code === "Escape") {
-    const back = { inv: "menu", shop: "menu", open: "shop", campPick: "menu", camp: "campPick", story: "camp", hero: "menu", mini: "menu" };
+    const back = { inv: "menu", shop: "menu", open: "shop", campPick: "playPick", camp: "campPick", story: "camp", hero: "playPick", mini: "playPick", playPick: "menu" };
     if ($("open").classList.contains("on")) return openShop();
     if ($("lab").classList.contains("on")) return $("bLabX").click();
     for (const k in back) if ($(k).classList.contains("on")) return show(back[k]);
@@ -75,13 +75,15 @@ $("bPlay").onclick = () => openSel(0);
 $("bPrac").onclick = () => openSel(1);
 $("bSet").onclick = () => openSettings("menu");
 $("bStart").onclick = () => startQuick(SEL.pr);
+$("bGo").onclick = () => show("playPick");
+$("bPlayX").onclick = () => show("menu");
 $("bCamp").onclick = openCamp;
 $("bMini").onclick = openMini;
 $("bTut").onclick = () => openTutorial();
 $("bInv").onclick = openInv;
 $("bShop").onclick = openShop;
 $("bLab").onclick = openLab;
-$("bBack").onclick = () => show("menu");
+$("bBack").onclick = () => show(SEL.pr ? "menu" : "playPick");
 $("bRes").onclick = pause;
 $("bPSet").onclick = () => openSettings("pause");
 $("bQuit").onclick = quitToMenu;
@@ -138,17 +140,19 @@ function fitCheck() {
     hide = () => document.querySelectorAll(".scr").forEach((s) => s.classList.remove("on"));
   const check = (id) => {
     fitScreens();
-    for (const b of $(id).querySelectorAll("button, input")) {
+    // with a pop-up open, only its buttons matter (the screen behind is covered on purpose)
+    const root = pickOpen() && id === "setup" ? $("pick") : $(id);
+    for (const b of root.querySelectorAll("button, input")) {
       const r = b.getBoundingClientRect();
       // a scrolling list, or the scrolling middle of a panel, may hide buttons; a pinned button row may not
-      if (!r.width || !r.height || b.closest(".rows") || (b.closest(".fitscroll") && !b.closest(".fitscroll > .act"))) continue;
+      if (!r.width || !r.height || b.closest(".rows") || b.closest(".pgrid") || (b.closest(".fitscroll") && !b.closest(".fitscroll > .act"))) continue;
       const off = r.bottom > innerHeight + 1 || r.right > innerWidth + 1 || r.top < -1 || r.left < -1,
         h = off ? null : document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
       if (off || !h || !(b === h || b.contains(h))) bad.push(`${id}: ${(b.textContent || b.id).trim().slice(0, 20)}`);
     }
-    const p = $(id).querySelector(":scope > .box, :scope > .dv, :scope > .menu-l"),
-      m = p && p.style.transform.match(/scale\(([\d.]+)\)/);
-    out.push(`${id.padEnd(9)} ${m ? "shrunk to " + Math.round(m[1] * 100) + "%" : "fits"}${p && p.classList.contains("fitscroll") ? ", scrolls" : ""}`);
+    const p = $(id).querySelector(":scope > .box, :scope > .dv, :scope > .menu-l");
+    out.push(`${id.padEnd(9)} ${p && p.classList.contains("fitscroll") ? "scrolls" : "fits"}`);
+    return p && p.getBoundingClientRect();
   };
   const run = (id, fn) => {
     try {
@@ -164,14 +168,31 @@ function fitCheck() {
   run("menu", () => show("menu"));
   run("device", () => show("device"));
   run("setup", () => openSel());
+  run("setup", () => (openSel(), openPick("court")));
+  run("setup", () => (openSel(), openPick("diff")));
+  run("setup", () => (closePick(), openSel()));
   run("hero", () => openHero());
+  run("playPick", () => show("playPick"));
   run("campPick", () => $("campPick").classList.add("on"));
   run("camp", () => pickCamp("street"));
   run("mini", () => openMini());
-  run("shop", () => openShop());
+  // Tabbed screens must keep one size on every tab (David's iPad screenshots: the Shop jumped about).
+  const same = (id, tabs, open) => {
+    let first = null;
+    for (const t of tabs) {
+      hide();
+      open(t);
+      const r = check(id);
+      if (!r) continue;
+      if (!first) first = r;
+      else if (Math.abs(r.width - first.width) > 1 || Math.abs(r.height - first.height) > 1 || Math.abs(r.top - first.top) > 1)
+        bad.push(`${id}: ${t} tab is a different size (${Math.round(r.width)}x${Math.round(r.height)} vs ${Math.round(first.width)}x${Math.round(first.height)})`);
+    }
+  };
+  same("shop", ["daily", "packs", "players", "boxes", "codes"], (t) => ((SHOPUI.tab = t), openShop()));
   run("inv", () => openInv());
   run("lab", () => openLab());
-  run("sets", () => openSettings("menu"));
+  same("sets", ["VIDEO", "AUDIO", "GAMEPLAY", "CONTROLS"], (t) => ((SETUI.tab = t), openSettings("menu")));
   run("sign", () => openSign(() => {}));
   run("pause", () => $("pause").classList.add("on"));
   run("tutc", () => $("tutc").classList.add("on"));

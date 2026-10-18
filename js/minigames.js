@@ -19,7 +19,7 @@ function openMini() {
     (m) => `<button class="dcard mcard" data-k="${m.k}"><b>${m.n}</b><span>${m.d}</span><em>${SAVE.best[m.k] !== undefined ? (m.k === "1v1" ? `WINS: ${SAVE.best[m.k]}` : `BEST: ${SAVE.best[m.k]}`) : "NEW!"}</em></button>`,
   ).join("");
   $("miniCards").querySelectorAll(".mcard").forEach((b) => (b.onclick = () => startMini(b.dataset.k)));
-  $("bMiniX").onclick = () => show("menu");
+  $("bMiniX").onclick = () => show("playPick");
   show("mini");
 }
 // You: your hooper's crew colours, or the Thunder.

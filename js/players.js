@@ -454,6 +454,7 @@ function buildSprite(p) {
   });
   // The ball, while this player has it, is drawn into the sprite among the body parts, so it really goes
   // behind the back on a behind-the-back move and sits in the hand (not on top of it) when they shoot.
+  p.sprBall = null;
   const BW0 = port ? (port.ball ? [port.ball[0], port.ball[1], port.ball[2] + p.z] : null) : heldBall(p);
   if (BW0) {
     const bx = BW0[0] / S,
@@ -462,6 +463,7 @@ function buildSprite(p) {
       B = [ox + (bx * Rx + by * Ry) * K, oy - (bx * Ux + by * Uy + bz * Uz) * K, bx * Fx + by * Fy + bz * Fz],
       br = Math.max(3, Math.round(0.55 * k));
     it.push({ d: B[2], fn: () => (ballPix(x, Math.round(B[0]), Math.round(B[1]), br, port ? tt * 6 : b.spin), bb(B, br + 1)) });
+    if (!port) p.sprBall = [Math.round(B[0]), Math.round(B[1]), br]; // for the On Fire ring (drawP)
     if (!port) G.ballIn = p.id;
   }
   // The winner's trophy, held up over the head (js/showtime.js).
@@ -547,9 +549,51 @@ function drawP(p, m) {
   c.imageSmoothingEnabled = false;
   c.translate(Math.round(g[0]), Math.round(g[1]));
   c.scale(sc, m ? -sc : sc);
+  // On Fire: a pulsing red outline around every player on the team that's on fire, one game pixel thick,
+  // with a softer orange ring outside it.
+  const fire = !m && G.fire && G.fire[p.t] && !G.win;
+  if (fire) {
+    const sil = fireSil(p, q),
+      pu = 0.7 + 0.3 * Math.sin(T * 9),
+      u = 1 / sc;
+    for (const [dx, dy, a, sl] of FIRE_RING) {
+      c.globalAlpha = a * pu * fa;
+      c.drawImage(sil[sl], 0, 0, q.w, q.h, q.x0 - q.ox + dx * u, q.y0 - q.oy + dy * u, q.w, q.h);
+    }
+  }
   c.globalAlpha = (m ? 0.28 : 1) * fa;
   c.drawImage(q.cv, q.x0, q.y0, q.w, q.h, q.x0 - q.ox, q.y0 - q.oy, q.w, q.h);
+  if (fire && p.sprBall) {
+    const [bx, by, br] = p.sprBall;
+    c.globalAlpha = (0.7 + 0.3 * Math.sin(T * 9)) * fa;
+    ringPix(bx - q.ox, by - q.oy, br + 1, "#ff2a12", 1 / sc);
+  }
   c.restore();
+}
+// Outline offsets in game pixels: [dx, dy, alpha, 0 red / 1 orange]. Orange (2 px out) first, red on top.
+const FIRE_RING = [
+  [-2, 0, 0.45, 1], [2, 0, 0.45, 1], [0, -2, 0.45, 1], [0, 2, 0.45, 1], [-1, -1, 0.45, 1], [1, -1, 0.45, 1], [-1, 1, 0.45, 1], [1, 1, 0.45, 1],
+  [-1, 0, 1, 0], [1, 0, 1, 0], [0, -1, 1, 0], [0, 1, 1, 0],
+];
+// The player's sprite as flat red and flat orange silhouettes (rebuilt each frame, only while on fire).
+function fireSil(p, q) {
+  if (!p.fsil) p.fsil = [document.createElement("canvas"), document.createElement("canvas")];
+  p.fsil.forEach((cv, i) => {
+    if (cv.width < q.w || cv.height < q.h) (cv.width = q.w + 8), (cv.height = q.h + 8);
+    const g = cv.getContext("2d");
+    g.globalCompositeOperation = "source-over";
+    g.clearRect(0, 0, cv.width, cv.height);
+    g.drawImage(q.cv, q.x0, q.y0, q.w, q.h, 0, 0, q.w, q.h);
+    g.globalCompositeOperation = "source-in";
+    g.fillStyle = i ? "#ff8a1a" : "#ff2a12";
+    g.fillRect(0, 0, q.w, q.h);
+  });
+  return p.fsil;
+}
+// A one-pixel ring of radius R around (X, Y) on the game canvas; u = how big one game pixel is here.
+function ringPix(X, Y, R, col, u = 1) {
+  c.fillStyle = col;
+  for (let a = 0; a < 6.283; a += 0.5 / R) c.fillRect(Math.round(X + Math.cos(a) * R), Math.round(Y + Math.sin(a) * R), u, u);
 }
 // The ball's offset from player p in world feet [dx, dy, height], if p is holding it (or dunking it) right now.
 function heldBall(p) {
@@ -594,6 +638,14 @@ function drawBall(m) {
     c.globalAlpha = 1;
   }
   ballPix(c, cx, cy, r, b.spin);
+  if (b.fire && !m) {
+    // On Fire: a pulsing red ring around the ball, orange outside it
+    const pu = 0.7 + 0.3 * Math.sin(T * 9);
+    c.globalAlpha = 0.45 * pu;
+    ringPix(cx, cy, r + 2, "#ff8a1a");
+    c.globalAlpha = pu;
+    ringPix(cx, cy, r + 1, "#ff2a12");
+  }
   c.globalAlpha = 1;
 }
 function disc0(X, Y, R, col) {

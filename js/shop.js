@@ -16,7 +16,7 @@ function openShop() {
     ["boxes", "SHOEBOXES"],
     ["codes", "CODES"],
   ]
-    .map(([k, l]) => `<button data-t="${k}" class="${SHOPUI.tab === k ? "on" : ""}">${l}${k === "packs" && freePacks() ? " <em>FREE</em>" : ""}</button>`)
+    .map(([k, l]) => `<button data-t="${k}" class="${SHOPUI.tab === k ? "on" : ""}">${l}${(k === "packs" && freePacks()) || (k === "boxes" && freeBoxes()) ? " <em>FREE</em>" : ""}</button>`)
     .join("");
   $("shopTabs").querySelectorAll("button").forEach((b) => (b.onclick = () => ((SHOPUI.tab = b.dataset.t), openShop())));
   $("shopBody").className = "sb-" + SHOPUI.tab;
@@ -32,6 +32,7 @@ function openShop() {
   show("shop");
 }
 const freePacks = () => Object.values(SAVE.free).reduce((a, n) => a + n, 0);
+const freeBoxes = () => Object.values(SAVE.freeBox).reduce((a, n) => a + n, 0);
 const clockHMS = (s) => [s / 3600, (s / 60) % 60, s % 60].map((v) => String(Math.floor(v)).padStart(2, "0")).join(":");
 const rarityTag = (a) => `<span class="rtag">${RARITY[a.rarity].name}${a.who ? " · " + a.who : ""}</span>`;
 
@@ -148,10 +149,11 @@ function drawBoxes() {
   $("shopBody").innerHTML =
     `<p class="pnote">Every shoebox has <b>1 mystery shoe</b>. Your whole team wears the pair you equip in the Inventory.</p>` +
     `<div class="packs">${SHOEBOXES.map((bx) => {
-      const can = SAVE.cc >= bx.price;
+      const free = SAVE.freeBox[bx.id] || 0,
+        can = free > 0 || SAVE.cc >= bx.price;
       return `<div class="pk boxpk" style="--pc:${bx.col}"><div class="art">${boxArt(bx)}<span>${bx.name}<small>1 shoe</small></span></div>
         <div class="odds">${oddsRows(bx.odds)}</div>
-        <button class="btn${can ? " pri" : ""}" data-box="${bx.id}"${can ? "" : " disabled"}>${bx.price.toLocaleString()} CC</button></div>`;
+        <button class="btn${can ? " pri" : ""}" data-box="${bx.id}"${can ? "" : " disabled"}>${free ? `OPEN FREE${free > 1 ? " ×" + free : ""}` : bx.price.toLocaleString() + " CC"}</button></div>`;
     }).join("")}</div>`;
   $("shopBody").querySelectorAll("button[data-box]").forEach((b) => (b.onclick = () => openBoxScreen(b.dataset.box)));
 }
@@ -160,6 +162,7 @@ function drawBoxes() {
 // the source as plain text, though anyone determined could still work them out. Each works once per save.
 const CODES = {
   "5673b267": { name: "LAUNCHED", cc: 1000, anim: "dunk.liftoff" },
+  e01fa49e: { name: "SNEAKERHEAD", shoe: "launched", box: "premium" },
 };
 function codeHash(str) {
   let h = 0x811c9dc5;
@@ -182,6 +185,14 @@ function redeemCode(str) {
     grant(ANIM[c.anim]);
     got.push(`${RARITY[ANIM[c.anim].rarity].name} ${ANIM[c.anim].name}`);
   }
+  if (c.shoe) {
+    grantShoe(SHOE[c.shoe]);
+    got.push(`${RARITY[SHOE[c.shoe].rarity].name} ${SHOE[c.shoe].name} sneakers`);
+  }
+  if (c.box) {
+    SAVE.freeBox[c.box] = (SAVE.freeBox[c.box] || 0) + 1;
+    got.push(`a free ${SHOEBOXES.find((b) => b.id === c.box).name} (open it in SHOEBOXES)`);
+  }
   writeSave();
   return ["ok", "Unlocked: " + got.join(" + ") + "!", c];
 }
@@ -189,21 +200,23 @@ function drawCodes() {
   const [cls, text] = SHOPUI.msg || ["", ""];
   $("shopBody").innerHTML = `<div class="codes">
     <p class="pnote">Got a code? Type it in exactly as it's written.</p>
-    <div class="crow"><input id="codeIn" maxlength="24" autocomplete="off" spellcheck="false" placeholder="ENTER CODE"><button class="btn pri" id="bCode">REDEEM</button></div>
+    <div class="crow"><input id="codeIn" maxlength="24" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" enterkeyhint="go" placeholder="ENTER CODE"><button class="btn pri" id="bCode">REDEEM</button></div>
     <div class="cmsg ${cls}" id="codeMsg">${text}</div></div>`;
   SHOPUI.msg = "";
   const go = () => {
-    const r = redeemCode($("codeIn").value);
+    const r = redeemCode($("codeIn").value.trim());
     SHOPUI.msg = r;
     if (r[0] === "ok") {
-      sfxReveal(r[2].anim ? ANIM[r[2].anim].rarity : "rare");
-      flashScreen(r[2].anim ? RARITY[ANIM[r[2].anim].rarity].col : "#ffcf5c");
-      burst($("bCode"), r[2].anim ? RARITY[ANIM[r[2].anim].rarity].col : "#ffcf5c", 60);
+      const rr = r[2].anim ? ANIM[r[2].anim].rarity : r[2].shoe ? SHOE[r[2].shoe].rarity : "rare";
+      sfxReveal(rr);
+      flashScreen(RARITY[rr].col);
+      burst($("bCode"), RARITY[rr].col, 60);
     } else sfx("nope");
     openShop();
   };
   $("bCode").onclick = go;
-  $("codeIn").onkeydown = (e) => e.code === "Enter" && (e.preventDefault(), go());
+  // iPad keyboards send key "Enter" with an empty code
+  $("codeIn").onkeydown = (e) => (e.key === "Enter" || e.code === "Enter") && (e.preventDefault(), go());
 }
 
 // ---------- pack opening (and shoebox unboxing: same cards, one shoe)
@@ -228,7 +241,7 @@ function openBoxScreen(id) {
     got = openShoebox(id);
   if (!got) return;
   const card = { a: { ...got.s, cat: "shoe", shoe: got.s }, dupe: got.dupe, refund: got.refund };
-  openStage(bx, [card], 1, () => openBoxScreen(id), SAVE.cc >= bx.price);
+  openStage(bx, [card], 1, () => openBoxScreen(id), SAVE.freeBox[id] > 0 || SAVE.cc >= bx.price);
   $("openTitle").textContent = bx.name;
   $("openPack").className = "opack obox";
   $("openPack").innerHTML = boxArt(bx) + `<i>TAP TO OPEN</i>`;
@@ -245,7 +258,13 @@ function openStage(pk, cards, box, again, canAgain) {
   $("bOpenAll").style.display = "none";
   const ag = $("bOpenAgain");
   ag.disabled = !canAgain;
-  ag.textContent = SAVE.free[pk.id] > 0 ? "OPEN YOUR FREE PACK" : `OPEN ANOTHER (${pk.price.toLocaleString()} CC)`;
+  ag.textContent = box
+    ? SAVE.freeBox[pk.id] > 0
+      ? "OPEN YOUR FREE BOX"
+      : `OPEN ANOTHER (${pk.price.toLocaleString()} CC)`
+    : SAVE.free[pk.id] > 0
+      ? "OPEN YOUR FREE PACK"
+      : `OPEN ANOTHER (${pk.price.toLocaleString()} CC)`;
   ag.onclick = again;
   $("bOpenShop").onclick = openShop;
   $("bOpenInv").onclick = () => {
