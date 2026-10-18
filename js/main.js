@@ -2,7 +2,7 @@
 // Input listeners, button wiring and start-up.
 addEventListener("keydown", (e) => {
   if (e.target && e.target.tagName === "INPUT") {
-    if (e.code === "Enter" && e.target.id === "heroName") $("bHeroOk").click();
+    if ((e.key === "Enter" || e.code === "Enter") && e.target.id === "heroName") $("bHeroOk").click();
     return; // typing a name: keys aren't game controls
   }
   if (e.code === "Space" || e.code.startsWith("Arrow") || (e.ctrlKey && G.run && !G.pause))
@@ -146,9 +146,9 @@ function fitCheck() {
         h = off ? null : document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
       if (off || !h || !(b === h || b.contains(h))) bad.push(`${id}: ${(b.textContent || b.id).trim().slice(0, 20)}`);
     }
-    const p = $(id).querySelector(":scope > .box, :scope > .dv, :scope > .menu-l"),
-      m = p && p.style.transform.match(/scale\(([\d.]+)\)/);
-    out.push(`${id.padEnd(9)} ${m ? "shrunk to " + Math.round(m[1] * 100) + "%" : "fits"}${p && p.classList.contains("fitscroll") ? ", scrolls" : ""}`);
+    const p = $(id).querySelector(":scope > .box, :scope > .dv, :scope > .menu-l");
+    out.push(`${id.padEnd(9)} ${p && p.classList.contains("fitscroll") ? "scrolls" : "fits"}`);
+    return p && p.getBoundingClientRect();
   };
   const run = (id, fn) => {
     try {
@@ -168,10 +168,23 @@ function fitCheck() {
   run("campPick", () => $("campPick").classList.add("on"));
   run("camp", () => pickCamp("street"));
   run("mini", () => openMini());
-  run("shop", () => openShop());
+  // Tabbed screens must keep one size on every tab (David's iPad screenshots: the Shop jumped about).
+  const same = (id, tabs, open) => {
+    let first = null;
+    for (const t of tabs) {
+      hide();
+      open(t);
+      const r = check(id);
+      if (!r) continue;
+      if (!first) first = r;
+      else if (Math.abs(r.width - first.width) > 1 || Math.abs(r.height - first.height) > 1 || Math.abs(r.top - first.top) > 1)
+        bad.push(`${id}: ${t} tab is a different size (${Math.round(r.width)}x${Math.round(r.height)} vs ${Math.round(first.width)}x${Math.round(first.height)})`);
+    }
+  };
+  same("shop", ["daily", "packs", "players", "boxes", "codes"], (t) => ((SHOPUI.tab = t), openShop()));
   run("inv", () => openInv());
   run("lab", () => openLab());
-  run("sets", () => openSettings("menu"));
+  same("sets", ["VIDEO", "AUDIO", "GAMEPLAY", "CONTROLS"], (t) => ((SETUI.tab = t), openSettings("menu")));
   run("sign", () => openSign(() => {}));
   run("pause", () => $("pause").classList.add("on"));
   run("tutc", () => $("tutc").classList.add("on"));

@@ -189,11 +189,11 @@ function drawCodes() {
   const [cls, text] = SHOPUI.msg || ["", ""];
   $("shopBody").innerHTML = `<div class="codes">
     <p class="pnote">Got a code? Type it in exactly as it's written.</p>
-    <div class="crow"><input id="codeIn" maxlength="24" autocomplete="off" spellcheck="false" placeholder="ENTER CODE"><button class="btn pri" id="bCode">REDEEM</button></div>
+    <div class="crow"><input id="codeIn" maxlength="24" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" enterkeyhint="go" placeholder="ENTER CODE"><button class="btn pri" id="bCode">REDEEM</button></div>
     <div class="cmsg ${cls}" id="codeMsg">${text}</div></div>`;
   SHOPUI.msg = "";
   const go = () => {
-    const r = redeemCode($("codeIn").value);
+    const r = redeemCode($("codeIn").value.trim());
     SHOPUI.msg = r;
     if (r[0] === "ok") {
       sfxReveal(r[2].anim ? ANIM[r[2].anim].rarity : "rare");
@@ -203,7 +203,8 @@ function drawCodes() {
     openShop();
   };
   $("bCode").onclick = go;
-  $("codeIn").onkeydown = (e) => e.code === "Enter" && (e.preventDefault(), go());
+  // iPad keyboards send key "Enter" with an empty code
+  $("codeIn").onkeydown = (e) => (e.key === "Enter" || e.code === "Enter") && (e.preventDefault(), go());
 }
 
 // ---------- pack opening (and shoebox unboxing: same cards, one shoe)

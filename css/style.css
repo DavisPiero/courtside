@@ -20,12 +20,14 @@
 * { box-sizing: border-box; }
 html, body {
   margin: 0; height: 100%; overflow: hidden; background: var(--bg); color: var(--text);
-  font: 400 20px/1.35 var(--px); user-select: none;
+  font: 400 20px/1.35 var(--px); -webkit-user-select: none; user-select: none;
   -webkit-font-smoothing: none; font-smooth: never;
 }
 #g { position: fixed; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; }
 button { font: inherit; color: inherit; }
 canvas { image-rendering: pixelated; }
+/* iPad Safari won't type into a box that has text selection turned off, so every text box turns it back on */
+input, textarea { -webkit-user-select: text; user-select: text; }
 
 /* ---------- shared pieces */
 .pnl {
@@ -284,7 +286,7 @@ body.cine .pnl, body.cine #toast { opacity: 0; }
 .hform label { display: grid; gap: 6px; font: 400 18px/1 var(--px); letter-spacing: 0.12em; color: var(--muted); }
 .hform input {
   font: 400 30px/1 var(--px); color: #fff; background: #0a0f22; border: 0; padding: 10px 12px; outline: none;
-  clip-path: var(--notch); box-shadow: inset 0 0 0 2px var(--edge-hi); text-transform: uppercase; user-select: text;
+  clip-path: var(--notch); box-shadow: inset 0 0 0 2px var(--edge-hi); text-transform: uppercase; -webkit-user-select: text; user-select: text;
 }
 .hform .hint { display: block; font: 400 16px/1 var(--px); font-style: normal; color: var(--muted); margin: 6px 0 14px; }
 .hl { font: 400 18px/1 var(--px); letter-spacing: 0.12em; color: var(--muted); margin: 10px 0 8px; }
@@ -452,7 +454,7 @@ button, .btn, .card, .pack, .cg, .lrow, .row, .seg, .tabs, .dcard, input, a { to
 .contract .btn { margin-left: auto; padding: 6px 14px 8px; font-size: 18px; }
 .contract .btn.new { background: var(--gold); color: #1a1408; animation: pulse 1s ease-in-out infinite alternate; }
 @keyframes pulse { to { filter: brightness(1.25); } }
-.box.sign { width: min(900px, 96vw); max-height: 96vh; overflow: auto; }
+.box.sign { width: min(900px, 96vw); }
 .signsub { margin: -4px 0 14px; font: 400 20px/1.2 var(--px); color: var(--muted); }
 .offers { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 14px; }
 .offer { display: grid; gap: 6px; text-align: left; padding: 14px; border: 0; cursor: pointer; color: #fff; background: linear-gradient(160deg, var(--tc), #0d1226 75%); box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.12); font: 400 18px/1.1 var(--px); }
@@ -704,7 +706,7 @@ canvas.shcv { width: 100%; height: 54px; }
 /* codes */
 .codes { display: grid; gap: 12px; justify-items: start; margin-bottom: 18px; }
 .crow { display: flex; gap: 8px; }
-.crow input { font: 400 26px/1 var(--px); letter-spacing: 0.12em; padding: 10px 14px; width: min(340px, 60vw); background: #0a0f22; color: #fff; border: 0; clip-path: var(--notch); box-shadow: inset 0 0 0 2px var(--edge-hi); outline: none; text-transform: none; }
+.crow input { font: 400 26px/1 var(--px); letter-spacing: 0.12em; padding: 10px 14px; width: min(340px, 60vw); background: #0a0f22; color: #fff; border: 0; clip-path: var(--notch); box-shadow: inset 0 0 0 2px var(--edge-hi); outline: none; text-transform: none; -webkit-user-select: text; user-select: text; }
 .cmsg { font: 400 22px/1.2 var(--px); min-height: 26px; }
 .cmsg.ok { color: var(--good); } .cmsg.bad { color: #ff6b6b; }
 /* a big notice over any screen (signing bonus) */
@@ -730,7 +732,7 @@ canvas.shcv { width: 100%; height: 54px; }
 .up u { text-decoration: none; font: 400 22px/1 var(--px); text-align: right; }
 .up .btn { padding: 7px 8px 9px; font-size: 16px; }
 .up .btn[disabled] { opacity: 0.45; cursor: default; }
-@media (max-width: 900px), (max-height: 520px) { #hero .hbody { grid-template-columns: 140px 1fr; } .hups { grid-column: 1 / -1; } #hero .box.hero { max-height: 96vh; overflow: auto; } }
+@media (max-width: 900px), (max-height: 520px) { #hero .hbody { grid-template-columns: 140px 1fr; } .hups { grid-column: 1 / -1; }  }
 .cg .rec { grid-column: 3; grid-row: 1; font: 400 15px/1 var(--px); font-style: normal; letter-spacing: 0.1em; color: #ff8a6a; text-align: right; }
 .cg .rec.ok { color: var(--good); }
 .cg .rec + .stars { grid-row: 2; }
@@ -762,10 +764,12 @@ canvas.shcv { width: 100%; height: 54px; }
 @media (max-height: 520px) { #tut { top: 96px; padding: 8px 12px 10px; } #tutX { font-size: 17px; margin: 4px 0 6px; } }
 .opack.obox.tear > i { visibility: hidden; }
 
-/* ---------- fit to screen (js/menus.js fitPanel): a panel too tall for the screen shrinks; if it still
-   doesn't fit, it scrolls and its button row stays pinned to the bottom. */
-.scr > .box, .scr > .dv { transform-origin: center; }
-.scr > .menu-l { transform-origin: left center; }
+/* ---------- fit to screen (js/menus.js fitPanel): panels stay full size, never taller than the visible screen.
+   A panel that is too tall scrolls, and its button row stays pinned to the bottom. */
+.scr > .box, .scr > .dv { max-height: calc(100vh - 20px); max-height: calc(100dvh - 20px); overflow-y: auto; overscroll-behavior: contain; }
+.scr > .menu-l { max-height: 100vh; max-height: 100dvh; overflow-y: auto; }
+/* tabbed screens keep one size whatever the tab */
+.box.shopbox, .box.inv, #sets .box { height: min(860px, calc(100vh - 20px)); height: min(860px, calc(100dvh - 20px)); }
 .fitscroll > .act:last-child {
   position: sticky; bottom: calc(4px - var(--bp, 28px)); z-index: 3; /* sticky measures from inside the padding */
   /* stretch to the panel's inner edges, leaving its 2px border and 4px bottom lip showing */
