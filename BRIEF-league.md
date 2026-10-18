@@ -1,6 +1,6 @@
 # Brief: Career League (after the NBA campaign)
 
-Status (2026-10-18, session 6c): a draft for David. Nothing here is built. Seasons are on the "out of scope"
+Status (2026-10-19, session 6d): a draft for David. Nothing here is built. Seasons are on the "out of scope"
 list in CLAUDE.md; this brief is the case for lifting that, for this one mode.
 
 ## The idea in one line
@@ -9,8 +9,8 @@ a 30-team league, chasing rings, awards and records, with your crew cheering you
 
 ## Why it's fun (the test it has to pass)
 - **There's always a next game that matters.** Every game moves you up or down the standings.
-- **Short.** A season is about 12 games, not 82. Each game is the campaign's four 30-second quarters, so a season
-  is roughly half an hour.
+- **Short.** A season is about 12 games, not 82. Each game is four 30-second quarters (like the NBA campaign and
+  Quick Play now), so a season is roughly half an hour.
 - **Your choices stick.** You choose your team, chase a better contract, take a trade offer. The hooper you upgrade
   carries over from season to season.
 - **Big moments come back every season:** a rivalry game, All-Star Weekend, the playoffs, a ring ceremony.
@@ -28,6 +28,8 @@ a 30-team league, chasing rings, awards and records, with your crew cheering you
    rival changes teams, a new rookie shows up, then on to the next season.
 
 ## Getting harder
+- Your hooper keeps upgrading with coins between games, and the recommended rating climbs each season (about 90
+  in season 1, up to 99), so there's always something to save up for.
 - Season 1 is All-Star. Every season after, the league's best teams get 1 to 2 rating points better, up to Hall
   of Famer. The adaptive AI (session 6c) still applies, so blowouts stay rare.
 - Defending champions get "the target on their back": every team plays them a level harder.

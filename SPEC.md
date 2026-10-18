@@ -96,7 +96,7 @@ Skywalker), Godlike (2: Moonwalk dunk from way out, Levitate), Gametime (from co
 Launched sneaker.
 **Shoes**: 45 real shoes (no logos) in Common to Godlike (Air Mag, Jordan 4 'Undefeated'), plus Courtside's own
 Launched (Gametime: purple and black, rocket flame, glowing sole); your whole team wears
-the pair you pick. The **Inventory** equips what you own (one per category, up to 3 extra dribble moves, a pair
+the pair you pick. The **Inventory** equips what you own (one per category, up to 5 extra dribble moves, a pair
 of shoes) and **sells** animations for a quarter of their shop price (press twice; not starters, Gametime or
 anything equipped). No real money, ever.
 
@@ -152,11 +152,16 @@ with every option and what it means.
   **Adaptive AI:** the further ahead you get (from 4 points, full at 20) and the later in the game, the sharper the
   other team plays ("THEY'RE ADJUSTING!"); it eases off if they catch up. Not in Practice or the contests.
   Measured by `./tools/bench.sh`: a bot that plays like a good kid (sprints, dribble moves, human-timed shots,
-  mashes STEAL) wins 3-minute games by about +37 on Rookie, +17 on Pro, +3 on All-Star, and loses by 13 on Hall of
-  Famer (it won by 88, 69, 62 and 43 before session 6c).
+  mashes STEAL) wins 3-minute games by about +40 on Rookie, +14 on Pro, about even on All-Star, and loses by about
+  15 on Hall of Famer (it won by 88, 69, 62 and 43 before session 6c). Steals were made a little easier in 6d.
+- **Bumping:** bodies can't overlap, but the player you control slides round anyone they brush past and keeps most
+  of their speed. Defenders never try to stand closer than bumping range.
+- **Your hooper's stats all count in games:** Speed (run speed), Accuracy (green zone size and jump shots), Range,
+  Finishing (open dunks, contested layups), Handling (ankle breakers, harder to steal from), Defence (steals,
+  contests), Hops (jump height for blocks, dunking, blocks), Stamina.
 - **League:** a switch at the top: NBA (today's teams) or HALL OF FAME (each franchise's three best players
   of all time, rated at their peak, in js/hof.js). Click a team's name for a grid of all 30.
-- **Quick Play length:** four 1-minute quarters.
+- **Quick Play length:** four 30-second quarters.
 - **Teams:** all 30 NBA teams (2026-27), each team's three most popular players, split-screen select
   (see `Reference/`). Each player's height, speed, shooting, finishing, handling, defence and blocking
   shape how they play.

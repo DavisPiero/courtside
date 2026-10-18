@@ -114,3 +114,8 @@ One line each, newest last.
 - 2026-10-18 · Adaptive AI (both ideas David offered): a rubber band on your lead plus a little for game time, eased so it isn't sudden.
 - 2026-10-18 · Code BIG LEAGUE (2000 CC); the code keyboard gets a SPACE key.
 - 2026-10-18 · Career League drafted in BRIEF-league.md only.
+- 2026-10-19 · Up to 5 extra dribble moves (David). Quick Play quarters 30 s (David).
+- 2026-10-19 · Steals a little easier (ball security up about 20%, more on All-Star and Hall of Famer) after the movement fix made defence tighter; bench back to roughly +40 / +14 / -3 / -15.
+- 2026-10-19 · Movement: controlled player slides round bumps (keeps 60-90% speed, takes a quarter of the push); defenders keep outside bump range; reach stumble 0.3 s. Cause of "movement stops a lot": defenders standing inside the bump distance on harder levels.
+- 2026-10-19 · Hooper stats checked end to end; Hops now sets block jump height and Accuracy widens the green zone more.
+- 2026-10-19 · BRIEF-accounts.md: recommend save fixes first (persist, Home Screen tip, save code; Safari's 7-day storage wipe is the likely cause of lost saves), then parent-email magic-link accounts on Supabase.

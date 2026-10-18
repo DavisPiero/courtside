@@ -12,7 +12,7 @@ const HSTATS = [
   { k: "fin", n: "FINISHING", d: "Layups and dunks through traffic." },
   { k: "hnd", n: "HANDLING", d: "More ankle breakers, harder to steal from." },
   { k: "dfn", n: "DEFENCE", d: "Steals and tighter contests." },
-  { k: "hop", n: "HOPS", d: "Dunk more often, block more shots." },
+  { k: "hop", n: "HOPS", d: "Jump higher, dunk more often, block more shots." },
   { k: "stm", n: "STAMINA", d: "Sprint for longer." },
 ];
 const UP_STEP = 2,

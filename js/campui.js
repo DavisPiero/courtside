@@ -177,8 +177,8 @@ function startCamp(ci, gi) {
   setTeamObjs(CUI.cid === "nba" ? nbaTeam() : crewTeam(), gm.opp());
   start(0);
 }
-// Quick Play: four 1-minute quarters.
-const QUICK_RULES = { nq: 4, qlen: 60 };
+// Quick Play: four 30-second quarters (David, 6d).
+const QUICK_RULES = { nq: 4, qlen: 30 };
 const QUICK_BONUS = 125; // every finished Quick Play game pays this, win or lose
 function startQuick(pr) {
   G.rules = { ...RULES_STD, ...QUICK_RULES };
