@@ -90,3 +90,5 @@ One line each, newest last.
 - 2026-10-18 · Main menu goes two buttons across below 760 px tall (iPads in Safari are ~690), not only on phones.
 - 2026-10-18 · Team select keeps the two teams side by side on a landscape phone; they stack only on a tall narrow window.
 - 2026-10-18 · Smoke test checks every menu screen at 5 sizes (iPad with/without tab bar, two iPhones, laptop) for off-screen buttons.
+- 2026-10-18 · Session 6: "ragdolly" means fluid controls, not floppy bodies (David). Real ragdoll only for ankle breakers and punches; no trailing arms, no hit-freeze or glitch on punches, they just drop.
+- 2026-10-18 · Screen fit, second round: panels no longer shrink by scale (caused floating buttons and tab-to-tab size jumps); fixed frame per screen, scrolling middle, button row at the bottom.
