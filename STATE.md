@@ -1,6 +1,6 @@
 # Courtside: state
 
-_Updated 2026-10-18, end of session 4._
+_Updated 2026-10-18, session 5 (screen fit), on branch `session5-fit`, not merged._
 
 ## Where we are
 Session 4 is merged to `main` and live at https://davispiero.github.io/courtside/ (David: "merge and push").
@@ -17,11 +17,17 @@ New in session 4:
 - Fixes: ball layering in hands, ball bounces off board and rim, dunk cutscene has no text and is a bit slower.
 - Sounds: clicks, hover, story garble talk, coins, pop, squeaks, board, fire, cheer, horn.
 
+## Session 5 so far (branch `session5-fit`, waiting for David's sign-off)
+- Every menu screen fits the visible screen on iPad and phone: too-tall panels shrink (to 75% at most), then
+  scroll with BACK / PLAY pinned at the bottom. Main menu goes two-across on iPads. Team select works on small phones.
+- Smoke test now also checks for off-screen buttons at 5 screen sizes.
+
 ## Next
 - David's notes after playing it.
 - Real iPad/phone check; first outside playtest (still not done). The tutorial is the thing to test on a new player.
 
 ## Open with David (guesses until confirmed)
+0. Screen fit: is 75% the smallest panels should shrink to before scrolling? Needs a look on the real iPad.
 1. Punch penalty (6% a punch, max half), the new courts' looks, Coach Ray as scout: carried from session 3.
 2. Upgrade prices (50 CC at 50 up to ~500 near 99) and +2 a buy.
 3. Shoebox prices (100/300/800) and odds; Daily Shop shoe prices; sell price = a quarter of the shop price.

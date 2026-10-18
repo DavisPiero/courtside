@@ -86,3 +86,7 @@ One line each, newest last.
 - 2026-10-18 · Alley-oops: teammates cut to the rim on their own; PASS becomes OOP! when one is open (one button, works on touch).
 - 2026-10-18 · Buzzer beaters slow down the shot but have no replay (a replay needs recorded frames: later if wanted).
 - 2026-10-18 · Dunk contest uses each dunk you own in turn, so collecting dunks pays off there.
+- 2026-10-18 · Screens fit the visible screen (David: iPad screenshots): a too-tall panel shrinks evenly to 75%, then scrolls with its button row pinned to the bottom.
+- 2026-10-18 · Main menu goes two buttons across below 760 px tall (iPads in Safari are ~690), not only on phones.
+- 2026-10-18 · Team select keeps the two teams side by side on a landscape phone; they stack only on a tall narrow window.
+- 2026-10-18 · Smoke test checks every menu screen at 5 sizes (iPad with/without tab bar, two iPhones, laptop) for off-screen buttons.

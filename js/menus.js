@@ -8,6 +8,49 @@ function show(id) {
   if (typeof ccShow === "function") ccShow();
   if (id === "menu" && typeof payday === "function") payday();
 }
+// ---------- fit to screen
+// Every panel must fit the visible screen (an iPad with Safari's bars leaves ~690 px). A panel that is too
+// tall shrinks evenly, down to FIT_MIN. If it still doesn't fit, its middle scrolls and its button row stays
+// pinned to the bottom (CSS .fitscroll), so BACK / PLAY are always on screen.
+const FIT_MIN = 0.75,
+  FIT_PAD = 10;
+function fitPanel(p) {
+  const st = p.style;
+  st.transform = st.maxHeight = st.overflowY = "";
+  p.classList.remove("fitscroll");
+  st.maxHeight = "none"; // measure the natural height, ignoring any max-height from the stylesheet
+  const h = Math.max(p.offsetHeight, p.scrollHeight),
+    w = p.offsetWidth;
+  if (!h || !w) return (st.maxHeight = "");
+  const H = innerHeight - 2 * FIT_PAD,
+    W = innerWidth - 2 * FIT_PAD,
+    s = Math.max(FIT_MIN, Math.min(1, H / h, W / w));
+  if (h * s > H + 1) {
+    st.maxHeight = Math.floor(H / s) + "px";
+    st.overflowY = "auto";
+    p.classList.add("fitscroll");
+  }
+  if (s < 1) st.transform = `scale(${s.toFixed(3)})`;
+  // A panel taller than the screen gets pinned to the top before it shrinks, so re-centre what is drawn.
+  const r = p.getBoundingClientRect(),
+    dy = Math.round(innerHeight / 2 - (r.top + r.bottom) / 2),
+    dx = r.left < 0 || r.right > innerWidth ? Math.round(innerWidth / 2 - (r.left + r.right) / 2) : 0;
+  if (Math.abs(dy) > 1 || dx) st.transform = `translate(${dx}px, ${dy}px) ${st.transform}`;
+}
+function fitScreens() {
+  for (const p of document.querySelectorAll(".scr.on > .box, .scr.on > .dv, .scr.on > .menu-l")) fitPanel(p);
+}
+// Re-fit whenever a screen opens, its contents change (tabs, chapters) or the window changes size.
+let fitQ = 0;
+function fitSoon() {
+  if (!fitQ) fitQ = requestAnimationFrame(() => ((fitQ = 0), fitScreens()));
+}
+new MutationObserver((ms) => {
+  // ignore the style changes fitPanel makes itself
+  if (ms.some((m) => m.type === "childList" || m.attributeName === "class")) fitSoon();
+}).observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["class"] });
+addEventListener("resize", fitSoon);
+if (window.visualViewport) visualViewport.addEventListener("resize", fitSoon);
 function hudOn(on) {
   $("hud").style.display = on ? "block" : "none";
 }

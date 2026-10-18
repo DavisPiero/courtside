@@ -128,10 +128,13 @@ kbd {
 .opt i { display: block; font: 400 16px/1 var(--px); letter-spacing: 0.16em; color: var(--muted); font-style: normal; margin-bottom: 7px; }
 .act { display: flex; gap: 8px; }
 @media (max-width: 760px) {
-  .su-main { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
   .roster { display: none; }
   .side canvas.port { height: 100%; }
   .keys { grid-template-columns: 1fr; }
+}
+/* teams stack only on a tall narrow window; a small phone on its side keeps them side by side */
+@media (max-width: 760px) and (orientation: portrait) {
+  .su-main { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
 }
 
 /* ---------- in-game HUD */
@@ -360,7 +363,7 @@ body.touch .menu-l nav { width: 290px; }
   .ring { width: 54px; height: 54px; } .ring b { font-size: 22px; }
   .roster { display: none; }
   .su-bot { padding: 8px 12px 10px; gap: 8px 14px; }
-  .box { padding: 16px 18px 18px; } .box h2 { font-size: 38px; margin-bottom: 10px; }
+  .box { padding: 16px 18px 18px; --bp: 18px; } .box h2 { font-size: 38px; margin-bottom: 10px; }
   .rows { max-height: 52vh; }
   .tb.big { width: 96px; height: 96px; } .tbtns { transform: scale(0.88); transform-origin: bottom right; }
   .ibody { grid-template-columns: 170px 1fr; } .iprev { min-height: 200px; } #invCv { height: 190px; }
@@ -550,7 +553,7 @@ body.cine #say { opacity: 0; }
 .tile:hover { filter: brightness(1.2); }
 .tile.on { box-shadow: inset 0 0 0 3px #fff, inset 0 -5px 0 0 rgba(0, 0, 0, 0.35); }
 .tile:disabled { opacity: 0.25; cursor: default; filter: grayscale(0.6); }
-@media (max-width: 760px), (max-height: 520px) { .gtiles { grid-template-columns: repeat(5, 1fr); } .tile b { font-size: 24px; } .tile span { display: none; } .tpick { font-size: 40px; } .su-top .lg button { font-size: 17px; padding: 6px 10px 8px; } }
+@media (max-width: 760px), (max-height: 520px) { .gtiles { grid-template-columns: repeat(5, 1fr); } .tile b { font-size: 24px; } .tile span { display: none; } .tpick { font-size: 40px; } .su-top .lg button, body.touch .su-top .lg button { font-size: 17px; padding: 6px 10px 8px; } }
 
 /* ---------- shop: tabs, Daily Shop, packs, Player Packs */
 .shopbox { max-height: 96vh; overflow: auto; }
@@ -758,3 +761,32 @@ canvas.shcv { width: 100%; height: 54px; }
 .tutbox .act { justify-content: space-between; }
 @media (max-height: 520px) { #tut { top: 96px; padding: 8px 12px 10px; } #tutX { font-size: 17px; margin: 4px 0 6px; } }
 .opack.obox.tear > i { visibility: hidden; }
+
+/* ---------- fit to screen (js/menus.js fitPanel): a panel too tall for the screen shrinks; if it still
+   doesn't fit, it scrolls and its button row stays pinned to the bottom. */
+.scr > .box, .scr > .dv { transform-origin: center; }
+.scr > .menu-l { transform-origin: left center; }
+.fitscroll > .act:last-child {
+  position: sticky; bottom: calc(4px - var(--bp, 28px)); z-index: 3; /* sticky measures from inside the padding */
+  /* stretch to the panel's inner edges, leaving its 2px border and 4px bottom lip showing */
+  margin: 0 calc(2px - var(--bp, 28px)) calc(4px - var(--bp, 28px)); padding: 12px calc(var(--bp, 28px) - 2px) calc(var(--bp, 28px) - 4px);
+  background: var(--panel); box-shadow: 0 -2px 0 var(--edge);
+}
+/* iPads and short laptops: the main menu buttons go two across so SETTINGS isn't off the bottom */
+@media (max-height: 760px) {
+  .menu-l nav { grid-template-columns: 1fr 1fr; width: min(520px, 90vw) !important; }
+  .menu-l nav .btn.pri { grid-column: 1 / -1; }
+  .tutb { margin: 12px 0 18px; }
+}
+/* small phones in landscape (~300 px tall) */
+@media (max-height: 340px) {
+  .brand { font-size: 48px; }
+  .tutb { margin: 6px 0 8px; padding: 6px 12px 8px; font-size: 17px; }
+  .menu-l nav { gap: 6px; }
+  .menu-l nav .btn { padding: 8px 14px 10px; font-size: 19px; }
+  /* team select: a smaller footer so the teams keep some room */
+  .su-bot { gap: 4px 10px; padding: 6px 10px 8px; }
+  .opt i { font-size: 13px; margin-bottom: 3px; }
+  body.touch .su-bot .seg button { padding: 8px 10px; font-size: 17px; }
+  .su-bot .act .btn { padding: 8px 14px 10px; font-size: 19px; }
+}
