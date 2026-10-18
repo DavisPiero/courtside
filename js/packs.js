@@ -13,7 +13,7 @@ const RARITY = {
   iconic: { name: "ICONIC", col: "#ff3d7f", refund: 300 }, // a famous player's signature: Player Packs and the Daily Shop only
   mythic: { name: "MYTHIC", col: "#ff2e4a", refund: 600 }, // very rare: top packs and the Daily Shop
   godlike: { name: "GODLIKE", col: "#fff1a8", refund: 1500 }, // the rarest you can get by luck
-  gametime: { name: "GAMETIME", col: "#9d4dff", refund: 0 }, // one of a kind, from the code LAUNCHED only
+  gametime: { name: "GAMETIME", col: "#9d4dff", refund: 0 }, // one of a kind, from codes only (LAUNCHED, SNEAKERHEAD)
 };
 // Rarities a random pack can roll, worst to best.
 const RARITIES = ["common", "rare", "epic", "legendary", "mythic", "godlike"];

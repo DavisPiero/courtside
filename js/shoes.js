@@ -3,7 +3,7 @@
 // You get them from mystery Shoeboxes in the Shop (one shoe a box) or the one shoe in the Daily Shop.
 // Equip one in the Inventory (SHOES tab). Rarities use the same table as animations (js/packs.js).
 // Colours: up = the upper, ov = overlays (toe, heel, collar), ac = the stripe or swoosh, so = the sole.
-// cut: low, mid or high top. glow: the sole lights up (Air Mag).
+// cut: low, mid or high top. glow: the sole lights up (1, or the colour it pulses to). mark: "flame" for Launched.
 const SH = (id, name, rarity, up, ov, ac, so, cut, desc, glow) => ({ id, name, rarity, up, ov, ac, so, cut, desc, glow });
 const SHOES = [
   // Common
@@ -45,6 +45,8 @@ const SHOES = [
   // Godlike
   SH("airmag", "Nike Air Mag", "godlike", "#b9bec6", "#8d939c", "#ffffff", "#59d8ff", "high", "The self-lacing shoe from the future. The sole glows.", 1),
   SH("aj4undftd", "Air Jordan 4 'Undefeated'", "godlike", "#4a5a2f", "#3a4824", "#e5242b", "#111111", "mid", "Olive and flight-jacket orange. The rarest Jordan ever made."),
+  // Gametime: Courtside's own shoe, from the code SNEAKERHEAD only (never in boxes or the Daily Shop)
+  { ...SH("launched", "Launched", "gametime", "#5b2fb0", "#2b2540", "#ff7a1a", "#9d4dff", "high", "Courtside's own sneaker. Purple and black, a rocket flame down the side and a sole that glows.", "#e6d4ff"), mark: "flame" },
 ];
 const SHOE = Object.fromEntries(SHOES.map((s) => [s.id, s]));
 const ownsShoe = (id) => SAVE.shoes.includes(id);
@@ -57,10 +59,13 @@ const SHOEBOXES = [
 const SHOE_PRICE = { common: 60, rare: 150, epic: 350, legendary: 700, mythic: 2000, godlike: 5000 };
 const SHOE_REFUND = { common: 20, rare: 50, epic: 120, legendary: 250, mythic: 700, godlike: 1800 };
 // Open a shoebox: one shoe, or coins if it's a duplicate. null if you can't afford it.
+// A free box you've won (SAVE.freeBox) opens before any coins are spent.
 function openShoebox(id) {
   const bx = SHOEBOXES.find((b) => b.id === id);
-  if (!bx || SAVE.cc < bx.price) return null;
-  SAVE.cc -= bx.price;
+  if (!bx) return null;
+  if (SAVE.freeBox[id] > 0) SAVE.freeBox[id]--;
+  else if (SAVE.cc < bx.price) return null;
+  else SAVE.cc -= bx.price;
   const r = rollRarity(bx.odds),
     pool = SHOES.filter((s) => s.rarity === r).flatMap((s) => (ownsShoe(s.id) ? [s] : [s, s, s])),
     s = pool[(Math.random() * pool.length) | 0];
@@ -126,8 +131,15 @@ function drawShoe(g, s, x, y, px, t) {
   for (let i = 9; i <= 16; i += 2) R(i, top(i) + 1, "#f7f7f7");
   // The stripe: from the heel, dipping under the laces and sweeping up toward the toe.
   [[3, 6], [4, 7], [5, 8], [6, 8], [7, 8], [8, 8], [9, 8], [10, 8], [11, 7], [12, 7], [13, 7], [14, 6], [15, 6], [16, 7], [6, 7], [10, 7]].forEach(([i, j]) => j >= top(i) && R(i, j, s.ac));
+  // Launched: the stripe is a rocket flame, hot yellow at the tail, with a little rocket at its tip.
+  if (s.mark === "flame") {
+    [[2, 7], [3, 7], [3, 8], [4, 6], [4, 8]].forEach(([i, j]) => j >= top(i) && R(i, j, "#ffe08a"));
+    [[5, 7], [6, 6], [7, 7]].forEach(([i, j]) => j >= top(i) && R(i, j, "#ffd23c"));
+    [[16, 6], [17, 6], [17, 7], [18, 6]].forEach(([i, j]) => j >= top(i) && R(i, j, "#f2f2f2"));
+    R(17, 5, "#c79bff");
+  }
   // Sole: a light midsole stripe, the sole, a darker tread. A glowing sole pulses.
-  const so = s.glow && t !== undefined ? (Math.sin(t * 5) > 0 ? s.so : "#d4fbff") : s.so;
+  const so = s.glow && t !== undefined ? (Math.sin(t * 5) > 0 ? s.so : typeof s.glow === "string" ? s.glow : "#d4fbff") : s.so;
   for (let i = 0; i <= 23; i++) {
     R(i, 10, i === 0 || i === 23 ? shade(so, -0.1) : shade(so, 0.18));
     R(i, 11, so);

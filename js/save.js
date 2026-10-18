@@ -17,6 +17,7 @@ const SAVE = {
   nba: { team: "", tier: 0, offers: [], offerTier: -1 },
   payday: 0,
   free: {}, // free packs you've won and not opened yet: pack id -> how many (a chapter boss gives an All-Star Pack)
+  freeBox: {}, // free shoeboxes you've won and not opened yet: box id -> how many (the code SNEAKERHEAD)
   shoes: [], // shoe ids you own (js/shoes.js)
   shoe: "", // the shoe your team wears ("" = plain team-colour sneakers)
   codes: [], // codes already redeemed in the Shop
@@ -42,7 +43,7 @@ function loadSave() {
     for (const k in SAVE) if (k in s) SAVE[k] = s[k];
     SAVE.nba = Object.assign({ team: "", tier: 0, offers: [], offerTier: -1 }, SAVE.nba);
     SAVE.equip = Object.assign({ dunk: "dunk.basic", layup: "layup.basic", cel: "cel.basic", shot: "shot.basic", moves: [] }, SAVE.equip);
-    for (const k of ["free", "best"]) if (!SAVE[k] || typeof SAVE[k] !== "object") SAVE[k] = {};
+    for (const k of ["free", "freeBox", "best"]) if (!SAVE[k] || typeof SAVE[k] !== "object") SAVE[k] = {};
     for (const k of ["shoes", "codes"]) if (!Array.isArray(SAVE[k])) SAVE[k] = [];
   } catch (e) {
     /* private window or blocked storage: start fresh */
