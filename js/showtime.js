@@ -22,7 +22,7 @@ function fireScore(t) {
     G.fire[t] = 1;
     sfx("fire");
     G.hype = 1;
-    later2(() => toast(t === 0 ? "ON FIRE!" : "THEY'RE ON FIRE!", 1.4), 900);
+    later2(() => (toast(t === 0 ? "ON FIRE!" : "THEY'RE ON FIRE!", 1.4), flashScreen(t === 0 ? "#ff5a12" : "#ff2a12")), 900);
   }
 }
 // A small delay that's safe if the game ends meanwhile.

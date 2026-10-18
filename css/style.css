@@ -188,6 +188,12 @@ kbd {
 #vm.g .vt { box-shadow: 0 0 0 2px var(--good), 0 0 0 4px #05070f, 0 0 18px var(--good); }
 #vm.g .vf { background: var(--good); }
 #vm.g b { color: var(--good); font-size: 28px; }
+/* On Fire: the (bigger) green zone burns orange, so you can see the fire helped */
+#vm.fire .vt { box-shadow: 0 0 0 2px #ff8a1a, 0 0 0 4px #05070f, 0 0 16px 2px #ff5a12; }
+#vm.fire .vz { background: linear-gradient(#ffe08a, #ff8a1a 45%, #ff3b12); box-shadow: 0 0 10px 3px #ff7a1a; animation: vzFire 0.35s steps(2) infinite alternate; }
+#vm.fire.g .vz { background: var(--good); }
+@keyframes vzFire { to { box-shadow: 0 0 16px 5px #ffb02e; } }
+#vm.fire::after { content: "ON FIRE"; position: absolute; left: 50%; top: -24px; transform: translateX(-50%); font: 400 18px/1 var(--px); color: #ff8a1a; text-shadow: 2px 2px 0 #000; white-space: nowrap; }
 #vm.e b { color: #ffb45c; }
 #vm.l b { color: #ff6b6b; }
 /* Cinematic bars for the dunk and tip-off */
