@@ -238,6 +238,38 @@ SHOTS["shot.sky"] = {
     [1, { aR: [0.85, -0.18, 5.0], aL: [0.4, 0.5, 3.7], fL: [0.1, 0.45, 0.3], fR: [-0.1, -0.45, 0.2] }],
   ],
 };
+// Session 6b shots: Hop Into It hops forward, the Slingshot loads behind the head, the Leg Kick kicks out wide.
+SHOTS["shot.hop"] = {
+  jump: [0.34, 9.5],
+  hop: 6,
+  keys: [
+    [0, { hz: 2.9, lean: 0.25, aR: [0.65, -0.32, 1.5], aL: [0.65, 0.22, 1.6], fL: [0.5, 0.5, 0.35], fR: [0.1, -0.5, 0.25] }],
+    [0.28, { hz: 2.45, lean: 0.25, aR: [0.6, -0.26, 2.0], aL: [0.6, 0.18, 2.05], fL: [0.3, 0.6, 0], fR: [0.05, -0.6, 0] }],
+    [0.56, { hz: 3.3, lean: 0.02, aR: [0.32, -0.26, 3.75], aL: [0.36, 0.12, 3.55], fL: [0.14, 0.45, 0.05], fR: [-0.02, -0.45, 0] }],
+    [0.72, { hz: 3.3, aR: [0.82, -0.2, 4.7], aL: [0.5, 0.28, 3.85], fL: [0.14, 0.45, 0.05], fR: [-0.02, -0.45, 0] }],
+    [1, { aR: [0.9, -0.18, 4.65], aL: [0.45, 0.4, 3.5], fL: [0.14, 0.45, 0.05], fR: [-0.02, -0.45, 0] }],
+  ],
+};
+SHOTS["shot.sling"] = {
+  jump: [0.36, 10],
+  keys: [
+    [0, { hz: 2.95, lean: 0.12, aR: [0.65, -0.32, 1.5], aL: [0.65, 0.22, 1.6] }],
+    [0.3, { hz: 2.45, lean: 0.2, aR: [0.55, -0.3, 2.3], aL: [0.55, 0.2, 2.35] }],
+    [0.56, { hz: 3.3, lean: -0.12, aR: [-0.45, -0.32, 3.95], aL: [-0.4, 0.2, 3.85], fL: [0.14, 0.45, 0.05], fR: [-0.02, -0.45, 0] }],
+    [0.72, { hz: 3.3, lean: 0.05, aR: [0.95, -0.2, 4.6], aL: [0.65, 0.28, 3.9], fL: [0.14, 0.45, 0.05], fR: [-0.02, -0.45, 0] }],
+    [1, { aR: [1.0, -0.18, 4.5], aL: [0.5, 0.4, 3.4], fL: [0.14, 0.45, 0.05], fR: [-0.02, -0.45, 0] }],
+  ],
+};
+SHOTS["shot.kick"] = {
+  jump: [0.34, 10.5],
+  keys: [
+    [0, { hz: 2.95, lean: 0.1, aR: [0.65, -0.32, 1.5], aL: [0.65, 0.22, 1.6] }],
+    [0.3, { hz: 2.45, lean: 0.18, aR: [0.6, -0.26, 2.0], aL: [0.6, 0.18, 2.05] }],
+    [0.56, { hz: 3.3, lean: -0.15, aR: [0.3, -0.26, 3.85], aL: [0.34, 0.12, 3.65], fL: [0.2, 1.1, 0.9], fR: [-0.05, -0.4, 0] }],
+    [0.72, { lean: -0.2, aR: [0.75, -0.2, 4.8], aL: [0.45, 0.3, 3.9], fL: [0.35, 1.45, 1.3], fR: [-0.05, -0.4, 0] }],
+    [1, { lean: -0.2, aR: [0.85, -0.18, 4.7], aL: [0.4, 0.45, 3.5], fL: [0.3, 1.4, 1.2], fR: [-0.05, -0.4, 0] }],
+  ],
+};
 // Where the ball sits during a shot: just above and in front of the shooting hand.
 function shotBall(p, u) {
   const k = SHOTS[styleOf(p, "shot")] || SHOTS["shot.basic"],
@@ -349,6 +381,27 @@ const MOVE_POSES = {
     [0.8, { hz: 2.9, lean: 0.1, aR: [0.9, -0.4, 3.6], aL: [0.6, 0.8, 1.6] }],
     [1, { hz: 2.6, lean: 0.45 }],
   ],
+  // Session 6b
+  pound: [
+    [0, { hz: 2.5, lean: 0.5 }],
+    [0.2, { hz: 2.0, lean: 0.7, fL: [0.5, 0.95, 0], fR: [-0.35, -0.95, 0] }],
+    [0.4, { hz: 2.3, lean: 0.55 }],
+    [0.6, { hz: 2.0, lean: 0.7, fL: [0.5, 0.95, 0], fR: [-0.35, -0.95, 0] }],
+    [0.8, { hz: 1.95, lean: 0.75 }],
+    [1, { hz: 2.6, lean: 0.5 }],
+  ],
+  rocker: [
+    [0, { hz: 2.75, lean: 0.35 }],
+    [0.25, { hz: 2.35, lean: 1.0, fL: [1.35, 0.6, 0], fR: [-0.4, -0.6, 0] }],
+    [0.5, { hz: 2.9, lean: -0.35, fL: [0.3, 0.6, 0.2], fR: [-0.7, -0.6, 0] }],
+    [0.75, { hz: 2.2, lean: 0.85, fL: [1.0, 0.7, 0], fR: [-0.55, -0.7, 0] }],
+    [1, { hz: 2.6, lean: 0.5 }],
+  ],
+  world: [
+    [0, { hz: 2.75, lean: 0.25 }],
+    [0.5, { hz: 2.85, lean: 0.1, twist: 0.2, aL: [0.2, 1.1, 1.6] }],
+    [1, { hz: 2.7, lean: 0.4, twist: -0.1 }],
+  ],
   ai: [
     [0, { hz: 2.75, lean: 0.35 }],
     [0.3, { hz: 3.2, lean: -0.05, aL: [0.4, 1.0, 1.4] }],
@@ -441,6 +494,25 @@ const CELS = {
     return [[0, { hz: lp(3.1, 3.45, k), lean: lp(0.15, -0.3, k), aL: lerpA([0.6, 0.1, 2.0], [0.3, 1.5, 4.6], k), aR: lerpA([0.6, -0.1, 2.0], [0.3, -1.5, 4.6], k) }]];
   },
 };
+// Session 6b celebrations
+CELS["cel.dab"] = (t) => {
+  const k = ease(cl(((t * 0.8) % 1) * 4, 0, 1));
+  return [[0, { lean: lp(0, 0.25, k), twist: lp(0, -0.25, k), aL: lerpA([0.2, 1.0, 1.0], [0.75, 0.35, 3.0], k), aR: lerpA([0.2, -1.0, 1.0], [0.6, -2.0, 3.6], k) }]];
+};
+CELS["cel.guitar"] = (t) => {
+  const s = Math.sin(t * 16),
+    b = Math.abs(Math.sin(t * 3));
+  return [[0, { hz: 2.95 - b * 0.2, lean: -0.2 + b * 0.15, aL: [1.1, 0.75, 2.3 + b * 0.3], aR: [0.55, -0.35, 1.6 + s * 0.25], fL: [0.5, 0.75, 0], fR: [-0.35, -0.75, 0] }]];
+};
+CELS["cel.goggles"] = () => [[0, { lean: -0.1, pitch: 0.05, aL: [0.75, 0.32, 3.35], aR: [0.75, -0.32, 3.35] }]];
+// The Griddy: heels kick forward in turn with the arms swinging the other way; every few beats, goggles on.
+CELS["cel.griddy"] = (t) => {
+  const s = Math.sin(t * 9),
+    gog = (t * 0.5) % 1 > 0.7;
+  return [[0, { hz: 3.0 - Math.abs(s) * 0.15, lean: 0.12, twist: s * 0.15,
+    aL: gog ? [0.75, 0.32, 3.3] : [-0.7 * s, 1.0, 1.0 + Math.max(0, -s) * 0.9], aR: gog ? [0.75, -0.32, 3.3] : [0.7 * s, -1.0, 1.0 + Math.max(0, s) * 0.9],
+    fL: [0.25 + Math.max(0, s) * 0.85, 0.5, Math.max(0, s) * 0.35], fR: [0.25 + Math.max(0, -s) * 0.85, -0.5, Math.max(0, -s) * 0.35] }]];
+};
 // The jump that goes with some celebrations (backflip).
 function celHop(style, t) {
   if (style === "cel.levitate") return 2.6 + Math.sin(t * 2) * 0.35;
@@ -506,6 +578,9 @@ const RIM_FX = {
   "dunk.double360": { two: 1, spin: 2, high: 1.3, slow: 1.15 },
   "dunk.moon": { glide: 24, spin: 1, walk: 1, high: 1.5, slow: 1.6 },
   "dunk.liftoff": { two: 1, spin: 1, trail: 1, high: 1.7, slow: 1.4 },
+  "dunk.superman": { two: 1, glide: 7, high: 1.15 },
+  "dunk.scorpion": { two: 1, high: 1.3, slow: 1.15 },
+  "layup.hopstep": { slow: 1.1 },
 };
 const rimFx = (s) => RIM_FX[s] || {};
 // ---------- dunks and layups. k runs 0..1 through the rise to the rim; z is the player's height in the air.
@@ -579,6 +654,22 @@ function rimHand(style, k, z) {
     case "dunk.liftoff":
       // Both hands overhead like a rocket nose, then down through the rim.
       return k < 0.75 ? lerpA([0.5, 0, 6.5], [0.3, 0, 9.6], ease(k / 0.75)) : lerpA([0.3, 0, 9.6], [1.45, 0, 10.4 - z], ease((k - 0.75) / 0.25));
+    case "dunk.cockback":
+      // One arm cocked all the way back and down behind the body, then whipped over the top.
+      return k < 0.65 ? lerpA([0.5, -0.6, 5.6], [-1.6, -0.5, 6.8], ease(k / 0.65)) : lerpA([-1.6, -0.5, 6.8], end, ease((k - 0.65) / 0.35));
+    case "dunk.superman":
+      // Ball stretched out ahead the whole flight.
+      return k < 0.8 ? [1.9, 0, 6.4] : lerpA([1.9, 0, 6.4], [1.45, 0, 10.4 - z], ease((k - 0.8) / 0.2));
+    case "dunk.scorpion":
+      // Both hands take it back behind the head to meet the heels, then over the top.
+      return k < 0.7 ? lerpA([0.6, 0, 6.4], [-0.9, 0, 8.6], ease(k / 0.7)) : lerpA([-0.9, 0, 8.6], [1.45, 0, 10.4 - z], ease((k - 0.7) / 0.3));
+    case "layup.glass":
+      return lerpA([0.7, -0.3, 5.6], [0.9, -0.3, 10.2 - z], E);
+    case "layup.hopstep":
+      return lerpA([0.6, -0.1, 4.6], [1.25, -0.2, 9.4 - z], E);
+    case "layup.wrap":
+      // Out wide to the side, round the defender, then tucked in to the rim.
+      return k < 0.55 ? lerpA([0.5, -0.6, 5.0], [0.4, -2.0, 6.4], ease(k / 0.55)) : lerpA([0.4, -2.0, 6.4], [1.25, -0.2, 9.4 - z], ease((k - 0.55) / 0.45));
     case "layup.hook":
       // Side-on: the arm sweeps up and over in a hook.
       return k < 0.5 ? lerpA([0.2, -1.2, 4.6], [-0.2, -1.6, 6.8], ease(k / 0.5)) : lerpA([-0.2, -1.6, 6.8], [0.4, -0.4, 9.4 - z], ease((k - 0.5) / 0.5));
@@ -611,6 +702,9 @@ function airLegs(style, k) {
   }
   if (style === "dunk.liftoff") return { fL: [0.05, 0.3, 0.4], fR: [-0.05, -0.3, 0.35] }; // legs together, like a rocket
   if (style === "dunk.honey") return { fL: [0.3, 0.45, 1.2], fR: [0.1, -0.45, 0.9] };
+  if (style === "dunk.superman") return { fL: [-1.4, 0.35, 0.9], fR: [-1.45, -0.35, 0.85] }; // legs straight out behind
+  if (style === "dunk.scorpion" && k < 0.72) return { fL: [-1.7, 0.35, 3.3], fR: [-1.6, -0.35, 3.1] }; // heels up behind the head
+  if (style === "layup.hopstep") return { fL: [0.3, 0.45, 0.7], fR: [0.25, -0.45, 0.65] }; // off two feet
   if (style === "dunk.double360") return { fL: [0.5, 0.4, 1.5], fR: [0.4, -0.4, 1.4] };
   if (style === "dunk.legs" && k < 0.6) return { fL: [0.75, 0.45, 1.7], fR: [0.75, -0.45, 1.7] };
   if (style === "dunk.twohand" || style === "dunk.360") return { fL: [0.35, 0.45, 1.1], fR: [0.2, -0.45, 0.9] };
@@ -727,6 +821,8 @@ function animPose(p, c) {
     } else if (d.phase === "rise") {
       const lg = airLegs(d.style, d.k);
       q = blend(q, Object.assign(clonePose(q), { hz: 3.25, lean: 0.15, fL: lg.fL, fR: lg.fR }), 0.85);
+      if (d.style === "dunk.superman") q.pitch = -0.85 * Math.sin(Math.min(1, d.k * 1.25) * Math.PI * 0.5) * (d.k < 0.85 ? 1 : (1 - d.k) / 0.15); // flat out, then upright for the slam
+      if (d.style === "dunk.scorpion") q.recline = 0.35 * Math.sin(Math.min(1, d.k / 0.72) * Math.PI); // arch the back
     } else if (d.phase === "hang" && d.style === "dunk.shaq") {
       // Shaq hangs on the rim and swings his legs up.
       q.hz = 3.25;

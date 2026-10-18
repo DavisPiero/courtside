@@ -124,6 +124,13 @@ function ballLocal(p) {
       const t = cl((u - 0.35) / 0.3, 0, 1);
       return [0.35 - Math.sin(t * Math.PI) * 0.95, lp(h * 0.85, -h * 0.85, ease(t)), 2.4];
     }
+    if (m.k === "pound") return [0.95, h * 0.55, 0.45 + 1.1 * Math.abs(Math.cos(u * Math.PI * 3))]; // three hard, low pounds
+    if (m.k === "rocker") return [lp(0.9, 1.25, Math.sin(u * Math.PI * 2) * 0.5 + 0.5), h * 0.55, 0.55 + 2.0 * Math.abs(Math.cos(u * Math.PI * 2))];
+    if (m.k === "world") {
+      // All the way round the waist: in front, round the far side, behind, and into the other hand.
+      const th = (h * Math.PI) / 2 - h * Math.PI * 2.5 * e;
+      return [Math.cos(th) * 1.0, Math.sin(th) * 1.0, 2.4];
+    }
     if (m.k === "yoyo") {
       // Slam it down, it bounces way up over the head, then drops back into the hand.
       if (u < 0.2) return [1.0, h * 0.55, lp(2.4, 0.55, ease(u / 0.2))];

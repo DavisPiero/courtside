@@ -45,6 +45,19 @@ const SHOES = [
   // Godlike
   SH("airmag", "Nike Air Mag", "godlike", "#b9bec6", "#8d939c", "#ffffff", "#59d8ff", "high", "The self-lacing shoe from the future. The sole glows.", 1),
   SH("aj4undftd", "Air Jordan 4 'Undefeated'", "godlike", "#4a5a2f", "#3a4824", "#e5242b", "#111111", "mid", "Olive and flight-jacket orange. The rarest Jordan ever made."),
+  // Session 6b: twelve more
+  SH("mb03", "Puma MB.03", "common", "#5b2a86", "#3a1a5a", "#2fe6a4", "#2fe6a4", "low", "LaMelo's alien kicks. Not from this planet."),
+  SH("kt8", "Anta KT 8", "common", "#f4f4f4", "#1d6fb8", "#ffd23c", "#ffffff", "low", "Klay's splash shoe. Light and quick."),
+  SH("wow10", "Li-Ning Way of Wade 10", "common", "#141414", "#141414", "#c8102e", "#f4f4f4", "mid", "Black and red. Built for the Euro step."),
+  SH("aj13bred", "Air Jordan 13 'Bred'", "rare", "#141414", "#c8102e", "#ffffff", "#c8102e", "mid", "Panther-paw sole and a little hologram eye."),
+  SH("ja1", "Ja 1 'Bone'", "rare", "#efe6cf", "#d8ccae", "#e5242b", "#efe6cf", "low", "Ja Morant's first. Built to fly."),
+  SH("shaqattaq", "Reebok Shaq Attaq", "rare", "#f4f4f4", "#111111", "#1d6fb8", "#f4f4f4", "high", "A big shoe for the Big Diesel."),
+  SH("aj7olympic", "Air Jordan 7 'Olympic'", "epic", "#f4f4f4", "#1d2a6b", "#c8102e", "#1d2a6b", "mid", "Dream Team, 1992. Gold-medal summer."),
+  SH("penny1", "Air Max Penny 1 'Orlando'", "epic", "#111111", "#111111", "#1d6fb8", "#f4f4f4", "mid", "Magic blue and black. Lil' Penny's favourite."),
+  SH("kobe8mamba", "Kobe 8 'Mambacurial'", "epic", "#ff3d7f", "#ff2266", "#1e1e1e", "#ffd23c", "low", "Hot pink and loud. The lightest Kobe ever."),
+  SH("aj1shattered", "Air Jordan 1 'Shattered Backboard'", "legendary", "#f4f4f4", "#ff7a1a", "#111111", "#efe6cf", "high", "Orange and black, for the night the glass broke."),
+  SH("aj13hgg", "Air Jordan 13 'He Got Game'", "legendary", "#f4f4f4", "#111111", "#c8102e", "#c8102e", "mid", "White and black with a red sole. From the movie."),
+  SH("yeezyred", "Air Yeezy 2 'Red October'", "mythic", "#c8102e", "#a00d24", "#e01e3c", "#c8102e", "high", "All red, top to bottom. Dropped with no warning."),
   // Gametime: Courtside's own shoe, from the code SNEAKERHEAD only (never in boxes or the Daily Shop)
   { ...SH("launched", "Launched", "gametime", "#5b2fb0", "#2b2540", "#ff7a1a", "#9d4dff", "high", "Courtside's own sneaker. Purple and black, a rocket flame down the side and a sole that glows.", "#e6d4ff"), mark: "flame" },
 ];
@@ -52,9 +65,10 @@ const SHOE = Object.fromEntries(SHOES.map((s) => [s.id, s]));
 const ownsShoe = (id) => SAVE.shoes.includes(id);
 // Mystery Shoeboxes: one shoe each, cheaper than animation packs. New shoes are three times as likely.
 const SHOEBOXES = [
-  { id: "box", name: "SHOEBOX", price: 100, odds: { common: 70, rare: 25, epic: 5 }, col: "#b97a3e", lid: "#d79a5a" },
-  { id: "premium", name: "PREMIUM SHOEBOX", price: 300, odds: { common: 20, rare: 50, epic: 24, legendary: 6 }, col: "#16161c", lid: "#d4af37" },
-  { id: "grail", name: "GRAIL BOX", price: 800, odds: { rare: 30, epic: 42, legendary: 22, mythic: 5, godlike: 1 }, col: "#4b1f8a", lid: "#c79bff" },
+  // look: kraft (brown cardboard, a white size label), luxe (matte black, gold band and star), grail (purple, glowing trim, gold clasp)
+  { id: "box", name: "SHOEBOX", price: 100, odds: { common: 70, rare: 25, epic: 5 }, col: "#b97a3e", lid: "#d79a5a", look: "kraft" },
+  { id: "premium", name: "PREMIUM SHOEBOX", price: 300, odds: { common: 20, rare: 50, epic: 24, legendary: 6 }, col: "#16161c", lid: "#d4af37", look: "luxe" },
+  { id: "grail", name: "GRAIL BOX", price: 800, odds: { rare: 30, epic: 42, legendary: 22, mythic: 5, godlike: 1 }, col: "#4b1f8a", lid: "#c79bff", look: "grail" },
 ];
 const SHOE_PRICE = { common: 60, rare: 150, epic: 350, legendary: 700, mythic: 2000, godlike: 5000 };
 const SHOE_REFUND = { common: 20, rare: 50, epic: 120, legendary: 250, mythic: 700, godlike: 1800 };
@@ -161,4 +175,88 @@ function shoeCanvas(cv, s, t) {
   g.clearRect(0, 0, cv.width, cv.height);
   if (!s) return;
   drawShoe(g, s, Math.round((cv.width - 24 * px) / 2), Math.round((cv.height - 13 * px) / 2), px, t);
+}
+
+// ---------- shoebox models: a pixel shoebox seen from the front and a little from above, 52 x 40 box pixels.
+// o: { lift (box pixels the lid has risen), drift (sideways), fade (0..1 lid opacity), glow (colour from inside), t }
+const QMARK = [".###.", "#...#", "....#", "...#.", "..#..", ".....", "..#.."];
+function drawShoebox(g, bx, x, y, px, o) {
+  o = o || {};
+  const R = (cx, cy, col, w, h) => {
+    g.fillStyle = col;
+    g.fillRect(x + cx * px, y + cy * px, (w || 1) * px, (h || 1) * px);
+  };
+  const look = bx.look || "kraft",
+    body = look === "luxe" ? "#1b1b22" : bx.col,
+    lidc = look === "luxe" ? "#23232c" : look === "grail" ? shade(bx.col, -0.25) : bx.lid,
+    acc = bx.lid,
+    open = (o.lift || 0) > 0.5;
+  // Body: front face, right side, and (once the lid is off) the inside with tissue paper.
+  for (let i = 0; i < 6; i++) R(42 + i, 18 - i - 1, shade(body, -0.35), 1, 20);
+  R(2, 18, body, 40, 20);
+  R(2, 18, shade(body, 0.18), 1, 20);
+  R(2, 35, shade(body, -0.22), 40, 3);
+  if (open) {
+    for (let r = 1; r <= 6; r++) R(2 + r, 18 - r, o.glow || shade(body, -0.6), 40, 1);
+    // tissue paper crumpled over the top
+    for (let i = 4; i < 46; i++) {
+      const hgt = 2 + ((i * 7) % 5) + (i % 3 === 0 ? 2 : 0);
+      R(i, 15 - hgt + ((i * 3) % 2), i % 4 ? "#f4efe2" : "#e3dccb", 1, hgt);
+    }
+  }
+  // Decoration on the front of the body.
+  if (look === "kraft") {
+    R(30, 22, "#f4f1ea", 9, 9);
+    R(31, 24, "#9a9a9a", 7, 1);
+    R(31, 26, "#9a9a9a", 5, 1);
+    R(31, 28, "#c8102e", 3, 1);
+  }
+  if (look === "luxe") {
+    // a gold foil star
+    [[33, 22, 1, 2], [31, 24, 5, 1], [32, 25, 3, 1], [32, 26, 1, 1], [34, 26, 1, 1]].forEach(([a, b, w, h]) => R(a, b, acc, w, h));
+    R(2, 33, acc, 40, 1);
+  }
+  if (look === "grail") {
+    R(20, 18, "#f2c94c", 4, 4); // the clasp
+    R(21, 19, "#8a6a12", 2, 2);
+    R(2, 36, acc, 40, 1);
+  }
+  // A big question mark.
+  QMARK.forEach((row, j) => [...row].forEach((ch, i) => ch === "#" && R(8 + i * 2, 21 + j * 2, look === "kraft" ? shade(body, -0.4) : acc, 2, 2)));
+  // Lid: front lip, top face and right side, a little bigger than the box. Lifts and fades away when opened.
+  if ((o.fade === undefined ? 1 : o.fade) > 0) {
+    g.save();
+    g.globalAlpha = o.fade === undefined ? 1 : o.fade;
+    const ly = -(o.lift || 0),
+      lx = o.drift || 0;
+    for (let i = 0; i < 6; i++) R(43 + i + lx, 13 - i - 1 + ly, shade(lidc, -0.35), 1, 7);
+    for (let r = 1; r <= 6; r++) R(1 + r + lx, 13 - r + ly, shade(lidc, 0.14), 42, 1);
+    R(1 + lx, 13 + ly, lidc, 42, 7);
+    R(1 + lx, 19 + ly, shade(lidc, -0.3), 42, 1);
+    if (look === "luxe") R(1 + lx, 15 + ly, acc, 42, 2), R(7 + lx, 7 + ly, acc, 42, 1);
+    if (look === "grail") {
+      R(1 + lx, 13 + ly, acc, 42, 1);
+      R(7 + lx, 7 + ly, acc, 42, 1);
+      const tw = Math.floor((o.t || 0) * 4) % 3; // twinkles on the lid
+      [[12, 9], [26, 10], [38, 8]].forEach(([a, b], k) => k !== tw && R(a + lx, b + ly, "#ffffff"));
+    }
+    if (look === "kraft") R(1 + lx, 16 + ly, shade(lidc, -0.12), 42, 1);
+    g.restore();
+  }
+}
+// Draw box bx centred in canvas cv. head: extra box pixels of room above it (for the lid to fly into).
+function boxCanvas(cv, bx, o, head) {
+  head = head || 0;
+  const w = cv.clientWidth || 120,
+    h = cv.clientHeight || 90,
+    dpr = devicePixelRatio || 1;
+  if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) {
+    cv.width = Math.round(w * dpr);
+    cv.height = Math.round(h * dpr);
+  }
+  const g = cv.getContext("2d"),
+    px = Math.max(1, Math.floor(Math.min(cv.width / 52, cv.height / (40 + head))));
+  g.imageSmoothingEnabled = false;
+  g.clearRect(0, 0, cv.width, cv.height);
+  drawShoebox(g, bx, Math.round((cv.width - 52 * px) / 2), Math.round(cv.height - 40 * px - (cv.height - (40 + head) * px) / 2), px, o);
 }
