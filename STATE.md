@@ -16,7 +16,7 @@ _Updated 2026-10-18, session 6b, merged to `main` and live (David: merge and pus
   16 more animations (100).
 Smoke test passes (all modes, courts, levels, minigames; fit check at 5 sizes including the DAILY pop-up).
 
-## On the branch `session6c-difficulty` (not merged)
+## Session 6c (merged to `main` and live)
 - Every difficulty is harder, plus adaptive AI; `tools/bench.sh` measures it (bot margins +37 / +17 / +3 / -13,
   down from +88 / +69 / +62 / +43).
 - Code BIG LEAGUE (2000 CC) and a SPACE key on the code keyboard.
