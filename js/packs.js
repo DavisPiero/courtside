@@ -142,7 +142,7 @@ const CATS = [
   ["shot", "JUMP SHOT"],
   ["cel", "CELEBRATE"],
 ];
-const MAX_MOVES = 3; // extra dribble moves you can switch on at once
+const MAX_MOVES = 5; // extra dribble moves you can switch on at once
 
 // Shop packs: price, how many animations, odds per card (percent), and a guaranteed minimum rarity for one card.
 const SHOP = [

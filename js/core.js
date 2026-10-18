@@ -52,10 +52,10 @@ const streetish = () => OPT.court !== "arena";
 // and less: half (share right at half court), deep (just past half court), full (from the far baseline).
 // A perfect release always goes in from anywhere. layup: how often a contested close layup rims out.
 const DIFF = [
-  { name: "ROOKIE", iq: 0.25, secure: 0.15, reach: 0.1, ankleRes: 0.85, sp: 0.88, stealRate: 0.08, stealWin: 0.25, gap: 1.4, shotQ: -0.18, pick: 0.4, react: 4, squeeze: 0.25, half: 0.45, deep: 0.17, full: 0.04, layup: 0.25 },
-  { name: "PRO", iq: 0.55, secure: 0.1, reach: 0.25, ankleRes: 0.55, sp: 0.96, stealRate: 0.22, stealWin: 0.4, gap: 0, shotQ: 0, pick: 1, react: 6, squeeze: 0.45, half: 0.3, deep: 0.1, full: 0.02, layup: 0.35 },
-  { name: "ALL-STAR", iq: 0.8, secure: 0.075, reach: 0.4, ankleRes: 0.4, sp: 1.02, stealRate: 0.45, stealWin: 0.5, gap: -0.5, shotQ: 0.14, pick: 1.5, react: 8, squeeze: 0.65, half: 0.22, deep: 0.067, full: 0.012, layup: 0.45 },
-  { name: "HALL OF FAMER", iq: 1, secure: 0.055, reach: 0.55, ankleRes: 0.25, sp: 1.06, stealRate: 0.6, stealWin: 0.58, gap: -0.7, shotQ: 0.22, pick: 1.9, react: 10, squeeze: 0.8, half: 0.16, deep: 0.04, full: 0.008, layup: 0.55 },
+  { name: "ROOKIE", iq: 0.25, secure: 0.18, reach: 0.1, ankleRes: 0.85, sp: 0.88, stealRate: 0.08, stealWin: 0.25, gap: 1.4, shotQ: -0.18, pick: 0.4, react: 4, squeeze: 0.25, half: 0.45, deep: 0.17, full: 0.04, layup: 0.25 },
+  { name: "PRO", iq: 0.55, secure: 0.12, reach: 0.25, ankleRes: 0.55, sp: 0.96, stealRate: 0.22, stealWin: 0.4, gap: 0, shotQ: 0, pick: 1, react: 6, squeeze: 0.45, half: 0.3, deep: 0.1, full: 0.02, layup: 0.35 },
+  { name: "ALL-STAR", iq: 0.8, secure: 0.1, reach: 0.4, ankleRes: 0.4, sp: 1.02, stealRate: 0.45, stealWin: 0.5, gap: -0.5, shotQ: 0.14, pick: 1.5, react: 8, squeeze: 0.65, half: 0.22, deep: 0.067, full: 0.012, layup: 0.45 },
+  { name: "HALL OF FAMER", iq: 1, secure: 0.075, reach: 0.55, ankleRes: 0.25, sp: 1.06, stealRate: 0.6, stealWin: 0.58, gap: -0.7, shotQ: 0.22, pick: 1.9, react: 10, squeeze: 0.8, half: 0.16, deep: 0.04, full: 0.008, layup: 0.55 },
 ];
 // Adaptive AI: the opponents start at the chosen level and get sharper the further ahead you get and as the game
 // goes on (G.adapt 0..1, worked out every step in js/showtime.js adaptUpd). At full stretch they move the ball

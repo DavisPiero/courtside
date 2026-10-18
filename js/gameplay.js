@@ -34,7 +34,7 @@ function contest(p) {
 // defence shrinks it, by more on harder difficulties. Your own AI teammates' guarding uses Pro.
 // Long shots shrink it too: to under half by half court, and to a sliver past it.
 function greenZone(p) {
-  const base = 0.06 + (p.sht / 99) * 0.035,
+  const base = 0.048 + (p.sht / 99) * 0.05, // ACCURACY matters: about a third bigger at 99 than at 50
     squeeze = (p.t === 0 ? oppD() : DIFF[1]).squeeze,
     dh = hy(HX(p.t) - p.x, 25 - p.y),
     rk = ((p.rng || 75) - 75) / 25, // range rating: -1 at 50, about +1 at 99
@@ -1060,7 +1060,7 @@ function ai(dt) {
         dx = hh - o.x,
         dy = 25 - o.y,
         dl = hy(dx, dy) || 1,
-        g = Math.max(1.6, (b.own === o.id ? 2.6 : 3.6) + dk(p).gap);
+        g = Math.max(BODY + 0.4, (b.own === o.id ? 2.6 : 3.6) + dk(p).gap); // never closer than bumping range
       // Better defenders sprint to get back in front when they've been beaten.
       const tx = o.x + (dx / dl) * g,
         ty = o.y + (dy / dl) * g,
@@ -1139,7 +1139,7 @@ function human(dt) {
   }
   if (pr("Space")) {
     if (b.own === p.id && !G.shot) beginShot(p);
-    else if (b.own !== p.id && !p.z) p.vz = 10;
+    else if (b.own !== p.id && !p.z) p.vz = 8.6 + p.blk / 40; // HOPS: higher jump to block (about 9.9 at 50, 11.1 at 99)
   }
   if (pr("KeyQ")) {
     if (b.own === p.id && !G.shot) {
@@ -1181,7 +1181,7 @@ function humanSteal(p, o) {
   if (dist(p, o) < 4.2) {
     if (Math.random() < D.secure * exposed(o, p) * (p.dfn / 80) * (1.35 - o.hnd / 150)) (G.bc && (G.bc.mash = (G.bc.mash || 0) + 1), stealBall(p, o));
     else if (o.t === 1 && Math.random() < D.reach) {
-      p.stun = 0.45;
+      p.stun = 0.3;
       toast("REACHED!", 0.5);
     } else toast("CONTEST", 0.4);
   } else toast("HANDS UP", 0.4);
@@ -1400,21 +1400,39 @@ function moveStep(p, dt) {
     p.mv = null;
   }
 }
+// Bodies can't overlap. The player you control slides round anyone they brush past instead of stopping dead:
+// they take only a quarter of the push, and the part of their run that went into the other player is turned
+// along their side, so they keep most of their speed (David, 6d: "brushing an opponent's back slows you down").
+const BODY = 1.7;
 function separate() {
-  const L = G.pl;
+  const L = G.pl,
+    me = !G.auto || G.auto === 2 ? G.ctrl : -1;
   for (let i = 0; i < 6; i++)
     for (let j = i + 1; j < 6; j++) {
       const a = L[i],
         b = L[j],
         d = dist(a, b);
-      if (d < 1.8 && d > 0.01 && !a.sl && !b.sl) {
-        const k = (1.8 - d) / 2 / d;
-        const dx = (a.x - b.x) * k,
-          dy = (a.y - b.y) * k;
-        a.x += dx;
-        a.y += dy;
-        b.x -= dx;
-        b.y -= dy;
+      if (d < BODY && d > 0.01 && !a.sl && !b.sl && !a.gone && !b.gone) {
+        const nx = (a.x - b.x) / d,
+          ny = (a.y - b.y) / d,
+          o = BODY - d,
+          wa = i === me ? 0.25 : j === me ? 0.75 : 0.5; // share of the push that moves a
+        a.x += nx * o * wa;
+        a.y += ny * o * wa;
+        b.x -= nx * o * (1 - wa);
+        b.y -= ny * o * (1 - wa);
+        for (const [p, sx, sy] of [[a, -nx, -ny], [b, nx, ny]]) {
+          if (p.id !== me) continue;
+          const into = p.vx * sx + p.vy * sy; // speed into the other player
+          if (into <= 0) continue;
+          const v0 = hy(p.vx, p.vy),
+            tx = p.vx - sx * into,
+            ty = p.vy - sy * into,
+            tl = hy(tx, ty) || 1,
+            keep = Math.min(v0 * 0.9, Math.max(tl, v0 * 0.6)); // slide along, keeping most of the speed
+          p.vx = (tx / tl) * keep;
+          p.vy = (ty / tl) * keep;
+        }
       }
     }
 }

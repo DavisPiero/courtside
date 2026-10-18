@@ -22,6 +22,12 @@ Smoke test passes (all modes, courts, levels, minigames; fit check at 5 sizes in
 - Code BIG LEAGUE (2000 CC) and a SPACE key on the code keyboard.
 - BRIEF-league.md: a draft of the Career League after the NBA campaign.
 
+## Session 6d (merged to `main` and live)
+- Up to 5 extra dribble moves; Quick Play quarters are 30 seconds; steals a little easier.
+- Movement: you slide past players you brush against; defenders don't crowd inside bumping range.
+- Hooper stats verified in game; Hops raises your block jump, Accuracy widens the green zone more.
+- BRIEF-league.md refreshed; new BRIEF-accounts.md (Supabase accounts, save fixes first, road to online play).
+
 ## Next
 - David checks 6b on the iPad: the code keyboard, the menu, the DAILY pop-up.
 - 6c: fluid controls, ragdoll only for ankle breakers and punches; rebuild The Cage.
@@ -29,7 +35,7 @@ Smoke test passes (all modes, courts, levels, minigames; fit check at 5 sizes in
 
 ## Open with David (guesses until confirmed)
 - Is the new difficulty right in his hands? The bench bot is a guess at a good kid; tune DIFF in js/core.js.
-- The questions at the end of BRIEF-league.md.
+- The questions at the end of BRIEF-league.md and BRIEF-accounts.md (recommend Step 0 save fixes next).
 1. Daily numbers: reward ladder (100, 150, Street Pack, 250, Shoebox, 400, All-Star Pack) and challenge pay
    (75 / 100 / 150). A missed day doesn't reset the ladder (my guess).
 2. Which other ideas from BRIEF-ideas.md and BRIEF-gameplay.md to build; two players on one device.

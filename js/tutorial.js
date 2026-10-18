@@ -30,7 +30,7 @@ const TUT_CARDS = [
   ["QUICK PLAY AND MINIGAMES", "Quick Play: any two teams, today's NBA or the Hall of Fame. Minigames: the 3-point contest, the dunk contest and 1-on-1."],
   ["COURT COINS", "You earn CC for winning, for style (perfect releases, dunks, ankle breakers, threes, steals, blocks), for campaign stars, minigames and your NBA contract."],
   ["THE SHOP", "The Daily Shop changes every hour. Packs and Player Packs have random animations, Shoeboxes have one mystery shoe. Got a code? Type it in the CODES tab."],
-  ["INVENTORY", "Equip your dunk, layup, jump shot, celebration and up to 3 extra dribble moves, and pick the shoes your team wears. Don't need an animation? SELL it for coins."],
+  ["INVENTORY", "Equip your dunk, layup, jump shot, celebration and up to 5 extra dribble moves, and pick the shoes your team wears. Don't need an animation? SELL it for coins."],
   ["DAILY", "Tap ★ DAILY on the main menu: a reward every day you play, and three new challenges every day for extra coins."],
   ["THAT'S IT!", "Settings has video, sound and controls, and the Animation Lab to watch every move slowly. Now go hoop."],
 ];
