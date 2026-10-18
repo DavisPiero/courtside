@@ -10,8 +10,9 @@
 
 ## Start-up
 Loading screen with a spinning pixel basketball, then "How are you playing?": Computer (keyboard
-and mouse) or Mobile / Tablet (touch controls). Main menu: a TUTORIAL button under the logo, then Campaign,
-Quick Play, Minigames, Practice, Shop, Inventory, Settings, plus your Court Coins.
+and mouse) or Mobile / Tablet (touch controls). Main menu: a TUTORIAL button under the logo, one big yellow PLAY
+button, then Practice, Shop, Inventory, Settings, plus your Court Coins. PLAY opens a screen with Campaign, Quick
+Play and Minigames.
 - **Tutorial** (first draft): on-court steps on an empty practice court that tick themselves off (move, sprint,
   dribble move, shoot, perfect release, layup/dunk, pass), then tips (alley-oops, On Fire, defence, Mayhem,
   buzzer beaters), then cards about the campaign, your hooper, the NBA career, Quick Play and minigames, coins,
@@ -66,16 +67,18 @@ contract. Spend it in the Shop and on hooper upgrades. The **Shop** has five tab
 - **Shoeboxes**: one mystery shoe each: Shoebox (100 CC), Premium Shoebox (300), Grail Box (800, the only box
   with Mythic 5% and Godlike 1%). Unboxing: the box shakes, the lid flies off, tissue paper bursts out and the
   shoe card rises out of the box and builds up like a pack card.
-- **Codes**: type a code for a reward, once per save, case sensitive. LAUNCHED: the one Gametime animation
-  (Liftoff) and 1000 CC. Codes are stored scrambled, but the game is public, so a determined player could find them.
+- **Codes**: type a code for a reward, once per save, case sensitive. LAUNCHED: the Gametime animation
+  (Liftoff) and 1000 CC. SNEAKERHEAD: the Gametime sneaker (Launched) and a free Premium Shoebox. Codes are stored scrambled, but the game is public, so a determined player could find them.
 **Opening a pack** is a show: the pack shakes and tears, cards deal out face down, and you tap each one. A card
 shakes and its glow climbs through the rarity colours (with a rising tick) before it flips; sometimes a low card
 flickers one step higher first. Epic and up flash; Legendary and up shake the screen, burst confetti and
 show a banner. REVEAL ALL plays them quickly. Duplicates turn into coins.
 84 animations in five categories (dunks, layups, dribble moves, jump shots, celebrations). Rarities, low to high:
 Common, Rare, Epic, Legendary, Iconic (18 player signatures), Mythic (4: Honey Dip, Double 360, Yo-Yo,
-Skywalker), Godlike (2: Moonwalk dunk from way out, Levitate), Gametime (1: Liftoff, from the code only; purple).
-**Shoes**: 33 real shoes (no logos) in Common to Godlike (Air Mag, Jordan 4 'Undefeated'); your whole team wears
+Skywalker), Godlike (2: Moonwalk dunk from way out, Levitate), Gametime (from codes only; purple): the Liftoff dunk and the
+Launched sneaker.
+**Shoes**: 33 real shoes (no logos) in Common to Godlike (Air Mag, Jordan 4 'Undefeated'), plus Courtside's own
+Launched (Gametime: purple and black, rocket flame, glowing sole); your whole team wears
 the pair you pick. The **Inventory** equips what you own (one per category, up to 3 extra dribble moves, a pair
 of shoes) and **sells** animations for a quarter of their shop price (press twice; not starters, Gametime or
 anything equipped). No real money, ever.
@@ -88,7 +91,9 @@ in and long take-offs; each round uses the next dunk you own, repeats lose point
 
 ## Showtime
 - **On Fire**: three baskets in a row without the other team scoring: flaming ball, green zone 1.5x as big (the
-  AI shoots better) until the other team scores.
+  AI shoots better) until the other team scores. You can see it: a pulsing red outline round every player on that
+  team and round the ball, the shot meter's green zone glows orange with ON FIRE over it, and an orange flash
+  when it starts.
 - **Alley-oops**: teammates now and then cut to the rim. When one is open near the rim a gold arrow shows over
   them and PASS throws the lob (on touch the PASS button turns gold and says OOP!). They catch it and dunk.
 - **Buzzer beaters**: a shot in the air at 0:00 still counts; the game slows down while it flies. In at the end of
@@ -105,11 +110,14 @@ from the front, side or back.
 ## Touch controls
 Floating joystick on the left (edge = sprint), right-thumb cluster: one big button plus two, with
 labels that change with possession (SHOOT/PASS/MOVE, or JUMP-BLOCK/SWITCH/STEAL). Punch and Slide
-in Mayhem only. Pause and camera top-left. Bigger menus on touch; compact layout on phones;
+in Mayhem only. Pause and camera top-left. Bigger menus on touch; compact layout on phones; every panel stays full size and
+scrolls if it's taller than the screen, with its buttons pinned at the bottom (a tabbed screen keeps one size);
 "turn sideways" prompt in portrait. No accidental zoom: double taps and pinches are blocked, and the
 page snaps back if a browser zooms anyway.
 
 ## Modes and options (chosen on the setup screen)
+Mode, court and difficulty are small chips at the bottom showing the current choice; tapping one opens a pop-up
+with every option and what it means.
 - **Mode:** (starts on Clean; hover or tap for a description) Mayhem (punch, slide, blood) or Clean (no punch, slide or blood: just dribble,
   pass, shoot, steal, block). Ankle-breaker stuns from dribble moves stay in both.
 - **Court:** Arena (official indoor court, crowd, jumbotron), Street (asphalt at dusk, chain-link
@@ -136,7 +144,7 @@ page snaps back if a browser zooms anyway.
   punches a "drop N players" goal needs are free. The slide carries about twice as far as before. Anyone
   knocked down by a punch or slide is up after about 1.4 seconds.
 - **Hall of Fame league** teams wear gold trim, and the team select screen turns gold.
-- **Settings:** video (pixel size, lighting, fog, bloom, reflections, colour grade, vignette, scanlines,
+- **Settings:** video (pixel size, lighting, fog, bloom (off by default, soft), reflections, colour grade, vignette, scanlines,
   grain, shake), audio, gameplay (camera, name tag, shot meter), controls. Saved in the browser.
 
 ## Presentation rules
