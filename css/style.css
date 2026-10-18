@@ -773,6 +773,7 @@ canvas.sboxcv { width: 150px; height: 104px; image-rendering: pixelated; }
 .ckeys > div { display: flex; gap: 6px; justify-content: center; }
 body .ckeys .ckey { flex: 0 1 56px; min-width: 0; height: 52px; padding: 0 0 4px; display: flex; align-items: center; justify-content: center; font-size: 26px; line-height: 1; touch-action: manipulation; }
 body .ckeys .ckey.del { flex-basis: 84px; color: var(--gold); }
+body .ckeys .ckey.spc { flex-basis: 120px; font-size: 18px; }
 @media (max-height: 520px) { .ckeys { gap: 4px; } .ckeys > div { gap: 4px; } body .ckeys .ckey { height: 32px; font-size: 20px; } .codes { gap: 6px; } .chead { font-size: 20px; } .cmsg { font-size: 18px; min-height: 20px; } .crow input { font-size: 22px; padding: 6px 12px; } body .crow .btn { padding-top: 6px; padding-bottom: 8px; } }
 .cmsg.ok { color: var(--good); } .cmsg.bad { color: #ff6b6b; }
 /* a big notice over any screen (signing bonus) */

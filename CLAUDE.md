@@ -22,6 +22,8 @@ where we are, HANDOFF.md for how the last session ended.
 - Smoke test (loads the game headless, plays every mode/court/difficulty and each minigame, reports scores,
   then opens every menu screen at iPad and phone sizes and fails if a button is off screen):
   `./tools/smoke.sh`
+- Difficulty bench (a bot that plays like a good kid against each level; prints the average margin):
+  `./tools/bench.sh [games per level]`, add `v` for a per-game breakdown. Run it after any gameplay change.
 - Sound: `M` mutes effects. Run it muted when testing.
 
 ## Code map

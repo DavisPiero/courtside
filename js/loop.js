@@ -48,6 +48,7 @@ function step(dt) {
     separate();
     ballUpd(dt);
     fireFx(dt);
+    adaptUpd(dt);
     if (G.shot) {
       G.shot.t += dt;
       jumpForShot(G.shot.p, G.shot.t / G.shot.d);
@@ -55,7 +56,7 @@ function step(dt) {
       G.shot.zw = lp(G.shot.zw, greenZone(G.shot.p), Math.min(1, dt * 8));
       const m = G.shot.t / G.shot.d,
         zw = G.shot.zw;
-      if ((!keys.has("Space") && G.shot.t > 0.1) || m >= 1) {
+      if ((G.auto === 2 ? m >= G.shot.rel : !keys.has("Space") && G.shot.t > 0.1) || m >= 1) {
         // Inside the green = perfect (q > 0.82). Outside, quality falls off with distance from the centre.
         const off = Math.abs(m - 0.72),
           q = off <= zw ? 0.83 + (1 - off / zw) * 0.17 : cl(0.82 - (off - zw) * 2.5, 0, 0.82);

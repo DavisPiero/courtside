@@ -109,3 +109,8 @@ One line each, newest last.
 - 2026-10-18 · Push-Ups celebration dropped for The Griddy: the rig's forward tilt lifts the body off the floor, so a face-down pose can't work without changing the rig.
 - 2026-10-18 · Pack/box light hints at the best card (white below Epic, rarity colour from Epic up) to build suspense.
 - 2026-10-18 · Tutorial steps 9 to 12 are real drills with one slow dummy opponent; the Alley-oop step stays a tip.
+- 2026-10-18 · Difficulty measured with a bench bot (tools/bench.sh) instead of guessed. Cause of the blowouts: STEAL could be mashed with no limit (45 steals a game) and dribble moves broke AI ankles far too often.
+- 2026-10-18 · All levels harder: STEAL cooldown and exposed-side rule, per-level ball security, reach stumble, ankle resistance, AI "iq" (attack, pass out of pressure, shield the ball, sprint back). Targets for the bot: clear win on Rookie, close on All-Star, loss on Hall of Famer.
+- 2026-10-18 · Adaptive AI (both ideas David offered): a rubber band on your lead plus a little for game time, eased so it isn't sudden.
+- 2026-10-18 · Code BIG LEAGUE (2000 CC); the code keyboard gets a SPACE key.
+- 2026-10-18 · Career League drafted in BRIEF-league.md only.

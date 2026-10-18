@@ -26,6 +26,10 @@ _Written 2026-10-18 (session 6b). Replace this file at the end of each session; 
 - Checking animations: the Lab preview can be stepped frame by frame (set `P0.lt`, `P0.lastT = T`, `P0.ps = null`,
   call `previewAnim`) and drawn into one sheet to see a whole move at once.
 
+- Difficulty (6c): `DIFF` (new `iq`, `secure`, `reach`, `ankleRes`) and `ADAPT` / `oppD()` in js/core.js;
+  `adaptUpd()` in js/showtime.js; `humanSteal()`, `exposed()`, AI handler and defender changes, and the bench bot
+  `botHandler()` in js/gameplay.js; `bench()` in js/main.js; `tools/bench.sh`.
+
 ## How to work on it
 - Test muted: `http://localhost:8791/?mute&device=touch` via the `courtside` preview config.
 - The browser pane caches scripts hard: fetch every changed file with `{cache: "reload"}`, then reload.

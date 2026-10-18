@@ -165,6 +165,7 @@ function drawBoxes() {
 const CODES = {
   "5673b267": { name: "LAUNCHED", cc: 1000, anim: "dunk.liftoff" },
   e01fa49e: { name: "SNEAKERHEAD", shoe: "launched", box: "premium" },
+  c024be5a: { name: "BIG LEAGUE", cc: 2000 },
 };
 function codeHash(str) {
   let h = 0x811c9dc5;
@@ -173,7 +174,7 @@ function codeHash(str) {
 }
 // Returns a message for the player.
 function redeemCode(str) {
-  const k = codeHash(str.trim()),
+  const k = codeHash(str.trim().replace(/\s+/g, " ")), // a double space by mistake still works
     c = CODES[k];
   if (!c) return ["bad", "That code doesn't work. Codes are case sensitive."];
   if (SAVE.codes.includes(k)) return ["bad", "You've already used that code."];
@@ -200,7 +201,7 @@ function redeemCode(str) {
 }
 // On touch the iPad keyboard kept refusing to type into the code box (sessions 6a and 6b), so touch devices get
 // Courtside's own keyboard instead: the box is read-only and the keys below type into it.
-const CODE_KEYS = ["1234567890", "QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM<"];
+const CODE_KEYS = ["1234567890", "QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM_<"]; // _ is the space bar, < delete
 function drawCodes() {
   const [cls, text] = SHOPUI.msg || ["", ""],
     pad = G.touch;
@@ -208,7 +209,7 @@ function drawCodes() {
     <h3 class="chead">ENTER A CODE</h3>
     <div class="crow"><input id="codeIn" maxlength="24" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" enterkeyhint="go"${pad ? ' readonly inputmode="none"' : ""}><button class="btn pri" id="bCode">REDEEM</button></div>
     <div class="cmsg ${cls}" id="codeMsg">${text}</div>
-    ${pad ? `<div class="ckeys" id="codeKeys">${CODE_KEYS.map((r) => `<div>${[...r].map((k) => `<button class="btn ckey${k === "<" ? " del" : ""}" data-k="${k}">${k === "<" ? "⌫" : k}</button>`).join("")}</div>`).join("")}</div>` : ""}</div>`;
+    ${pad ? `<div class="ckeys" id="codeKeys">${CODE_KEYS.map((r) => `<div>${[...r].map((k) => `<button class="btn ckey${k === "<" ? " del" : k === "_" ? " spc" : ""}" data-k="${k}">${k === "<" ? "⌫" : k === "_" ? "SPACE" : k}</button>`).join("")}</div>`).join("")}</div>` : ""}</div>`;
   SHOPUI.msg = "";
   const go = () => {
     const r = redeemCode($("codeIn").value.trim());
@@ -238,7 +239,7 @@ function drawCodes() {
       e.preventDefault();
       const f = $("codeIn"),
         k = b.dataset.k;
-      f.value = k === "<" ? f.value.slice(0, -1) : (f.value + k).slice(0, 24);
+      f.value = k === "<" ? f.value.slice(0, -1) : (f.value + (k === "_" ? " " : k)).slice(0, 24);
       $("codeMsg").textContent = "";
     });
 }

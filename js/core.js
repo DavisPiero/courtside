@@ -44,17 +44,36 @@ const streetish = () => OPT.court !== "arena";
 // stealWin: chance an attempt works, gap: extra distance they give you on defence (feet), shotQ: shot quality bonus,
 // pick: pass interceptions, react: how quickly they change direction,
 // squeeze: how much their defence shrinks your green zone (0 none, 1 can close it almost shut).
+// secure: how hard they are to steal from (your STEAL's base chance), reach: chance a missed STEAL leaves you off
+// balance for a moment, ankleRes: how much less their defenders get their ankles broken (1 = not at all).
+// iq: basketball sense (0..1): moving the ball out of pressure, attacking when you're beaten, shooting when
+// open, defenders sprinting to stay in front.
 // Long shots that aren't perfect (your shots only; the AI always uses Pro): past the 3-point line they go in less
 // and less: half (share right at half court), deep (just past half court), full (from the far baseline).
 // A perfect release always goes in from anywhere. layup: how often a contested close layup rims out.
 const DIFF = [
-  { name: "ROOKIE", sp: 0.84, stealRate: 0.08, stealWin: 0.25, gap: 1.4, shotQ: -0.18, pick: 0.4, react: 4, squeeze: 0.25, half: 0.45, deep: 0.17, full: 0.04, layup: 0.25 },
-  { name: "PRO", sp: 0.94, stealRate: 0.22, stealWin: 0.4, gap: 0, shotQ: 0, pick: 1, react: 6, squeeze: 0.45, half: 0.3, deep: 0.1, full: 0.02, layup: 0.35 },
-  { name: "ALL-STAR", sp: 1.0, stealRate: 0.4, stealWin: 0.5, gap: -0.4, shotQ: 0.1, pick: 1.5, react: 8, squeeze: 0.65, half: 0.22, deep: 0.067, full: 0.012, layup: 0.45 },
-  { name: "HALL OF FAMER", sp: 1.03, stealRate: 0.55, stealWin: 0.55, gap: -0.6, shotQ: 0.16, pick: 1.9, react: 10, squeeze: 0.8, half: 0.16, deep: 0.04, full: 0.008, layup: 0.55 },
+  { name: "ROOKIE", iq: 0.25, secure: 0.15, reach: 0.1, ankleRes: 0.85, sp: 0.88, stealRate: 0.08, stealWin: 0.25, gap: 1.4, shotQ: -0.18, pick: 0.4, react: 4, squeeze: 0.25, half: 0.45, deep: 0.17, full: 0.04, layup: 0.25 },
+  { name: "PRO", iq: 0.55, secure: 0.1, reach: 0.25, ankleRes: 0.55, sp: 0.96, stealRate: 0.22, stealWin: 0.4, gap: 0, shotQ: 0, pick: 1, react: 6, squeeze: 0.45, half: 0.3, deep: 0.1, full: 0.02, layup: 0.35 },
+  { name: "ALL-STAR", iq: 0.8, secure: 0.075, reach: 0.4, ankleRes: 0.4, sp: 1.02, stealRate: 0.45, stealWin: 0.5, gap: -0.5, shotQ: 0.14, pick: 1.5, react: 8, squeeze: 0.65, half: 0.22, deep: 0.067, full: 0.012, layup: 0.45 },
+  { name: "HALL OF FAMER", iq: 1, secure: 0.055, reach: 0.55, ankleRes: 0.25, sp: 1.06, stealRate: 0.6, stealWin: 0.58, gap: -0.7, shotQ: 0.22, pick: 1.9, react: 10, squeeze: 0.8, half: 0.16, deep: 0.04, full: 0.008, layup: 0.55 },
 ];
-// Your AI teammates always play at Pro; the opponents play at the chosen level.
-const dk = (p) => (p.t === 1 ? DIFF[OPT.diff] : DIFF[1]);
+// Adaptive AI: the opponents start at the chosen level and get sharper the further ahead you get and as the game
+// goes on (G.adapt 0..1, worked out every step in js/showtime.js adaptUpd). At full stretch they move the ball
+// better, are harder to strip, shoot better and guard tighter. oppD() is the opponents' level right now.
+const ADAPT = { iq: 0.35, secure: -0.35, shotQ: 0.12, squeeze: 0.18, stealRate: 0.3, sp: 0.04, gap: -0.3, layup: 0.12, ankleRes: -0.2 };
+let OPP_D = null;
+function oppD() {
+  const a = G.adapt || 0,
+    B = DIFF[OPT.diff];
+  if (!a) return B;
+  if (OPP_D && OPP_D.a === a && OPP_D.d === OPT.diff) return OPP_D.v;
+  const v = { ...B };
+  for (const k in ADAPT) v[k] = k === "secure" || k === "ankleRes" ? B[k] * (1 + ADAPT[k] * a) : B[k] + ADAPT[k] * a;
+  OPP_D = { a, d: OPT.diff, v };
+  return v;
+}
+// Your AI teammates always play at Pro; the opponents play at the chosen level (plus the adaptive boost).
+const dk = (p) => (p.t === 1 ? oppD() : DIFF[1]);
 const mayhem = () => OPT.mode === "mayhem";
 const G = {
   run: 0,
