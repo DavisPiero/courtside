@@ -1,6 +1,6 @@
 # Courtside: state
 
-_Updated 2026-10-18, session 5 (screen fit), on branch `session5-fit`, not merged._
+_Updated 2026-10-18, session 5 (screen fit), merged to `main` and live._
 
 ## Where we are
 Session 4 is merged to `main` and live at https://davispiero.github.io/courtside/ (David: "merge and push").
@@ -17,7 +17,7 @@ New in session 4:
 - Fixes: ball layering in hands, ball bounces off board and rim, dunk cutscene has no text and is a bit slower.
 - Sounds: clicks, hover, story garble talk, coins, pop, squeaks, board, fire, cheer, horn.
 
-## Session 5 so far (branch `session5-fit`, waiting for David's sign-off)
+## Session 5 (merged and live; David: "ship it")
 - Every menu screen fits the visible screen on iPad and phone: too-tall panels shrink (to 75% at most), then
   scroll with BACK / PLAY pinned at the bottom. Main menu goes two-across on iPads. Team select works on small phones.
 - Smoke test now also checks for off-screen buttons at 5 screen sizes.

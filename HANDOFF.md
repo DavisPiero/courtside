@@ -3,7 +3,7 @@
 _Written 2026-10-18 (session 5, screen fit). Replace this file at the end of each session; don't add a second one._
 
 ## State of the repo
-- Branch `session5-fit` holds the screen-fit work, committed, not merged. `main` is still session 4 (live).
+- Session 5 (screen fit) is merged to `main` and pushed (live). No open branches.
 - `./tools/smoke.sh` passes, including the new fit check at 1180x688, 1180x760, 844x350, 667x300, 1280x720.
 
 ## What changed
@@ -22,5 +22,5 @@ _Written 2026-10-18 (session 5, screen fit). Replace this file at the end of eac
 - Back up `localStorage["courtside.save.v1"]` before testing and restore it after.
 
 ## What comes next
-- David checks it on the real iPad (Safari with the tab bar) and signs off, then merge.
+- David checks it on the real iPad (Safari with the tab bar) and answers open question 0 (the 75% limit).
 - STATE.md's open questions; an outside playtest.
