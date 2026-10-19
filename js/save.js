@@ -1,6 +1,6 @@
 "use strict";
 // The player's save: Court Coins (CC), owned and equipped animation packs, campaign progress.
-// Stored in this browser only (no accounts yet). Reset with resetSave() from the console if needed.
+// Stored in this browser, and in your account when you're signed in (js/account.js). Reset with resetSave() from the console if needed.
 const SAVE_GAME_KEY = "courtside.save.v1";
 const SAVE = {
   name: "", // your hooper's name in the campaign
@@ -25,6 +25,9 @@ const SAVE = {
   best: {}, // best scores in the minigames
   daily: null, // today's challenges and the daily-reward ladder (js/daily.js)
 };
+// A brand-new save, for signing out (js/account.js). Taken before loadSave() fills SAVE in.
+const SAVE_FRESH = JSON.stringify(SAVE);
+const saveFresh = () => JSON.parse(SAVE_FRESH);
 // The story was rewritten in session 2 (2026-10-17), so campaign progress starts again once.
 // Coins, animations and what you have equipped are kept.
 const STORY_V = 2;
@@ -40,23 +43,83 @@ function storyReset() {
 }
 function loadSave() {
   try {
-    const s = JSON.parse(localStorage.getItem(SAVE_GAME_KEY) || "{}");
-    for (const k in SAVE) if (k in s) SAVE[k] = s[k];
-    SAVE.nba = Object.assign({ team: "", tier: 0, offers: [], offerTier: -1 }, SAVE.nba);
-    SAVE.equip = Object.assign({ dunk: "dunk.basic", layup: "layup.basic", cel: "cel.basic", shot: "shot.basic", moves: [] }, SAVE.equip);
-    for (const k of ["free", "freeBox", "best"]) if (!SAVE[k] || typeof SAVE[k] !== "object") SAVE[k] = {};
-    for (const k of ["shoes", "codes"]) if (!Array.isArray(SAVE[k])) SAVE[k] = [];
+    saveLoadFrom(JSON.parse(localStorage.getItem(SAVE_GAME_KEY) || "{}"));
   } catch (e) {
     /* private window or blocked storage: start fresh */
   }
 }
-function writeSave() {
+// Fill SAVE from a stored save s (from this device or from your account), mending anything missing.
+function saveLoadFrom(s) {
+  const F = saveFresh();
+  for (const k in SAVE) SAVE[k] = s && k in s ? s[k] : F[k];
+  SAVE.nba = Object.assign({ team: "", tier: 0, offers: [], offerTier: -1 }, SAVE.nba);
+  SAVE.equip = Object.assign({ dunk: "dunk.basic", layup: "layup.basic", cel: "cel.basic", shot: "shot.basic", moves: [] }, SAVE.equip);
+  for (const k of ["free", "freeBox", "best", "stars", "seen"]) if (!SAVE[k] || typeof SAVE[k] !== "object") SAVE[k] = {};
+  for (const k of ["shoes", "codes", "owned"]) if (!Array.isArray(SAVE[k])) SAVE[k] = [];
+  if (typeof SAVE.cc !== "number" || !(SAVE.cc >= 0)) SAVE.cc = 0;
+}
+// quiet: don't send it to your account (it just came from there).
+function writeSave(quiet) {
   try {
     localStorage.setItem(SAVE_GAME_KEY, JSON.stringify(SAVE));
   } catch (e) {
     /* progress kept for this visit only */
   }
   ccShow();
+  if (!quiet && typeof accDirty === "function") accDirty();
+}
+// Has anyone played on this save? (Then signing in adds it to the account.)
+function saveHasProgress(s) {
+  return s.cc > 0 || s.owned.length > 0 || s.shoes.length > 0 || Object.keys(s.stars).length > 0 || Object.values(s.free).some((n) => n > 0) || Object.values(s.freeBox).some((n) => n > 0) || !!s.name;
+}
+// Add a guest save (b) on this device to an account save (a): coins added together, collections combined, the best of
+// every star, score and hooper stat kept. Campaign and career state (NBA team, contract, story, daily) come from
+// whichever save has more stars. A code used in both saves only pays its coins once.
+function saveMerge(a, b) {
+  const F = saveFresh(),
+    A = { ...F, ...a },
+    B = { ...F, ...b },
+    starsOf = (s) => Object.values(s.stars || {}).reduce((n, v) => n + v, 0),
+    lead = starsOf(B) > starsOf(A) ? B : A,
+    M = JSON.parse(JSON.stringify(lead)),
+    uni = (x, y) => [...new Set([...(x || []), ...(y || [])])],
+    sum = (x, y) => {
+      const o = { ...(x || {}) };
+      for (const k in y || {}) o[k] = (o[k] || 0) + y[k];
+      return o;
+    },
+    max = (x, y) => {
+      const o = { ...(x || {}) };
+      for (const k in y || {}) o[k] = Math.max(o[k] || 0, y[k]);
+      return o;
+    };
+  M.cc = (A.cc || 0) + (B.cc || 0);
+  M.owned = uni(A.owned, B.owned);
+  M.shoes = uni(A.shoes, B.shoes);
+  M.codes = uni(A.codes, B.codes);
+  M.free = sum(A.free, B.free);
+  M.freeBox = sum(A.freeBox, B.freeBox);
+  M.stars = max(A.stars, B.stars);
+  M.best = max(A.best, B.best);
+  M.seen = { ...(B.seen || {}), ...(A.seen || {}) };
+  for (const k of (B.codes || []).filter((k) => (A.codes || []).includes(k))) {
+    const c = typeof CODES !== "undefined" && CODES[k];
+    if (!c) continue;
+    if (c.cc) M.cc -= Math.min(c.cc, B.cc || 0);
+    if (c.box && M.freeBox[c.box] > (A.freeBox[c.box] || 0)) M.freeBox[c.box]--;
+  }
+  M.cc = Math.max(0, M.cc);
+  if (A.hooper || B.hooper) {
+    const h = { ...(B.hooper || {}), ...(A.hooper || {}) };
+    for (const k in B.hooper || {}) if (k !== "ht" && k !== "wt") h[k] = Math.max((A.hooper && A.hooper[k]) || 0, B.hooper[k]);
+    M.hooper = h;
+  }
+  // Never lose a signed NBA team because the other save led on stars.
+  const other = lead === A ? B : A;
+  if (!(M.nba && M.nba.team) && other.nba && other.nba.team) Object.assign(M, { nba: other.nba, payday: other.payday });
+  // The look of your hooper and what's equipped stay as they were on the account.
+  for (const k of ["name", "skin", "hair", "equip", "shoe", "daily"]) M[k] = a && a[k] !== undefined && (k !== "name" || a.name) ? A[k] : B[k];
+  return M;
 }
 function resetSave() {
   try {

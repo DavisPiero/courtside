@@ -61,7 +61,7 @@
 
 <!-- Main menu -->
 <div id="menu" class="scr">
-  <div class="mtop"><button class="btn dailyb" id="bDaily">★ DAILY</button><div class="cc ccbal">0 CC</div></div>
+  <div class="mtop"><button class="btn accb" id="bAcc">ACCOUNT</button><button class="btn dailyb" id="bDaily">★ DAILY</button><div class="cc ccbal">0 CC</div></div>
   <div class="payday" id="payday"></div>
   <!-- DAILY: today's reward and three challenges (js/daily.js) -->
   <div id="daily"><div class="pnl dlybox">
@@ -72,6 +72,13 @@
     <h3>TODAY'S CHALLENGES <small id="dlyTime"></small></h3>
     <div class="dchs" id="dlyList"></div>
     <div class="act"><button class="btn" id="bDlyX">CLOSE</button></div>
+  </div></div>
+  <!-- ACCOUNT: sign in, create an account, or your account (js/account.js) -->
+  <div id="acct"><div class="pnl accbox">
+    <h2>ACCOUNT</h2>
+    <div id="accBody"></div>
+    <p class="accmsg" id="accMsg" aria-live="polite"></p>
+    <div class="act"><button class="btn" id="bAccX">CLOSE</button></div>
   </div></div>
   <div class="menu-l">
     <div class="brand">COURT<em>SIDE</em></div>
@@ -329,6 +336,7 @@
 <script src="js/story.js"></script>
 <script src="js/shop.js"></script>
 <script src="js/daily.js"></script>
+<script src="js/account.js"></script>
 <script src="js/touch.js"></script>
 <script src="js/main.js"></script>
 </body>
