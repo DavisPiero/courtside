@@ -12,7 +12,7 @@ const SB_URL = "https://qbmxlihuqjehemhgioah.supabase.co",
   SYNC_WAIT = 4000; // send the save at most this often (ms)
 // state: "load" (library not ready), "off" (no connection), "out" (signed out), "in", "reset" (choosing a new password)
 // attached: the account whose save is loaded; recover: arrived from a "choose a new password" email link.
-const ACC = { sb: null, state: "load", user: null, name: "", attached: "", recover: 0, rev: 0, timer: 0, busy: 0, form: 0, last: 0, view: "in", del: 0 };
+const ACC = { sb: null, state: "load", user: null, name: "", attached: "", recover: 0, rev: 0, timer: 0, busy: 0, form: 0, last: 0, view: "in", delT: 0 };
 
 // ---------- which account owns this device's save
 function accOwner() {
@@ -53,6 +53,7 @@ function accSet(st) {
   ACC.state = st;
   accButton();
   if ($("acct").classList.contains("on")) drawAcct();
+  if ($("prof").classList.contains("on")) drawProf();
 }
 async function accAuth(ev, session) {
   const u = session && session.user;
@@ -165,25 +166,29 @@ async function accPush() {
   }
   ACC.busy = 0;
   if ($("acct").classList.contains("on") && ACC.view === "in") drawAcct();
+  if ($("prof").classList.contains("on")) drawProf();
 }
 
-// ---------- the ACCOUNT pop-up on the main menu
+// ---------- the ACCOUNT button on the main menu (your picture and name) opens the account page (js/profile.js);
+// the gear there opens this pop-up: sign in or create an account, or change password, sign out, delete.
 function accButton() {
   const b = $("bAcc");
-  b.textContent = ACC.state === "in" && ACC.name ? ACC.name.toUpperCase() : "ACCOUNT";
+  $("accTxt").textContent = ACC.state === "in" && ACC.name ? ACC.name.toUpperCase() : "ACCOUNT";
   b.classList.toggle("in", ACC.state === "in");
+  drawPic($("accPic"), SAVE.prof.pic);
 }
 function openAcct() {
   if (ACC.sb && ACC.user && !ACC.attached && ACC.state === "in") accAuth("RETRY", { user: ACC.user });
   if (ACC.state === "in" || ACC.state === "reset") ACC.view = ACC.state;
   else if (ACC.view !== "up" && ACC.view !== "forgot") ACC.view = "signin";
-  ACC.del = 0;
   accMsg("");
   $("acct").classList.add("on");
   drawAcct();
 }
 function closeAcct() {
   $("acct").classList.remove("on");
+  $("accDel").classList.remove("on");
+  if (typeof closePP === "function") closePP();
 }
 function accMsg(t, kind) {
   const m = $("accMsg");
@@ -205,14 +210,15 @@ function drawAcctBody() {
   ACC.view = v;
   const field = (id, label, type, auto, extra = "") =>
     `<label>${label}<input id="${id}" type="${type}" autocomplete="${auto}" autocapitalize="none" autocorrect="off" spellcheck="false" ${extra}></label>`;
+  $("accHead").textContent = v === "in" ? "ACCOUNT SETTINGS" : "ACCOUNT";
   if (ACC.state === "load" || ACC.state === "off") {
     B.innerHTML = `<p class="accnote">${ACC.state === "load" ? "Connecting..." : "Accounts need the internet. You can keep playing; your progress is saved on this device."}</p>`;
   } else if (v === "in") {
     const o = accOwner();
     B.innerHTML = `<div class="accme"><b id="accName"></b><span id="accMail"></span></div>
       <p class="accnote">${o && o.dirty ? "Saving to your account..." : "Progress saved to your account " + agoText(ACC.last) + "."} It's also kept on this device, so you can play offline.</p>
-      <div class="accbtns"><button class="btn" id="bAccOut">SIGN OUT</button><button class="btn" id="bAccPw">CHANGE PASSWORD</button>
-      <button class="btn bad" id="bAccDel">${ACC.del ? "PRESS AGAIN TO DELETE" : "DELETE ACCOUNT"}</button></div>`;
+      <div class="accbtns"><button class="btn" id="bAccPw">CHANGE PASSWORD</button><button class="btn" id="bAccOut">SIGN OUT</button>
+      <button class="btn bad" id="bAccDel">DELETE ACCOUNT</button></div>`;
     $("accName").textContent = ACC.name.toUpperCase();
     $("accMail").textContent = ACC.user.email || "";
     $("bAccOut").onclick = accSignOut;
@@ -349,12 +355,23 @@ async function accSignOut() {
   accSet("out");
   accMsg("Signed out. Your progress is safe in your account.", "ok");
 }
-async function accDelete() {
-  if (!ACC.del) {
-    ACC.del = 1;
-    drawAcct();
-    return accMsg("This deletes your account and its cloud save for good. Progress on this device stays.", "bad");
-  }
+// Deleting asks twice: DELETE ACCOUNT opens "Are you sure?", whose YES only unlocks after 3 seconds.
+function accDelete() {
+  const yes = $("bDelYes");
+  $("accDel").classList.add("on");
+  let n = 3;
+  const tick = () => {
+    if (!$("accDel").classList.contains("on")) return;
+    yes.disabled = n > 0;
+    yes.textContent = n > 0 ? `YES, DELETE (${n})` : "YES, DELETE";
+    if (n-- > 0) ACC.delT = setTimeout(tick, 1000);
+  };
+  clearTimeout(ACC.delT);
+  tick();
+  $("bDelNo").onclick = () => $("accDel").classList.remove("on");
+  yes.onclick = () => ($("accDel").classList.remove("on"), accDeleteNow());
+}
+function accDeleteNow() {
   accBusy(async () => {
     const { error } = await ACC.sb.rpc("delete_me");
     if (error) throw error;
@@ -365,14 +382,13 @@ async function accDelete() {
     ACC.user = null;
     ACC.name = "";
     ACC.attached = "";
-    ACC.del = 0;
     ACC.view = "signin";
     accSet("out");
     accMsg("Account deleted. Your progress is still on this device.", "ok");
   });
 }
 
-$("bAcc").onclick = openAcct;
+$("bAcc").onclick = openProf;
 $("bAccX").onclick = closeAcct;
 accButton();
 accInit();

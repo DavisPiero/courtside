@@ -223,13 +223,16 @@ function render() {
   }
   for (const s of G.fx) {
     const q = P(s.x, s.y, s.z);
-    if (q) {
+    if (!q) continue;
+    if (s.g || s.bat || s.st) fxDraw(s, q);
+    else {
       c.globalAlpha = cl(s.l * 2, 0, 1);
       c.fillStyle = s.c;
       c.fillRect(q[0] | 0, q[1] | 0, 2, 2);
     }
   }
   c.globalAlpha = 1;
+  c.globalCompositeOperation = "source-over";
   c.restore();
   post();
 }

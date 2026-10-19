@@ -622,6 +622,8 @@ function cutUpd(dt) {
   p.vy = (p.y - oy) / Math.max(dt, 0.001);
   p.f += ad(face - p.f) * Math.min(1, dt * 14);
   if (fx.spin && u >= A && u < S) p.f = f + 6.2832 * fx.spin * ease((u - A) / (S - A));
+  // Witching Hour: a cackle of fire as you rise.
+  if (fx.witch && u >= A && !c0.boom) (c0.boom = 1), sfx("fire");
   // Liftoff: a trail of sparks from the feet on the way up.
   if (fx.trail && u >= A && u < S + 0.05) {
     for (let i = 0; i < 3; i++)
@@ -695,6 +697,7 @@ function cutUpd(dt) {
       });
       score(p.t, 2, p, 1);
       if (dk && p.t === 0) G.st.dunks++;
+      if (p.t === 0) fxBurst(c0.h, 25, 10, st); // rare dunks and layups burst into light (js/fx.js)
       G.rim[p.t] = dk ? 2 : 1;
       if (dk) {
         G.flash = 0.7;
@@ -1170,22 +1173,25 @@ function human(dt) {
 }
 // Is the ball out on the side facing defender q (easy to poke), or shielded by the handler's body?
 // During a dribble move the ball is on the move and hard to time: about half as easy.
-function exposed(v, q) {
+// back: your STEAL from behind the handler (chasing them down) pokes the ball out more than a reach across their body.
+function exposed(v, q, back) {
   const b = G.ball,
-    side = (b.x - v.x) * (q.x - v.x) + (b.y - v.y) * (q.y - v.y);
-  return (side > 0 ? 1 : 0.25) * (v.mv ? 0.5 : 1);
+    side = (b.x - v.x) * (q.x - v.x) + (b.y - v.y) * (q.y - v.y),
+    behind = back && (q.x - v.x) * Math.cos(v.f) + (q.y - v.y) * Math.sin(v.f) < 0;
+  return (side > 0 ? 1 : behind ? 0.6 : 0.25) * (v.mv ? 0.5 : 1);
 }
 // Your STEAL. Every swipe is a reach: you can't swipe again for a moment, and on harder levels a miss can leave
-// you off balance while they go by. How often it works depends on the level (DIFF secure) and the handler.
+// you reaching ("REACHED!": a longer wait before the next swipe; it never slows you down, so you keep your
+// momentum). How often it works depends on the level (DIFF secure, 1.35x since session 8) and the handler.
 function humanSteal(p, o) {
-  if (T - (p.swT || -9) < 0.6) return;
-  p.swT = T;
+  if (T < (p.swT || -9)) return;
+  p.swT = T + 0.6;
   p.swp = 0.25;
   const D = oppD();
   if (dist(p, o) < 4.2) {
-    if (Math.random() < D.secure * exposed(o, p) * (p.dfn / 80) * (1.35 - o.hnd / 150)) (G.bc && (G.bc.mash = (G.bc.mash || 0) + 1), stealBall(p, o));
+    if (Math.random() < D.secure * 1.35 * exposed(o, p, 1) * (p.dfn / 80) * (1.35 - o.hnd / 150)) (G.bc && (G.bc.mash = (G.bc.mash || 0) + 1), stealBall(p, o));
     else if (o.t === 1 && Math.random() < D.reach) {
-      p.stun = 0.3;
+      p.swT = T + 1.2;
       toast("REACHED!", 0.5);
     } else toast("CONTEST", 0.4);
   } else toast("HANDS UP", 0.4);
@@ -1315,6 +1321,7 @@ const MOVES = {
   pound: { d: 0.5, name: "POUND DRIBBLE", push: 11, sw: 0 },
   rocker: { d: 0.55, name: "ROCKER STEP", push: 13, sw: 0, ankle: 1.3 },
   world: { d: 0.7, name: "AROUND THE WORLD", push: 11, sw: 1, ankle: 1.6 },
+  phantom: { d: 0.8, name: "PHANTOM", push: 12, sw: 1, ankle: 2.0, spins: 2 },
 };
 const BASE_MOVES = ["cross", "legs", "back", "spin"];
 const movePool = (p) => (p.t === 0 ? BASE_MOVES.concat(SAVE.equip.moves.map((id) => id.split(".")[1])) : BASE_MOVES);
@@ -1332,7 +1339,7 @@ function dribbleMove(p) {
   else p.lastMv = k;
   if (G.mg && G.mg.moves) G.mg.moves.add(k); // the dunk contest judges like a move on the way in
   p.mv = { k, t: 0, d: M.d, h, f0: p.f };
-  if (k === "spin" || k === "tornado" || k === "halfspin") {
+  if (k === "spin" || k === "tornado" || k === "halfspin" || k === "phantom") {
     p.vx += d.x * M.push;
     p.vy += d.y * M.push;
   } else if (k === "hesi" || k === "stutter" || k === "ai" || k === "yoyo" || k === "pound" || k === "rocker") {
@@ -1371,7 +1378,7 @@ function moveStep(p, dt) {
   const m = p.mv;
   m.t += dt;
   // The spin turns the body a full circle, away from the ball side.
-  if (m.k === "spin" || m.k === "tornado") p.f = m.f0 + -m.h * 6.2832 * sm(cl(m.t / m.d, 0, 1));
+  if (m.k === "spin" || m.k === "tornado" || m.k === "phantom") p.f = m.f0 + -m.h * 6.2832 * (MOVES[m.k].spins || 1) * sm(cl(m.t / m.d, 0, 1));
   if (m.k === "halfspin") p.f = m.f0 + -m.h * Math.PI * 0.9 * Math.sin(cl(m.t / m.d, 0, 1) * Math.PI); // halfway round and back
   // Second half of two-part moves.
   if (!m.mid && m.t >= m.d * 0.45) {
@@ -1397,7 +1404,7 @@ function moveStep(p, dt) {
     }
   }
   if (m.t >= m.d || G.ball.own !== p.id) {
-    if (m.k === "spin" || m.k === "tornado" || m.k === "halfspin") p.f = m.f0;
+    if (m.k === "spin" || m.k === "tornado" || m.k === "halfspin" || m.k === "phantom") p.f = m.f0;
     p.hand = MOVES[m.k].sw ? -m.h : m.h;
     // Restart the dribble bounce where the move left the ball.
     G.ball.bph = m.k === "back" ? 0 : Math.PI / 2;

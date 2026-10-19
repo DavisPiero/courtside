@@ -131,4 +131,13 @@ One line each, newest last.
 - 2026-10-19 · League ring pays a Hall of Fame Pack (the brief said "a Legendary pack"; there isn't one; this is the pack with a guaranteed Legendary).
 - 2026-10-19 · League hub scrolls as a whole on short screens (phones) with BACK pinned, like the other screens.
 - 2026-10-19 · BRIEF-online.md: start with two players on one device, then friends, then online 1-on-1 (host + direct connection, Supabase only to find each other).
-
+- 2026-10-19 · Session 8: your steals ×1.35 on every level; a swipe from behind works at 0.6 of a ball-side one (was 0.25). Bench +3 to +6 a level (David: easier, not too easy).
+- 2026-10-19 · The swipe is arm-only and never slows you (David); "REACHED!" now means a 1.2 s wait before the next swipe instead of a slowdown (my call).
+- 2026-10-19 · Gametime renamed Limited (David). Limited = codes and events only, can't be sold.
+- 2026-10-19 · Halloween ends at midnight as 1 November begins, device clock (my reading of "end on the first of November"; checking the clock on a server not worth it).
+- 2026-10-19 · Halloween: 8 quests, one at a time, one per game, Quick Play on Haunted Hollow only; 2,000 CC; Jack-O at quest 4, Witching Hour at 8; Pumpkin/Ghost pictures and Pumpkin King title as extras (my guesses: names, count, coins).
+- 2026-10-19 · New rarity Celestial above Godlike (my reading of "rarer ones"): 20,000 CC, 0.2% in Hall of Fame Packs, featured in about 1 Daily Shop hour in 40 (own seed, so the rest of each hour's shop is unchanged).
+- 2026-10-19 · Six new moves: Comet, Supernova (Celestial); Heaven's Gate, Phantom (Godlike); Angel Glide, Fire Breather (Mythic). Rare-move particles from Legendary up, capped at 420.
+- 2026-10-19 · Account page replaces the ACCOUNT pop-up (David); the gear opens settings; delete asks "are you sure?" with YES locked for 3 s (David asked for a double check; the lock is my addition).
+- 2026-10-19 · Developer title: shown when the signed-in username is King (any capitals). Usernames are unique, so whoever registers King gets it.
+- 2026-10-19 · Picture, title, showcase and lifetime totals live in the save (no database change); nobody else can see them until online play exists.

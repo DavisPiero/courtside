@@ -246,7 +246,7 @@ function drawCodes() {
 
 // ---------- pack opening (and shoebox unboxing: same cards, one shoe)
 const OPEN = { pk: null, cards: [], sel: null, timers: [], stage: "", busy: 0, shown: 0, box: 0 };
-const TIERS = ["common", "rare", "epic", "legendary", "iconic", "mythic", "godlike", "gametime"];
+const TIERS = ["common", "rare", "epic", "legendary", "iconic", "mythic", "godlike", "celestial", "limited"];
 const bigR = (r) => TIERS.indexOf(r) >= 3;
 function later(f, ms) {
   OPEN.timers.push(setTimeout(f, ms));
@@ -443,8 +443,10 @@ function flipCard(i, done) {
   if (big) {
     flashScreen(RARITY[r].col);
     shakeScreen(3);
-    banner(r === "iconic" ? `ICONIC! ${c.a.who}` : { godlike: "GODLIKE!!", gametime: "GAMETIME!", mythic: "MYTHIC!" }[r] || "LEGENDARY!", RARITY[r].col);
+    banner(r === "iconic" ? `ICONIC! ${c.a.who}` : { celestial: "CELESTIAL!!!", godlike: "GODLIKE!!", limited: "LIMITED!", mythic: "MYTHIC!" }[r] || "LEGENDARY!", RARITY[r].col);
     if (TIERS.indexOf(r) >= 5) later(() => (burst(el, RARITY[r].col, 90), flashScreen("#fff")), 350);
+    // Celestial: wave after wave of every colour.
+    if (r === "celestial") ["#c79bff", "#ff9bf0", "#9dffb8", "#ffffff"].forEach((col, k) => later(() => (burst(el, col, 80), flashScreen(col)), 600 + k * 220));
   } else if (r === "epic") flashScreen(RARITY.epic.col);
   selectCard(i);
   if (OPEN.shown >= OPEN.cards.length) {

@@ -3,7 +3,8 @@
 // You get them from mystery Shoeboxes in the Shop (one shoe a box) or the one shoe in the Daily Shop.
 // Equip one in the Inventory (SHOES tab). Rarities use the same table as animations (js/packs.js).
 // Colours: up = the upper, ov = overlays (toe, heel, collar), ac = the stripe or swoosh, so = the sole.
-// cut: low, mid or high top. glow: the sole lights up (1, or the colour it pulses to). mark: "flame" for Launched.
+// cut: low, mid or high top. glow: the sole lights up (1, or the colour it pulses to). mark: "flame" for Launched,
+// "pumpkin" for Jack-O.
 const SH = (id, name, rarity, up, ov, ac, so, cut, desc, glow) => ({ id, name, rarity, up, ov, ac, so, cut, desc, glow });
 const SHOES = [
   // Common
@@ -58,8 +59,10 @@ const SHOES = [
   SH("aj1shattered", "Air Jordan 1 'Shattered Backboard'", "legendary", "#f4f4f4", "#ff7a1a", "#111111", "#efe6cf", "high", "Orange and black, for the night the glass broke."),
   SH("aj13hgg", "Air Jordan 13 'He Got Game'", "legendary", "#f4f4f4", "#111111", "#c8102e", "#c8102e", "mid", "White and black with a red sole. From the movie."),
   SH("yeezyred", "Air Yeezy 2 'Red October'", "mythic", "#c8102e", "#a00d24", "#e01e3c", "#c8102e", "high", "All red, top to bottom. Dropped with no warning."),
-  // Gametime: Courtside's own shoe, from the code SNEAKERHEAD only (never in boxes or the Daily Shop)
-  { ...SH("launched", "Launched", "gametime", "#5b2fb0", "#2b2540", "#ff7a1a", "#9d4dff", "high", "Courtside's own sneaker. Purple and black, a rocket flame down the side and a sole that glows.", "#e6d4ff"), mark: "flame" },
+  // Limited: Courtside's own shoe, from the code SNEAKERHEAD only (never in boxes or the Daily Shop)
+  { ...SH("launched", "Launched", "limited", "#5b2fb0", "#2b2540", "#ff7a1a", "#9d4dff", "high", "Courtside's own sneaker. Purple and black, a rocket flame down the side and a sole that glows.", "#e6d4ff"), mark: "flame" },
+  // Limited, Halloween 2026: from the Halloween quests only (js/event.js)
+  { ...SH("jacko", "Jack-O", "limited", "#ff7a1a", "#17121a", "#ff7a1a", "#2a1f2e", "high", "Halloween 2026. Pumpkin orange and black, a carved jack-o'-lantern face and a sole that glows ghost green.", "#7cff6a"), mark: "pumpkin" },
 ];
 const SHOE = Object.fromEntries(SHOES.map((s) => [s.id, s]));
 const ownsShoe = (id) => SAVE.shoes.includes(id);
@@ -151,6 +154,17 @@ function drawShoe(g, s, x, y, px, t) {
     [[5, 7], [6, 6], [7, 7]].forEach(([i, j]) => j >= top(i) && R(i, j, "#ffd23c"));
     [[16, 6], [17, 6], [17, 7], [18, 6]].forEach(([i, j]) => j >= top(i) && R(i, j, "#f2f2f2"));
     R(17, 5, "#c79bff");
+  }
+  // Jack-O: a carved jack-o'-lantern face on the side, lit from inside, and a green stem at the collar.
+  if (s.mark === "pumpkin") {
+    // Triangle eyes, a nose and a toothy grin, cut dark into the orange; the ribs of the pumpkin in a darker orange.
+    [[11, 6], [12, 7], [14, 8], [15, 7]].forEach(([i, j]) => j >= top(i) && R(i, j, "#c8541a"));
+    const face = "#17121a";
+    [[4, 4], [8, 4], [3, 5], [4, 5], [5, 5], [7, 5], [8, 5], [9, 5], [6, 6], [3, 7], [4, 7], [5, 7], [6, 7], [7, 7], [8, 7], [9, 7], [4, 8], [6, 8], [8, 8]].forEach(([i, j]) => R(i, j, face));
+    // A flicker of candle light in the eyes.
+    if (t !== undefined && Math.sin(t * 7) > 0.2) (R(4, 5, "#ffd23c"), R(8, 5, "#ffd23c"));
+    R(3, top(3) - 1, "#3d9a3a");
+    R(4, top(4) - 1, "#2c7a2a");
   }
   // Sole: a light midsole stripe, the sole, a darker tread. A glowing sole pulses.
   const so = s.glow && t !== undefined ? (Math.sin(t * 5) > 0 ? s.so : typeof s.glow === "string" ? s.glow : "#d4fbff") : s.so;

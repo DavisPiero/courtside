@@ -77,10 +77,22 @@ and your NBA team's best two (the same team your contract pays from).
   trophy room.
 
 ## Accounts
-An ACCOUNT button on the main menu (it shows your username when you're signed in). Supabase: email, username and
-password, no parent emails. Create an account (email, a unique username of 3 to 16 letters, numbers or _, a
-password of 8+ with a letter and a number; then confirm by email), sign in with email and password, forgot password
-(an emailed link), change password, sign out, delete account (press twice).
+An ACCOUNT button on the main menu (your picture and, when signed in, your username) opens the **account page**:
+a profile card (your picture, your name, your title, a gear), your numbers (rating, rings, coins, moves and shoes
+collected, wins) and a **Showcase** of three moves and a pair of shoes that play on a loop. Guests see the same page
+as GUEST with a SIGN IN link. Tap the picture, the title or a showcase slot to choose.
+- **Pictures:** 14 pixel icons drawn in code (ball, flame, crown, star, trophy, lightning, hoop, diamond, rocket,
+  your kicks, your hooper's face); Ring (a Career League ring), Pumpkin and Ghost (Halloween quests) are earned.
+- **Titles:** Rookie, then earned: Hooper (10 games), Street King, Champion, Ring Chaser, Pickpocket (50 steals),
+  High Flyer (100 dunks), Sharpshooter (100 threes), Ankle Breaker (100), Collector (50 moves), Sneakerhead (20 shoes),
+  High Roller (10,000 CC), Pumpkin King (every Halloween quest, Limited). Lifetime totals count from session 8.
+  **Developer** (rainbow, the card turns purple) belongs to the account named King only.
+- **The gear** opens ACCOUNT SETTINGS: change password, sign out, delete account. Signed out it opens sign in /
+  create account. Delete asks "DELETE YOUR ACCOUNT?" with NO, KEEP IT as the big button and YES unlocking after 3 s.
+- Picture, title and showcase are in the save, so they go to your account; nobody else can see them yet.
+Supabase: email, username and password, no parent emails. Create an account (email, a unique username of 3 to 16
+letters, numbers or _, a password of 8+ with a letter and a number; then confirm by email), sign in with email and
+password, forgot password (an emailed link).
 - The game still saves on the device first, so it plays offline; when signed in, the save goes to your account a
   few seconds after each change. Another device's newer save wins when you open the game.
 - Signing in with progress on the device adds it to the account: coins added together, animations, shoes and
@@ -103,11 +115,12 @@ stars and first wins in the campaign, plus 125 CC for every finished Quick Play 
 contract. (A win pays 38, a loss 13; every reward went up about a quarter in session 6b, prices did not.) Spend it in the Shop and on hooper upgrades. The **Shop** has five tabs:
 - **Daily Shop**: five single animations (a featured Iconic or Legendary, sometimes Mythic, rarely Godlike; an
   Epic, two Rares, a Common) and one shoe, the same for everyone in the same hour, **new every hour** with a
-  countdown. Prices: Common 120, Rare 300, Epic 700, Legendary 1400, Iconic 2000, Mythic 4000, Godlike 10000.
+  countdown. About one hour in 40 the featured slot is Celestial. Prices: Common 120, Rare 300, Epic 700, Legendary
+  1400, Iconic 2000, Mythic 4000, Godlike 10000, Celestial 20000.
   Shoes: 60 to 700, Mythic 2000, Godlike 5000.
 - **Packs**: random animations with the odds shown: Street Pack (150 CC, 1 card), Pro Pack (400, 2, one Rare+),
   All-Star Pack (900, 3, one Epic+, 1% Mythic), Hall of Fame Pack (2000, 3, one Legendary, 3.5% Mythic, 0.5%
-  Godlike). New animations 3x as likely. Free packs you've won show OPEN FREE.
+  Godlike, 0.2% Celestial). New animations 3x as likely. Free packs you've won show OPEN FREE.
 - **Player Packs** (1200 CC): Jordan, Kobe, Curry, Iverson, Shaq, LeBron. One of that player's three ICONIC
   signature moves plus a bonus card (Rare 60%, Epic 32%, Legendary 8%).
 - **Shoeboxes**: one mystery shoe each: Shoebox (100 CC), Premium Shoebox (300), Grail Box (800, the only box
@@ -116,8 +129,8 @@ contract. (A win pays 38, a loss 13; every reward went up about a quarter in ses
   cardboard Shoebox with a size label, a matte black Premium box with a gold band and star, and a purple Grail
   Box with glowing trim, a gold clasp and twinkles. The lid blasts off and light pours out of the box.
 - **Codes**: type a code for a reward, once per save, case sensitive. On touch devices the box uses Courtside's
-  own on-screen keyboard (capitals and numbers), never the iPad's. LAUNCHED: the Gametime animation
-  (Liftoff) and 1000 CC. SNEAKERHEAD: the Gametime sneaker (Launched) and a free Premium Shoebox. BIG LEAGUE: 2000 CC (the on-screen
+  own on-screen keyboard (capitals and numbers), never the iPad's. LAUNCHED: the Limited animation
+  (Liftoff) and 1000 CC. SNEAKERHEAD: the Limited sneaker (Launched) and a free Premium Shoebox. BIG LEAGUE: 2000 CC (the on-screen
   keyboard has a SPACE key). Codes are stored scrambled, but the game is public, so a determined player could find them.
 **Opening a pack** is a show: the pack shakes, its top strip rips off and light pours out (white for Common and
 Rare, the best card's rarity colour from Epic up, so you know something good is coming), the cards slide up out of
@@ -125,15 +138,32 @@ the pack face down, and you tap each one. A card
 shakes and its glow climbs through the rarity colours (with a rising tick) before it flips; sometimes a low card
 flickers one step higher first. Epic and up flash; Legendary and up shake the screen, burst confetti and
 show a banner. REVEAL ALL plays them quickly. Duplicates turn into coins.
-100 animations in five categories (dunks, layups, dribble moves, jump shots, celebrations). Rarities, low to high:
-Common, Rare, Epic, Legendary, Iconic (18 player signatures), Mythic (4: Honey Dip, Double 360, Yo-Yo,
-Skywalker), Godlike (2: Moonwalk dunk from way out, Levitate), Gametime (from codes only; purple): the Liftoff dunk and the
-Launched sneaker.
+107 animations in five categories (dunks, layups, dribble moves, jump shots, celebrations). Rarities, low to high:
+Common, Rare, Epic, Legendary, Iconic (18 player signatures), Mythic (6: Honey Dip, Double 360, Yo-Yo, Skywalker,
+Angel Glide layup, Fire Breather celebration), Godlike (4: Moonwalk dunk from way out, Levitate, Heaven's Gate shot,
+Phantom double spin), **Celestial** (2, rarer than Godlike, cycling cyan-violet-pink-mint: Comet dunk from way out,
+Supernova celebration), **Limited** (purple; once called Gametime; from codes and events only, never sold): the
+Liftoff dunk, the Witching Hour dunk (Halloween 2026).
+**Rare moves glow** (js/fx.js), on your team only: Legendary twinkles, Mythic leaves a glowing trail, Godlike
+wears a golden aura and a ring of light at the feet, Celestial spirals stars and colour and bursts at the finish;
+a rare jump shot leaves a glowing trail on the ball. Witching Hour rises on a purple-green spiral of ghost-fire and
+bats burst off the rim; Fire Breather breathes flame; Supernova bursts into stars. (Not shown in the Animation Lab.)
 **Shoes**: 45 real shoes (no logos) in Common to Godlike (Air Mag, Jordan 4 'Undefeated'), plus Courtside's own
-Launched (Gametime: purple and black, rocket flame, glowing sole); your whole team wears
+Limited pairs: Launched (purple and black, rocket flame, glowing sole) and Jack-O (Halloween 2026: pumpkin orange
+and black, a jack-o'-lantern face, a ghost-green glowing sole); your whole team wears
 the pair you pick. The **Inventory** equips what you own (one per category, up to 5 extra dribble moves, a pair
-of shoes) and **sells** animations for a quarter of their shop price (press twice; not starters, Gametime or
+of shoes) and **sells** animations for a quarter of their shop price (press twice; not starters, Limited or
 anything equipped). No real money, ever.
+
+## Limited events
+**Halloween 2026** (until midnight as 1 November begins, on the device's clock; `?date=yyyy-mm-dd` tests a date):
+a pumpkin HALLOWEEN banner under the coins on the main menu (quest number and time left) opens a quest track, like a
+tiny battle pass. 8 quests, one at a time, in order, at most one per game, counted only in Quick Play games on
+**Haunted Hollow** (a limited court: a graveyard pumpkin patch under a full moon, dead trees, gravestones, an iron
+fence, flickering jack-o'-lanterns, bats, low green fog, orange lines): play a game (150 CC), score 20 (150 + the
+Pumpkin picture), 3 steals (200), dunk 5 times (250 + **Jack-O shoes**), 3 threes (250), win (300 + the Ghost
+picture), win by 10 (300), win on All-Star or harder (400 + the **Witching Hour** dunk + the Pumpkin King title).
+2,000 CC in all. Rewards are kept for good; after the end the banner, the court and the quests disappear.
 
 ## Minigames
 3-POINT CONTEST (60 s, five racks of five around the arc, last ball 2 points, you just shoot; 5 CC a point),
@@ -177,18 +207,22 @@ with every option and what it means.
   fences, pole hoops, chain nets, no crowd), Rooftop (a painted court on a tower at night, the city below,
   a parapet with a railing, a water tower), Beach (boardwalk court at sunset, sand, palms, string lights, the
   ocean and a lifeguard tower) or The Cage (under a highway bridge, graffiti wall, tall fence, orange lights).
-  All outdoor courts use pole hoops. Drawn in js/courts.js.
+  Haunted Hollow (LIMITED) shows only during Halloween 2026. All outdoor courts use pole hoops. Drawn in js/courts.js.
 - **Difficulty:** Rookie (easy), Pro (normal), All-Star (hard), Hall of Famer (expert).
   Changes opponent speed, shooting, steal attempts, defensive tightness and basketball sense (getting the ball out
   of pressure, attacking when you're beaten, shooting when open, keeping the ball away from you, sprinting back on
-  defence). **Your STEAL** is a reach: one swipe every 0.6 s, it mostly fails when the ball is on the far side of
-  the handler or mid dribble move, better teams are harder to strip, and on harder levels a miss can leave you off
-  balance ("REACHED!"). Better teams' defenders get their ankles broken less.
+  defence). **Your STEAL** is a quick arm swipe (no crouch: you keep running at full speed): one swipe every 0.6 s.
+  Since session 8 it works about a third more often on every level, and a swipe **from behind** (chasing the
+  handler down) works a bit over half as well as one on the ball side (it was a quarter). It still mostly fails
+  when the ball is on the far side of the handler or mid dribble move, and better teams are harder to strip. On
+  harder levels a miss can leave you reaching ("REACHED!"): your next swipe waits 1.2 s, but you never slow down.
+  Better teams' defenders get their ankles broken less.
   **Adaptive AI:** the further ahead you get (from 4 points, full at 20) and the later in the game, the sharper the
   other team plays ("THEY'RE ADJUSTING!"); it eases off if they catch up. Not in Practice or the contests.
   Measured by `./tools/bench.sh`: a bot that plays like a good kid (sprints, dribble moves, human-timed shots,
-  mashes STEAL) wins 3-minute games by about +40 on Rookie, +14 on Pro, about even on All-Star, and loses by about
-  15 on Hall of Famer (it won by 88, 69, 62 and 43 before session 6c). Steals were made a little easier in 6d.
+  mashes STEAL) wins 3-minute games by about +42 on Rookie, +16 on Pro, about even on All-Star, and loses by about
+  10 on Hall of Famer (it won by 88, 69, 62 and 43 before session 6c). Steals were made easier in 6d and session 8
+  (session 8 added about 3 to 6 points a game).
 - **Bumping:** bodies can't overlap, but the player you control slides round anyone they brush past and keeps most
   of their speed. Defenders never try to stand closer than bumping range.
 - **Your hooper's stats all count in games:** Speed (run speed), Accuracy (green zone size and jump shots), Range,

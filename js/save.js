@@ -25,6 +25,9 @@ const SAVE = {
   best: {}, // best scores in the minigames
   daily: null, // today's challenges and the daily-reward ladder (js/daily.js)
   league: null, // the Career League season (js/league.js)
+  ev: {}, // limited-time events (js/event.js): event id -> { q: quests done, p: progress on the current one }
+  prof: { pic: "ball", title: "", show: ["", "", ""], shoe: "" }, // your account page (js/profile.js): picture, title, showcase
+  life: {}, // lifetime totals from session 8 on, for unlocking titles: games, wins, dunks, stl, threes, ankles, blk
 };
 // A brand-new save, for signing out (js/account.js). Taken before loadSave() fills SAVE in.
 const SAVE_FRESH = JSON.stringify(SAVE);
@@ -55,7 +58,9 @@ function saveLoadFrom(s) {
   for (const k in SAVE) SAVE[k] = s && k in s ? s[k] : F[k];
   SAVE.nba = Object.assign({ team: "", tier: 0, offers: [], offerTier: -1 }, SAVE.nba);
   SAVE.equip = Object.assign({ dunk: "dunk.basic", layup: "layup.basic", cel: "cel.basic", shot: "shot.basic", moves: [] }, SAVE.equip);
-  for (const k of ["free", "freeBox", "best", "stars", "seen"]) if (!SAVE[k] || typeof SAVE[k] !== "object") SAVE[k] = {};
+  SAVE.prof = Object.assign({ pic: "ball", title: "", show: ["", "", ""], shoe: "" }, SAVE.prof);
+  if (!Array.isArray(SAVE.prof.show)) SAVE.prof.show = ["", "", ""];
+  for (const k of ["free", "freeBox", "best", "stars", "seen", "ev", "life"]) if (!SAVE[k] || typeof SAVE[k] !== "object") SAVE[k] = {};
   for (const k of ["shoes", "codes", "owned"]) if (!Array.isArray(SAVE[k])) SAVE[k] = [];
   if (typeof SAVE.cc !== "number" || !(SAVE.cc >= 0)) SAVE.cc = 0;
 }
@@ -103,6 +108,10 @@ function saveMerge(a, b) {
   M.stars = max(A.stars, B.stars);
   M.best = max(A.best, B.best);
   M.seen = { ...(B.seen || {}), ...(A.seen || {}) };
+  M.life = sum(A.life, B.life);
+  // Events: keep whichever save got further through each event's quests.
+  M.ev = { ...(B.ev || {}) };
+  for (const k in A.ev || {}) if (!M.ev[k] || A.ev[k].q > M.ev[k].q || (A.ev[k].q === M.ev[k].q && A.ev[k].p > M.ev[k].p)) M.ev[k] = A.ev[k];
   for (const k of (B.codes || []).filter((k) => (A.codes || []).includes(k))) {
     const c = typeof CODES !== "undefined" && CODES[k];
     if (!c) continue;
@@ -120,7 +129,7 @@ function saveMerge(a, b) {
   if (!(M.nba && M.nba.team) && other.nba && other.nba.team) Object.assign(M, { nba: other.nba, payday: other.payday });
   if (!M.league && other.league) M.league = other.league;
   // The look of your hooper and what's equipped stay as they were on the account.
-  for (const k of ["name", "skin", "hair", "equip", "shoe", "daily"]) M[k] = a && a[k] !== undefined && (k !== "name" || a.name) ? A[k] : B[k];
+  for (const k of ["name", "skin", "hair", "equip", "shoe", "daily", "prof"]) M[k] = a && a[k] !== undefined && (k !== "name" || a.name) ? A[k] : B[k];
   return M;
 }
 function resetSave() {

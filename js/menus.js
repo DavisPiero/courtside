@@ -9,6 +9,7 @@ function show(id) {
   if (typeof ccShow === "function") ccShow();
   if (id === "menu" && typeof payday === "function") payday();
   if (id === "menu" && typeof dailyAuto === "function") dailyAuto();
+  if (id === "menu" && typeof evBanner === "function") evBanner();
   else if (typeof closeDaily === "function") closeDaily();
   if (typeof closeAcct === "function") closeAcct();
 }
@@ -127,6 +128,7 @@ function openSel(pr) {
   ac();
   SEL.pr = pr;
   OPT.mode = "clean"; // team select always starts on Clean
+  if (!courtIds().includes(OPT.court)) OPT.court = "street"; // a limited court whose event has ended
   show("setup");
   drawSel();
 }
@@ -182,7 +184,7 @@ const SU_OPTS = {
       ["mayhem", "MAYHEM", "No rules: punch to drop players and steal the ball, slide-tackle the ball carrier. Chaos!"],
     ],
   },
-  court: { t: "COURT", o: () => COURT_IDS.map((k) => [k, COURTS[k].name, COURTS[k].tip]) },
+  court: { t: "COURT", o: () => courtIds().map((k) => [k, COURTS[k].name, COURTS[k].tip]) },
   diff: {
     t: "DIFFICULTY",
     o: () => [
@@ -594,7 +596,7 @@ function previewAnim(cv, P0, id, speed, angle) {
     if (u <= 1) P0.mv = { k: mk, t: u * M.d, d: M.d, h: -1, mid: 0 };
     port.mv = P0.mv;
     if (P0.mv) port.ball = ballLocal(P0);
-    if (mk === "spin" || mk === "tornado") P0.f = u <= 1 ? 6.2832 * sm(u) : 0;
+    if (mk === "spin" || mk === "tornado" || mk === "phantom") P0.f = u <= 1 ? 6.2832 * (M.spins || 1) * sm(u) : 0;
     if (mk === "halfspin") P0.f = u <= 1 ? Math.PI * 0.9 * Math.sin(u * Math.PI) : 0;
   } else if (k.cat === "dunk" || k.cat === "layup") {
     // Gather, take off, rise to the rim, flush or release, land. Same paths as the real thing.
@@ -650,7 +652,7 @@ function animRow(a, sel) {
     const on = SAVE.equip[a.cat] === a.id;
     btn = `<button class="btn${on ? " own" : ""}" data-eq="${a.id}">${on ? "EQUIPPED" : "EQUIP"}</button>`;
   }
-  // Sell: anything you own that isn't a starter, Gametime or equipped. Press twice to be sure.
+  // Sell: anything you own that isn't a starter, Limited or equipped. Press twice to be sure.
   const pay = own && !isEquipped(a) ? sellPrice(a) : 0;
   if (pay) btn = `<button class="btn sell${INV.sell === a.id ? " sure" : ""}" data-sell="${a.id}">${INV.sell === a.id ? `SURE? +${pay}` : `SELL ${pay}`}</button>` + btn;
   return `<div class="pack r-${a.rarity}${own ? "" : " lock"}${a.id === sel ? " sel" : ""}" data-id="${a.id}">
@@ -732,6 +734,7 @@ function drawInv() {
 }
 function invPreview() {
   labPreview();
+  profPreview();
   shopPreview();
   if ($("inv").classList.contains("on") && INV.sel) {
     if (INV.cat === "shoe") shoeCanvas($("invShoe"), SHOE[INV.sel], T);

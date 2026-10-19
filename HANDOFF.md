@@ -1,39 +1,40 @@
 # Hand-off for the next session
 
-_Written 2026-10-19 (session 7). Replace this file at the end of each session; don't add a second one._
+_Written 2026-10-19 (session 8). Replace this file at the end of each session; don't add a second one._
 
 ## State of the repo
-- Session 7 is merged to `main` and pushed (live). No open branches. David has run the Supabase setup.
-- `./tools/smoke.sh` passes. Bench at default size: about +39 / +11 / -6 / -17 (noise around 6d's numbers).
+- Work is on branch `session8`, committed, not merged. `main` is still session 7 (live).
+- `./tools/smoke.sh` passes (now includes Haunted Hollow, the Halloween quests, the account page, its choosers,
+  the gear pop-up and the delete check). Bench (10 games): +42.5 / +15.6 / +1.1 / -9.8.
 
 ## Read first
-STATE.md. Then test a real sign-up with David on the live site.
+STATE.md. If David signs off, merge quickly: Halloween ends at midnight as 1 November begins (device clock).
 
 ## What changed (where to look)
-- Size: `SIZE`, `sizeFx()`, `sizedRow()`, `drawSize()`, `sizeStep()` in js/hooper.js; `SAVE.hooper.ht/wt`. In games:
-  row slot 14 is weight; `mass()` / `downFor()` and the push share in `separate()` (js/gameplay.js); body width in
-  js/players.js. Bench builds: `SIZE=84,300 ./tools/bench.sh 10`.
-- Accounts: js/account.js (`ACC`, `accAuth` → `accAttach` merges, `accDirty` / `accPush` sync with a revision check,
-  the pop-up `drawAcct`). js/save.js: `saveFresh`, `saveLoadFrom`, `saveHasProgress`, `saveMerge`, `writeSave(quiet)`.
-  Device owner in `localStorage["courtside.acct"]`. Tests set `ACC.state = "off"` and never load the library.
-- Supabase: `supabase/setup.sql` (profiles, saves, row rules, `username_free`, `delete_me`, the new-player trigger).
-  Library pinned to supabase-js 2.117.2 with an SRI hash in js/account.js; a new version needs a new hash
-  (`openssl dgst -sha384 -binary file | openssl base64 -A`).
-- League: js/league.js (season data in `SAVE.league`, `leagueNew`, `leagueSign`, `startLeague`, `leagueRecord`,
-  playoffs), js/leagueui.js (hub), `#league` in index.html, `G.league` set by `startLeague` and cleared by every
-  other way into a game. Results: `showResults()` reads `G.league.extra`. Smoke plays a season on Rookie with the
-  bench bot so it reaches a ring.
+- Steals: `exposed(v, q, back)` and `humanSteal()` in js/gameplay.js (×1.35, behind = 0.6, REACHED = `p.swT`
+  pushed to +1.2 s). Swipe clip `ACTIONS.swipe` in js/anim.js (arm and twist only).
+- Rarity rename: `limited` everywhere (packs, shoes, shop, audio, css). Saves never stored rarity, so nothing to migrate.
+- Halloween: js/event.js (`EVENTS.halloween26`, `evGame`, banner `evBanner`, pop-up `openEvent`), results hook in
+  js/campui.js `showResults`, `SAVE.ev`. Court `haunt` in js/courts.js (`limited: "halloween26"`, `courtIds()`
+  hides it after the end). Jack-O in js/shoes.js (`mark: "pumpkin"`). Witching Hour: `dunk.witch` in packs/anim.
+- Particles: js/fx.js. `moveFx` runs every step from `fxStep` (js/loop.js); special particles (`g`, `st`, `bat`)
+  are drawn by `fxDraw` from js/render.js. Cap 420. Not shown in the Animation Lab (it draws portraits, not the court).
+- Celestial: `RARITY.celestial`, `RARITIES`, `RANK`, HoF odds, `SINGLE_PRICE`, Daily Shop (own seed) in js/packs.js;
+  shop TIERS/banner, audio notes, css `.r-celestial`. New moves: Comet, Supernova, Heaven's Gate, Phantom
+  (`MOVES.phantom.spins = 2`), Angel Glide, Fire Breather.
+- Account page: js/profile.js (`PICS`, `TITLES`, `myTitle`, `lifeCount`, `openProf`, choosers), `#prof` screen,
+  `.pop` pop-ups (`#acct`, `#ppick`, `#accDel`) now sit outside the menu. js/account.js: `accButton` draws the
+  picture, `accDelete` opens the are-you-sure, `accDeleteNow` deletes. `SAVE.prof`, `SAVE.life` (merged on sign-in).
 
 ## How to work on it
-- Test muted: `http://localhost:8791/?mute&device=touch` via the `courtside` preview config.
-- The browser pane caches scripts hard: fetch every changed file with `{cache: "reload"}`, then reload.
+- Test muted: `http://localhost:8791/?mute&device=pc` via the `courtside` preview config. `&date=2026-11-01` tests
+  the event being over.
+- The browser pane caches scripts hard: fetch every changed file with `{cache: "reload"}`, then reload. When the
+  pane is hidden, step the game by hand (`step`, `camUpd`, `render`) and use zoom for a fresh screenshot.
 - Back up `localStorage["courtside.save.v1"]` before testing and restore it after; clear `courtside.acct` too.
-- I can't create real accounts; David does the first real sign-up. The iPad keyboard for email/password is untested.
 
 ## What comes next
-David tests accounts on the live site. Then league part 2 or two players on
-one device (BRIEF-online.md step 1): David picks.
+David's sign-off and merge; David registers King. Then league part 2 or two players on one device.
 
 ## Open questions for David
-See STATE.md "Open with David" (size effects, account behaviour, league numbers, the online brief's four
-questions, and the carried-over list).
+See STATE.md "Open with David".

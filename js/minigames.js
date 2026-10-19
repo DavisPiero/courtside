@@ -147,7 +147,7 @@ function mgScored(t, pts, p) {
 // The judges: base 28, plus the dunk's rarity, speed into it, dribble moves on the way and a long take-off.
 function judgeDunk() {
   const m = G.mg,
-    rar = { starter: 0, common: 2, rare: 4, epic: 6, legendary: 8, iconic: 9, mythic: 10, godlike: 12, gametime: 12 }[ANIM[m.style].rarity] || 0,
+    rar = { starter: 0, common: 2, rare: 4, epic: 6, legendary: 8, iconic: 9, mythic: 10, godlike: 12, celestial: 14, limited: 12 }[ANIM[m.style].rarity] || 0,
     spd = Math.min(4, (m.speed || 0) / 4),
     mv = Math.min(4, m.moves.size),
     far = (m.takeoff || 0) > 12 ? 3 : 0,
@@ -209,7 +209,9 @@ function mgEnd() {
   if (best) rows.push(["New best!", MINI_BEST_BONUS]);
   SAVE.cc += rows.reduce((a, r) => a + r[1], 0);
   // daily challenges pay themselves
-  rows.push(...dailyEvent({ mini: m.k, won, margin: G.home - G.away, st: G.st, court: OPT.court, diff: OPT.diff, score }));
+  const ev = { mini: m.k, won, margin: G.home - G.away, st: G.st, court: OPT.court, diff: OPT.diff, score };
+  lifeCount(ev);
+  rows.push(...dailyEvent(ev));
   const total = rows.reduce((a, r) => a + r[1], 0);
   writeSave();
   G.mg = null;
