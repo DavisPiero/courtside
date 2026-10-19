@@ -906,3 +906,14 @@ body.touch .dailyb { padding: 8px 14px 10px; font-size: 22px; }
   .dlybox .act { bottom: -12px; margin: 0 -14px -12px; padding: 6px 14px 8px; }
 }
 .dlybox > .btn:disabled { opacity: 0.5; filter: saturate(0.4); }
+
+/* Hooper size: height and weight steppers, and what the build does */
+.szrow { display: grid; grid-template-columns: 1fr 40px 76px 40px; gap: 6px; align-items: center; margin-bottom: 6px; }
+.szrow span { font: 400 16px/1 var(--px); letter-spacing: 0.1em; color: var(--muted); }
+.szrow .btn { padding: 6px 0; min-width: 0; font-size: 22px; }
+.szrow b { font: 400 24px/1 var(--px); text-align: center; color: #fff; }
+.hpic { min-width: 0; }
+.szfx { display: grid; gap: 3px; margin-top: 8px; }
+.szfx div { display: flex; justify-content: space-between; padding: 3px 8px; background: rgba(255, 255, 255, 0.03); font: 400 16px/1 var(--px); letter-spacing: 0.08em; }
+.szfx .pos b { color: #3cff9a; } .szfx .neg b { color: #ff6b5e; }
+.szfx p { margin: 0; font: 400 16px/1.2 var(--px); color: var(--muted); }

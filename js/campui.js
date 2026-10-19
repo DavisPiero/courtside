@@ -14,6 +14,8 @@ function openHero(first) {
   };
   draw();
   drawUpgrades();
+  drawSize();
+  document.querySelectorAll("#hero [data-sz]").forEach((b) => (b.onclick = () => (sizeStep(b.dataset.sz, +b.dataset.d), sfx("click"))));
   $("bHeroX").onclick = () => (first ? showPlay() : openCamp());
   $("bHeroOk").onclick = () => {
     SAVE.name = ($("heroName").value || "ROOKIE").toUpperCase().replace(/[^A-Z0-9 .'-]/g, "").trim().slice(0, 12) || "ROOKIE";
@@ -27,7 +29,7 @@ function heroPreview() {
   const nm = ($("heroName").value || "ROOKIE").toUpperCase();
   const T0 = { ...crewTeam() };
   if (!CUI.heroP) CUI.heroP = portraitPlayer(0, 0, 9, -1);
-  Object.assign(CUI.heroP, { team: T0, sk: SK[SAVE.skin], look: 91, pos: "SG", ht: 76, hair: SAVE.hair, name: nm });
+  Object.assign(CUI.heroP, { team: T0, sk: SK[SAVE.skin], look: 91, pos: "SG", ht: hooper().ht, wt: hooper().wt, hair: SAVE.hair, name: nm });
   CUI.heroP.port.t = T;
   CUI.heroP.port.ball = [0.95, -0.6, 0.55 + Math.abs(Math.sin(T * 5.5)) * 2.6];
   renderModel($("heroCv"), CUI.heroP, 0.75);

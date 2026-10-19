@@ -116,12 +116,15 @@
   <div class="pnl box hero">
     <h2>YOUR HOOPER</h2>
     <div class="hbody">
-      <canvas id="heroCv"></canvas>
+      <div class="hpic"><canvas id="heroCv"></canvas><div class="szfx" id="heroFx"></div></div>
       <div class="hform">
         <label>NAME<input id="heroName" maxlength="12" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" placeholder="ROOKIE"></label>
         <i class="hint">Don't use your real name.</i>
         <div class="hl">SKIN</div><div class="swatches" id="heroSkin"></div>
         <div class="hl">HAIR</div><div class="seg" id="heroHair"></div>
+        <div class="hl">SIZE</div>
+        <div class="szrow"><span>HEIGHT</span><button class="btn" data-sz="ht" data-d="-1" aria-label="Shorter">−</button><b id="heroHt"></b><button class="btn" data-sz="ht" data-d="1" aria-label="Taller">+</button></div>
+        <div class="szrow"><span>WEIGHT</span><button class="btn" data-sz="wt" data-d="-1" aria-label="Lighter">−</button><b id="heroWt"></b><button class="btn" data-sz="wt" data-d="1" aria-label="Heavier">+</button></div>
       </div>
       <div class="hups">
         <div class="hupt"><div class="hovr" id="heroOvr"></div><span>UPGRADE YOUR HOOPER<small>Spend Court Coins to get better. Each upgrade costs a bit more.</small></span><div class="cc ccbal">0 CC</div></div>

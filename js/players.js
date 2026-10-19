@@ -159,7 +159,7 @@ function buildSprite(p) {
     k = Math.round(cl(g[3], 7, 15));
   }
   const S = bodyScale(p),
-    bw = BW[p.pos] || 1,
+    bw = (BW[p.pos] || 1) * (p.wt ? 1 + (p.wt - 200) / 500 : 1), // your hooper's weight: broader or slimmer
     K = k * S, // drawing scale for this body
     ox = sp.w >> 1,
     oy = sp.h - 24,

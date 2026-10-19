@@ -241,6 +241,9 @@ function bench() {
     for (let g = 0; g < N; g++) {
       Object.assign(OPT, { mode: "clean", court: "arena", diff });
       setTeams(...DEFAULT_TEAMS);
+      // ?size=HT,WT: the bot's player is a hooper with every stat at 80 and that build (js/hooper.js).
+      const sz = location.search.match(/[?&]size=(\d+),(\d+)/);
+      if (sz) NM[0] = sizedRow({ ...Object.fromEntries(HSTATS.map((s) => [s.k, 80])), ht: +sz[1], wt: +sz[2] }, "BENCH", 80, 3, 0);
       start(0);
       G.tip = null;
       G.auto = 2;
