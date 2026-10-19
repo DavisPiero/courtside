@@ -15,6 +15,7 @@ function stats(R, t) {
     blk: R[9],
     rng: R[12] !== undefined ? R[12] : R[5], // range: your hooper has their own; everyone else's follows shooting
     stm: R[13] !== undefined ? R[13] : 75, // stamina
+    wt: R[14] || 0, // weight in lb: only your hooper has one (0 = an ordinary build)
     sp: (10 + ((R[4] - 60) / 35) * 3) * (t ? DIFF[OPT.diff].sp : 1),
   };
 }
@@ -273,6 +274,9 @@ function startSlide(p) {
 const SLIDE_DECAY = 1.8; // how fast a slide slows down (it was 3.2: lower goes further)
 // How long a player stays down after a punch or a slide tackle (seconds). Short, so the game keeps moving.
 const KNOCKDOWN = 1.4;
+// How heavy a player is next to an ordinary build (1); your hooper's weight changes it (js/hooper.js).
+const mass = (p) => (p.wt ? p.wt / 200 : 1);
+const downFor = (p) => KNOCKDOWN / Math.sqrt(mass(p)); // heavier players get up sooner
 function slideStep(p, dt) {
   const s = p.sl;
   s.t += dt;
@@ -307,7 +311,7 @@ function slideHit(p) {
     if (d > 2.9 || (dx * s.dx + dy * s.dy) / (d || 1) < -0.3) continue;
     s.hit = 1;
     s.v0 *= 0.45;
-    q.rag = { t: 0, d: KNOCKDOWN, dx: s.dx, dy: s.dy };
+    q.rag = { t: 0, d: downFor(q), dx: s.dx, dy: s.dy };
     q.vx = s.dx * 9;
     q.vy = s.dy * 9;
     q.hw = null;
@@ -384,7 +388,7 @@ function punchHit(p) {
     dy = v.y - p.y,
     L = hy(dx, dy) || 1,
     b = G.ball;
-  v.rag = { t: 0, d: KNOCKDOWN, dx: dx / L, dy: dy / L };
+  v.rag = { t: 0, d: downFor(v), dx: dx / L, dy: dy / L };
   v.sl = null;
   v.vx = (dx / L) * 12;
   v.vy = (dy / L) * 12;
@@ -1416,7 +1420,8 @@ function separate() {
         const nx = (a.x - b.x) / d,
           ny = (a.y - b.y) / d,
           o = BODY - d,
-          wa = i === me ? 0.25 : j === me ? 0.75 : 0.5; // share of the push that moves a
+          w0 = i === me ? 0.25 : j === me ? 0.75 : 0.5, // share of the push that moves a
+          wa = (w0 * mass(b)) / (w0 * mass(b) + (1 - w0) * mass(a)); // the heavier one gets moved less
         a.x += nx * o * wa;
         a.y += ny * o * wa;
         b.x -= nx * o * (1 - wa);
@@ -1445,5 +1450,6 @@ function end() {
   if (G.prac) show("menu");
   else if (G.mg) mgEnd();
   else if (G.camp) campEnd();
+  else if (G.league) leagueEnd();
   else showResults();
 }

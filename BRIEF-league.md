@@ -1,7 +1,7 @@
 # Brief: Career League (after the NBA campaign)
 
-Status (2026-10-19, session 6d): a draft for David. Nothing here is built. Seasons are on the "out of scope"
-list in CLAUDE.md; this brief is the case for lifting that, for this one mode.
+Status (2026-10-19, session 7): approved by David. Part 1 (the season loop) is built; part 2 (All-Star Weekend,
+awards, story scenes, trophy room) is not. David left the questions below to me; my answers are in DECISIONS.md.
 
 ## The idea in one line
 Win the Finals and the story is over, but your hooper's career isn't: you keep playing **season after season** in

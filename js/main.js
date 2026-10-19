@@ -33,6 +33,7 @@ addEventListener("keydown", (e) => {
     if ($("open").classList.contains("on")) return openShop();
     if ($("lab").classList.contains("on")) return $("bLabX").click();
     if ($("daily").classList.contains("on")) return closeDaily();
+    if ($("acct").classList.contains("on")) return closeAcct();
     if ($("menu").classList.contains("on")) return menuSlide(0);
     for (const k in back) if ($(k).classList.contains("on")) return back[k] === "play" ? showPlay() : show(back[k]);
   }
@@ -155,7 +156,7 @@ function fitCheck() {
   const check = (id) => {
     fitScreens();
     // with a pop-up open, only its buttons matter (the screen behind is covered on purpose)
-    const root = pickOpen() && id === "setup" ? $("pick") : id === "menu" && $("daily").classList.contains("on") ? $("daily") : $(id);
+    const root = pickOpen() && id === "setup" ? $("pick") : id === "menu" && $("daily").classList.contains("on") ? $("daily") : id === "menu" && $("acct").classList.contains("on") ? $("acct") : $(id);
     for (const b of root.querySelectorAll("button, input")) {
       const r = b.getBoundingClientRect();
       // a scrolling list, or the scrolling middle of a panel, may hide buttons; a pinned button row may not
@@ -190,6 +191,15 @@ function fitCheck() {
   run("hero", () => openHero());
   run("menu", showPlay);
   run("menu", () => (show("menu"), openDaily()));
+  for (const v of ["signin", "up", "in"])
+    run("menu", () => {
+      show("menu");
+      closeDaily();
+      Object.assign(ACC, { state: v === "in" ? "in" : "out", view: v, name: "FITCHECK_LONGNAME", user: v === "in" ? { email: "a.very.long.email.address@example.com" } : null });
+      openAcct();
+    });
+  ACC.state = "off";
+  ACC.user = null;
   run("campPick", () => $("campPick").classList.add("on"));
   run("camp", () => pickCamp("street"));
   run("mini", () => openMini());
@@ -211,6 +221,19 @@ function fitCheck() {
   run("lab", () => openLab());
   same("sets", ["VIDEO", "AUDIO", "GAMEPLAY", "CONTROLS"], (t) => ((SETUI.tab = t), openSettings("menu")));
   run("sign", () => openSign(() => {}));
+  // Career League hub at each stage of a season (results made up, no games played).
+  const lgFake = (n) => {
+    for (let i = 0; i < n && lgNext(); i++) (G.league = { opp: lgNext().opp, extra: [] }), leagueRecord(i % 3 > 0, "50-44");
+  };
+  SAVE.nba.team = SAVE.nba.team || "BOS";
+  SAVE.league = null;
+  run("league", () => openLeague());
+  run("league", () => (leagueSign(lg().offers[0]), (LUI.tab = "table"), openLeague()));
+  run("league", () => (lgFake(5), (LUI.tab = "sched"), openLeague()));
+  run("league", () => (lgFake(9), (LUI.tab = "po"), openLeague()));
+  run("league", () => (lgFake(20), openLeague()));
+  SAVE.league = null;
+  G.league = null;
   run("pause", () => $("pause").classList.add("on"));
   run("tutc", () => $("tutc").classList.add("on"));
   run("res", () => {
@@ -241,6 +264,9 @@ function bench() {
     for (let g = 0; g < N; g++) {
       Object.assign(OPT, { mode: "clean", court: "arena", diff });
       setTeams(...DEFAULT_TEAMS);
+      // ?size=HT,WT: the bot's player is a hooper with every stat at 80 and that build (js/hooper.js).
+      const sz = location.search.match(/[?&]size=(\d+),(\d+)/);
+      if (sz) NM[0] = sizedRow({ ...Object.fromEntries(HSTATS.map((s) => [s.k, 80])), ht: +sz[1], wt: +sz[2] }, "BENCH", 80, 3, 0);
       start(0);
       G.tip = null;
       G.auto = 2;
@@ -322,6 +348,35 @@ function smoke() {
       ok = false;
       out.push(`minigame ${k}: ERROR ${e.message} ${(e.stack || "").split("\n")[1] || ""}`);
     }
+  }
+  // Career League: a whole season, the AI playing your games, through to a champion.
+  try {
+    SAVE.nba.team = "BOS";
+    SAVE.league = null;
+    leagueNew();
+    leagueSign(lg().offers[0]);
+    let games = 0;
+    while (lg().phase !== "done") {
+      startLeague();
+      G.tip = null;
+      G.auto = 2; // the bench bot (a good kid) on Rookie, so the test reaches the playoffs
+      OPT.diff = 0;
+      let n = 0;
+      while (G.run && G.league) {
+        step(1 / 120);
+        T += 1 / 120;
+        if (++n % 240 === 0) (camUpd(1 / 120), render(), hud());
+        if (n > 120 * 400) throw new Error("league game never ended");
+      }
+      if (G.run) G.run = 0;
+      if (++games > 40) throw new Error("season never ended");
+    }
+    const L = lg(),
+      r = L.rec[L.team];
+    out.push(`league  season 1 ${L.team} ${r[0]}-${r[1]}, ${FINISH_TEXT[L.finish]}, champions ${L.champion}, ${games} games`);
+  } catch (e) {
+    ok = false;
+    out.push(`league: ERROR ${e.message} ${(e.stack || "").split("\n")[1] || ""}`);
   }
   G.run = 0;
   G.auto = 0;

@@ -185,9 +185,9 @@ function quarterEnd() {
 // Which games get it: Quick Play and the NBA campaign (the Street campaign has its own story scenes).
 const winsCelebrate = () => !G.prac && !G.mg && G.home > G.away && (!G.camp || G.camp.cid === "nba");
 function startWin() {
-  const finals = G.camp && G.camp.cid === "nba" && G.camp.ci === 2 && G.camp.gi === 5,
+  const finals = (G.camp && G.camp.cid === "nba" && G.camp.ci === 2 && G.camp.gi === 5) || !!(G.league && G.league.clinch),
     mine = G.pl.filter((p) => p.t === 0),
-    star = G.camp ? G.pl[0] : mine.reduce((a, p) => (NM[p.id][2] > NM[a.id][2] ? p : a), mine[0]);
+    star = G.camp || G.league ? G.pl[0] : mine.reduce((a, p) => (NM[p.id][2] > NM[a.id][2] ? p : a), mine[0]);
   G.win = { t: 0, d: finals ? 5.5 : 4.2, finals, star: star.id, cx: 47, cy: 10 };
   G.cut = G.shot = null;
   G.bb = null;

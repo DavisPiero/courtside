@@ -119,3 +119,16 @@ One line each, newest last.
 - 2026-10-19 · Movement: controlled player slides round bumps (keeps 60-90% speed, takes a quarter of the push); defenders keep outside bump range; reach stumble 0.3 s. Cause of "movement stops a lot": defenders standing inside the bump distance on harder levels.
 - 2026-10-19 · Hooper stats checked end to end; Hops now sets block jump height and Accuracy widens the green zone more.
 - 2026-10-19 · BRIEF-accounts.md: recommend save fixes first (persist, Home Screen tip, save code; Safari's 7-day storage wipe is the likely cause of lost saves), then parent-email magic-link accounts on Supabase.
+- 2026-10-19 · Session 7: hooper height 5'6" to 7'0" and weight 150 to 300 lb (David), free to change; default 6'4" 200 lb plays as before. Size doesn't change the rating (trade-off, not upgrade).
+- 2026-10-19 · Size effects: taller -0.6 speed and -0.8 handling an inch; heavier per 10 lb -0.5 speed, -0.8 hops, -1 stamina, +0.8 finishing, wins bumps, up sooner. Bench: all five extreme builds within about 3 points of default.
+- 2026-10-19 · Accounts on Supabase with email, username, password (David). Sign in by email only: looking an email up from a username would expose emails.
+- 2026-10-19 · Guest progress on sign-in is added to the account (David): coins summed, collections combined, best kept; a code used in both saves pays once.
+- 2026-10-19 · Signing out wipes the device to a fresh save (keeps today's daily), so signing in and out can't copy coins.
+- 2026-10-19 · Two devices: the cloud save with a higher revision wins when the game opens or a send clashes (unsent changes on the other device are lost; rare).
+- 2026-10-19 · Supabase library loaded in the background from jsDelivr, pinned to 2.117.2 with an integrity hash; tests (smoke, fitcheck, bench) never load it.
+- 2026-10-19 · Email confirmation on (my call; Supabase's free email limit may need a free SMTP sender later).
+- 2026-10-19 · Career League (my calls, David left them to me): 12 games, best of 3 / Finals best of 5, today's rosters with no trades (only Zeke Knox moves), no ageing, opens after winning the NBA Finals, name "Career League".
+- 2026-10-19 · League ring pays a Hall of Fame Pack (the brief said "a Legendary pack"; there isn't one; this is the pack with a guaranteed Legendary).
+- 2026-10-19 · League hub scrolls as a whole on short screens (phones) with BACK pinned, like the other screens.
+- 2026-10-19 · BRIEF-online.md: start with two players on one device, then friends, then online 1-on-1 (host + direct connection, Supabase only to find each other).
+

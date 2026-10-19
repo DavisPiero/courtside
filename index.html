@@ -61,7 +61,7 @@
 
 <!-- Main menu -->
 <div id="menu" class="scr">
-  <div class="mtop"><button class="btn dailyb" id="bDaily">★ DAILY</button><div class="cc ccbal">0 CC</div></div>
+  <div class="mtop"><button class="btn accb" id="bAcc">ACCOUNT</button><button class="btn dailyb" id="bDaily">★ DAILY</button><div class="cc ccbal">0 CC</div></div>
   <div class="payday" id="payday"></div>
   <!-- DAILY: today's reward and three challenges (js/daily.js) -->
   <div id="daily"><div class="pnl dlybox">
@@ -72,6 +72,13 @@
     <h3>TODAY'S CHALLENGES <small id="dlyTime"></small></h3>
     <div class="dchs" id="dlyList"></div>
     <div class="act"><button class="btn" id="bDlyX">CLOSE</button></div>
+  </div></div>
+  <!-- ACCOUNT: sign in, create an account, or your account (js/account.js) -->
+  <div id="acct"><div class="pnl accbox">
+    <h2>ACCOUNT</h2>
+    <div id="accBody"></div>
+    <p class="accmsg" id="accMsg" aria-live="polite"></p>
+    <div class="act"><button class="btn" id="bAccX">CLOSE</button></div>
   </div></div>
   <div class="menu-l">
     <div class="brand">COURT<em>SIDE</em></div>
@@ -116,12 +123,15 @@
   <div class="pnl box hero">
     <h2>YOUR HOOPER</h2>
     <div class="hbody">
-      <canvas id="heroCv"></canvas>
+      <div class="hpic"><canvas id="heroCv"></canvas><div class="szfx" id="heroFx"></div></div>
       <div class="hform">
         <label>NAME<input id="heroName" maxlength="12" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" placeholder="ROOKIE"></label>
         <i class="hint">Don't use your real name.</i>
         <div class="hl">SKIN</div><div class="swatches" id="heroSkin"></div>
         <div class="hl">HAIR</div><div class="seg" id="heroHair"></div>
+        <div class="hl">SIZE</div>
+        <div class="szrow"><span>HEIGHT</span><button class="btn" data-sz="ht" data-d="-1" aria-label="Shorter">−</button><b id="heroHt"></b><button class="btn" data-sz="ht" data-d="1" aria-label="Taller">+</button></div>
+        <div class="szrow"><span>WEIGHT</span><button class="btn" data-sz="wt" data-d="-1" aria-label="Lighter">−</button><b id="heroWt"></b><button class="btn" data-sz="wt" data-d="1" aria-label="Heavier">+</button></div>
       </div>
       <div class="hups">
         <div class="hupt"><div class="hovr" id="heroOvr"></div><span>UPGRADE YOUR HOOPER<small>Spend Court Coins to get better. Each upgrade costs a bit more.</small></span><div class="cc ccbal">0 CC</div></div>
@@ -140,6 +150,7 @@
     <div class="dvc">
       <button class="dcard ccard" id="cpStreet"><b class="ico">◆</b><b>STREET</b><span>King of the Courts</span><span class="cp-rule">Street courts · Mayhem allowed</span><em id="cpStreetStars"></em></button>
       <button class="dcard ccard" id="cpNba"><b class="ico">★</b><b>NBA</b><span>Road to the Ring</span><span class="cp-rule">Arenas · Professional rules only</span><em id="cpNbaStars"></em></button>
+      <button class="dcard ccard" id="cpLeague"><b class="ico">♛</b><b>CAREER LEAGUE</b><span>Season after season</span><span class="cp-rule">12 games · Playoffs · Rings</span><em id="cpLeagueSub"></em></button>
     </div>
     <div class="act cpact"><button class="btn" id="bCpX">BACK</button><button class="btn" id="bCpHero">EDIT HOOPER</button></div>
   </div>
@@ -158,6 +169,19 @@
     <div class="contract" id="chContract"></div>
     <div class="rows" id="campRows"></div>
     <div class="act"><button class="btn" id="bCampX">BACK</button><button class="btn" id="bCampStory">▶ CHAPTER STORY</button></div>
+  </div>
+</div>
+
+<!-- Career League: season hub (js/leagueui.js) -->
+<div id="league" class="scr dim">
+  <div class="pnl box league">
+    <div class="ihead"><h2 id="lgTitle">CAREER LEAGUE</h2><div class="cc ccbal">0 CC</div></div>
+    <div class="lgtop" id="lgTop"></div>
+    <div class="lgmain">
+      <div class="lgnext" id="lgNext"></div>
+      <div class="lgside"><div class="tabs lgtabs" id="lgTabs"></div><div class="lglist" id="lgList"></div></div>
+    </div>
+    <div class="act"><button class="btn" id="bLgX">BACK</button><button class="btn" id="bLgHero">EDIT HOOPER</button></div>
   </div>
 </div>
 
@@ -321,11 +345,14 @@
 <script src="js/hooper.js"></script>
 <script src="js/menus.js"></script>
 <script src="js/campui.js"></script>
+<script src="js/league.js"></script>
+<script src="js/leagueui.js"></script>
 <script src="js/minigames.js"></script>
 <script src="js/tutorial.js"></script>
 <script src="js/story.js"></script>
 <script src="js/shop.js"></script>
 <script src="js/daily.js"></script>
+<script src="js/account.js"></script>
 <script src="js/touch.js"></script>
 <script src="js/main.js"></script>
 </body>

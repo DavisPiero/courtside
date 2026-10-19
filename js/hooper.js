@@ -39,6 +39,7 @@ function hooper() {
     SAVE.hooper = Object.fromEntries(HSTATS.map((s) => [s.k, v]));
     writeSave();
   }
+  if (!SAVE.hooper.ht) Object.assign(SAVE.hooper, { ht: SIZE.ht0, wt: SIZE.wt0 });
   // Reaching the NBA lifts anything still under the entry level.
   if (nbaOpen() && !SAVE.hooper.nba) {
     for (const s of HSTATS) SAVE.hooper[s.k] = Math.max(NBA_ENTRY, SAVE.hooper[s.k] || 0);
@@ -59,10 +60,63 @@ function upgradeStat(k) {
   writeSave();
   return true;
 }
-// Your hooper as a roster row (see js/teams.js), plus range and stamina at the end.
+// ---------- height and weight (free to change on EDIT HOOPER; a trade-off, not an upgrade, so the RATING ignores it)
+// 6'4" and 200 lb is the old fixed size and has no bonuses or drawbacks. Height already counts in games for every
+// player (blocks, contests, shooting over people, steal reach, dunking, js/gameplay.js); on top of that your size moves
+// these stats, in rating points: taller is slower and handles worse; heavier is slower, jumps lower, tires sooner,
+// but finishes through contact, wins bumps and gets up sooner from a knockdown.
+const SIZE = { ht0: 76, wt0: 200, htMin: 66, htMax: 84, wtMin: 150, wtMax: 300, wtStep: 5 };
+function sizeFx(ht, wt) {
+  const dh = ht - SIZE.ht0,
+    dw = (wt - SIZE.wt0) / 10;
+  return {
+    spd: -0.6 * dh - 0.5 * dw,
+    hnd: -0.8 * dh,
+    hop: -0.8 * dw,
+    stm: -1 * dw,
+    fin: 0.8 * dw,
+  };
+}
+const ftIn = (h) => `${Math.floor(h / 12)}'${h % 12}"`;
+// Your hooper as a roster row (see js/teams.js), plus range, stamina and weight at the end. Size changes the game
+// numbers here, after the rating is worked out.
 function hooperRow() {
+  return sizedRow(hooper(), SAVE.name || "ROOKIE", hooperOvr(), SAVE.skin, SAVE.hair);
+}
+// Stats H (with ht and wt) as a roster row. Also used by the bench (?bench&size=84,300) to measure builds.
+function sizedRow(H, name, ovr, skin, hair) {
+  const F = sizeFx(H.ht, H.wt),
+    r = (v, d) => Math.round(cl(v + d, 25, 110));
+  return [name, "SG", ovr, H.ht, r(H.spd, F.spd), H.acc, r(H.fin, F.fin), r(H.hnd, F.hnd), H.dfn, r(H.hop, F.hop), skin, hair, H.rng, r(H.stm, F.stm), H.wt];
+}
+// What your build does, for the SIZE box: arrows up (green) or down (red), one to three each.
+function drawSize() {
+  const H = hooper(),
+    F = sizeFx(H.ht, H.wt),
+    dh = H.ht - SIZE.ht0,
+    dw = (H.wt - SIZE.wt0) / 10;
+  $("heroHt").textContent = ftIn(H.ht);
+  $("heroWt").textContent = H.wt + " LB";
+  const rows = [
+    ["SPEED", F.spd, "How fast you run."],
+    ["HANDLING", F.hnd, "Ankle breakers, and how hard you are to steal from."],
+    ["HOPS", F.hop, "Jump height for dunks and blocks."],
+    ["STAMINA", F.stm, "How long you can sprint."],
+    ["FINISHING", F.fin + dh * 1.5, "Layups through contact, and how often you can dunk."],
+    ["REACH", dh * 1.5, "Blocks, contests, steal reach, shooting over defenders."],
+    ["STRENGTH", dw * 1.2, "Winning bumps, getting up quicker after a knockdown."],
+  ].filter((x) => Math.abs(x[1]) >= 0.5);
+  rows.sort((a, b) => b[1] - a[1]);
+  $("heroFx").innerHTML = rows.length
+    ? rows.map(([n, v, d]) => `<div class="${v > 0 ? "pos" : "neg"}" title="${d}"><span>${n}</span><b>${(v > 0 ? "▲" : "▼").repeat(Math.min(3, Math.ceil(Math.abs(v) / 3.5)))}</b></div>`).join("")
+    : `<p>Balanced: no bonuses, no drawbacks.</p>`;
+}
+function sizeStep(k, d) {
   const H = hooper();
-  return [SAVE.name || "ROOKIE", "SG", hooperOvr(), 76, H.spd, H.acc, H.fin, H.hnd, H.dfn, H.hop, SAVE.skin, SAVE.hair, H.rng, H.stm];
+  if (k === "ht") H.ht = cl(H.ht + d, SIZE.htMin, SIZE.htMax);
+  else H.wt = cl(H.wt + d * SIZE.wtStep, SIZE.wtMin, SIZE.wtMax);
+  writeSave();
+  drawSize();
 }
 // The upgrade panel on the hooper screen.
 function drawUpgrades() {

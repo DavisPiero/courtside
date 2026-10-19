@@ -1,46 +1,33 @@
 # Courtside: state
 
-_Updated 2026-10-18, session 6b, merged to `main` and live (David: merge and push without waiting)._
+_Updated 2026-10-19, session 7, on branch `session7`, **not merged** (live `main` is session 6d)._
 
 ## Where we are
-`main` (live) has sessions 1 to 6b. 6b:
-- Main menu no longer cut off on iPad; the fit check now fails on anything clipped sideways.
-- PLAY slides the buttons left and brings in CAMPAIGN / QUICK PLAY / MINIGAMES / BACK (no PLAY screen any more).
-- Codes on touch use Courtside's own on-screen keyboard; "ENTER A CODE" heading above the box.
-- Shop, Inventory, Settings: BACK sits at the end of the page instead of following the scroll.
-- Every coin reward up about 25% (prices unchanged).
-- DAILY: a 7-day reward ladder and three daily challenges, from a button by the coins on the main menu.
-- BRIEF-ideas.md: 13 ideas for new things.
-- Roadmap items done the same day: tutorial steps 9 to 12 are real drills; pack and shoebox opening reworked
-  (rip strip, light that hints at rarity, three pixel shoebox models, lid blasts off); 12 more shoes (45) and
-  16 more animations (100).
-Smoke test passes (all modes, courts, levels, minigames; fit check at 5 sizes including the DAILY pop-up).
-
-## Session 6c (merged to `main` and live)
-- Every difficulty is harder, plus adaptive AI; `tools/bench.sh` measures it (bot margins +37 / +17 / +3 / -13,
-  down from +88 / +69 / +62 / +43).
-- Code BIG LEAGUE (2000 CC) and a SPACE key on the code keyboard.
-- BRIEF-league.md: a draft of the Career League after the NBA campaign.
-
-## Session 6d (merged to `main` and live)
-- Up to 5 extra dribble moves; Quick Play quarters are 30 seconds; steals a little easier.
-- Movement: you slide past players you brush against; defenders don't crowd inside bumping range.
-- Hooper stats verified in game; Hops raises your block jump, Accuracy widens the green zone more.
-- BRIEF-league.md refreshed; new BRIEF-accounts.md (Supabase accounts, save fixes first, road to online play).
+`main` (live) has sessions 1 to 6d. Branch `session7` adds:
+- **Hooper height and weight** on EDIT HOOPER (5'6" to 7'0", 150 to 300 lb) with trade-offs, a SIZE box and a body
+  drawn to match. Bench: no build is clearly best.
+- **Accounts** (Supabase): ACCOUNT button on the main menu; create account (email, username, password), sign in,
+  forgot / change password, sign out, delete account; the save syncs to the account; guest progress is added on
+  sign-in. **Not yet tried against the real database**: David has to run `supabase/setup.sql` first.
+- **Career League part 1**: a third card on the Campaign screen (after winning the NBA Finals). Pre-season offers,
+  12 games, standings, simulated games, playoffs, rings, rewards.
+- **BRIEF-online.md**: the plan for online 1-on-1 with friends.
+Smoke test passes (every mode, court, level, minigame, a whole league season to a ring; fit check at 5 sizes
+including the ACCOUNT pop-up and the league hub).
 
 ## Next
-- David checks 6b on the iPad: the code keyboard, the menu, the DAILY pop-up.
-- 6c: fluid controls, ragdoll only for ankle breakers and punches; rebuild The Cage.
-- First outside playtest (still not done).
+1. David: run the Supabase setup (`supabase/README.md`, about 5 minutes), then make the first real account
+   (on the live site after merging, or at http://localhost:8791/?mute), and try sign in on the iPad.
+2. David checks session 7 and signs it off (then merge and push).
+3. Career League part 2 (All-Star Weekend, awards, story scenes, trophy room), or the first step of
+   BRIEF-online.md (two players on one device). David picks.
+4. Still waiting: the iPad check of 6b, the first outside playtest.
 
 ## Open with David (guesses until confirmed)
-- Is the new difficulty right in his hands? The bench bot is a guess at a good kid; tune DIFF in js/core.js.
-- The questions at the end of BRIEF-league.md and BRIEF-accounts.md (recommend Step 0 save fixes next).
-1. Daily numbers: reward ladder (100, 150, Street Pack, 250, Shoebox, 400, All-Star Pack) and challenge pay
-   (75 / 100 / 150). A missed day doesn't reset the ladder (my guess).
-2. Which other ideas from BRIEF-ideas.md and BRIEF-gameplay.md to build; two players on one device.
-3. Carried over: punch penalty, upgrade, shoebox and shoe prices, Gametime purple vs Epic, shoe art and
-   trophy as first passes, minigame rewards, no buzzer replay.
-4. New shoes, animations and their rarities are my picks; Scorpion dunk's heel kick is milder than I wanted
-   (the legs can only reach so far). The Griddy replaced Push-Ups.
-5. The 3-point contest bot scores 0 in the smoke test (the bot, not the game, as far as I can tell).
+1. Height/weight effects and their sizes are my guesses (js/hooper.js `sizeFx`). Does 7'0" feel right in a game?
+2. Accounts: email confirmation on; signing out wipes the device (keeps today's daily); two devices: newest cloud
+   save wins. Coins from a code used in both saves pay once.
+3. League numbers: rewards, difficulty steps, +1.5 a season for the best ten, 90 to 99 recommended rating.
+4. BRIEF-online.md questions: court for online games, coins for online games, where challenges can pop up, emotes.
+5. Carried over: difficulty in his hands, daily numbers, which ideas from BRIEF-ideas.md next, punch penalty and
+   prices, Scorpion dunk, the 3-point contest bot scoring 0 in the smoke test.

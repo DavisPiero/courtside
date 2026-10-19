@@ -1,7 +1,7 @@
 # Brief: accounts with Supabase (and the road to online play)
 
-Status (2026-10-19, session 6d): a brief for David. Nothing here is built. Online accounts are on CLAUDE.md's
-"out of scope" list until David says go.
+Status (2026-10-19, session 7): David chose email + username + password (no parent emails, no magic links).
+Step 1 is built (js/account.js, supabase/setup.sql). Step 0 and Step 2 are not. Online play: BRIEF-online.md.
 
 ## The real problem first: why players lose progress
 Your save lives in the browser's storage (`localStorage`), on one device, in one browser. It disappears when:

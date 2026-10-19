@@ -14,6 +14,8 @@ function openHero(first) {
   };
   draw();
   drawUpgrades();
+  drawSize();
+  document.querySelectorAll("#hero [data-sz]").forEach((b) => (b.onclick = () => (sizeStep(b.dataset.sz, +b.dataset.d), sfx("click"))));
   $("bHeroX").onclick = () => (first ? showPlay() : openCamp());
   $("bHeroOk").onclick = () => {
     SAVE.name = ($("heroName").value || "ROOKIE").toUpperCase().replace(/[^A-Z0-9 .'-]/g, "").trim().slice(0, 12) || "ROOKIE";
@@ -27,7 +29,7 @@ function heroPreview() {
   const nm = ($("heroName").value || "ROOKIE").toUpperCase();
   const T0 = { ...crewTeam() };
   if (!CUI.heroP) CUI.heroP = portraitPlayer(0, 0, 9, -1);
-  Object.assign(CUI.heroP, { team: T0, sk: SK[SAVE.skin], look: 91, pos: "SG", ht: 76, hair: SAVE.hair, name: nm });
+  Object.assign(CUI.heroP, { team: T0, sk: SK[SAVE.skin], look: 91, pos: "SG", ht: hooper().ht, wt: hooper().wt, hair: SAVE.hair, name: nm });
   CUI.heroP.port.t = T;
   CUI.heroP.port.ball = [0.95, -0.6, 0.55 + Math.abs(Math.sin(T * 5.5)) * 2.6];
   renderModel($("heroCv"), CUI.heroP, 0.75);
@@ -53,6 +55,12 @@ function openCamp() {
     }
     pickCamp(cid);
   };
+  // The Career League opens once you've won the NBA Finals.
+  const lgo = leagueOpen(),
+    L = lg();
+  $("cpLeague").classList.toggle("lock", !lgo);
+  $("cpLeagueSub").textContent = !lgo ? "🔒 WIN THE NBA FINALS" : L ? `SEASON ${L.season}${L.rings ? ` · ${L.rings} RING${L.rings > 1 ? "S" : ""}` : ""}` : "NEW!";
+  $("cpLeague").onclick = () => lgo && openLeague();
   $("cpStreet").onclick = () => go("street");
   $("cpNba").onclick = () => (!open ? null : SAVE.nba.team ? go("nba") : openSign(() => go("nba")));
   $("bCpX").onclick = () => showPlay();
@@ -173,7 +181,7 @@ function startCamp(ci, gi) {
   Object.assign(OPT, { court: gm.court, mode: CUI.cid === "nba" ? "clean" : gm.mode, diff: gm.diff });
   G.rules = { ...gm.rules };
   G.camp = { cid: CUI.cid, ci, gi };
-  G.mg = null;
+  G.mg = G.league = null;
   setTeamObjs(CUI.cid === "nba" ? nbaTeam() : crewTeam(), gm.opp());
   start(0);
 }
@@ -182,7 +190,7 @@ const QUICK_RULES = { nq: 4, qlen: 30 };
 const QUICK_BONUS = 125; // every finished Quick Play game pays this, win or lose
 function startQuick(pr) {
   G.rules = { ...RULES_STD, ...QUICK_RULES };
-  G.camp = G.mg = null;
+  G.camp = G.mg = G.league = null;
   setTeamObjs(LT()[SEL.a], LT()[SEL.b]);
   start(pr);
 }
@@ -213,14 +221,16 @@ function showResults() {
       SAVE.stars[gm.id] = n;
     }
   }
-  if (!camp) extra.push(["Game finished", QUICK_BONUS]);
+  const lgm = G.league;
+  if (lgm) extra.push(...lgm.extra);
+  else if (!camp) extra.push(["Game finished", QUICK_BONUS]);
   // Punches a "drop N players" goal needs are free: two thrown for each drop asked for.
   const dropGoal = gm && gm.goals.find((gl) => gl.k === "drops");
   const pay = payout(won, extra, dropGoal ? dropGoal.n * 2 : 0);
   // daily challenges are paid on top (punches don't cut them)
   for (const r of dailyEvent({ mini: "", won, margin: G.home - G.away, st: G.st, court: OPT.court, diff: OPT.diff, score: G.home })) pay.rows.push(r), (pay.total += r[1]);
   $("res").classList.toggle("won", won);
-  $("resTitle").textContent = won ? (camp && gm.outro && camp.gi === 5 ? "BOSS DOWN!" : "WIN!") : G.home === G.away ? "TIE" : "LOSS";
+  $("resTitle").textContent = lgm && lgm.ring ? "CHAMPIONS!" : won ? (camp && gm.outro && camp.gi === 5 ? "BOSS DOWN!" : "WIN!") : G.home === G.away ? "TIE" : "LOSS";
   $("resScore").textContent = `${TM[0].c} ${G.home} – ${G.away} ${TM[1].c}`;
   $("resOutro").innerHTML = ""; // the story lines played as a scene before this screen
   $("resGoals").innerHTML =
@@ -239,6 +249,10 @@ function showResults() {
     if (won && nextG) acts.push(["NEXT GAME", acts.length ? "" : "pri", () => openStory(...nextG)]);
     acts.push(["RETRY", won ? "" : "pri", () => openStory(camp.ci, camp.gi, 1)]);
     acts.push(["CAMPAIGN", "", () => pickCamp(camp.cid)]);
+  } else if (lgm) {
+    if (lgm.ring) acts.push(["OPEN HALL OF FAME PACK", "pri", () => openPackScreen("hof")]);
+    acts.push(["SEASON", acts.length ? "" : "pri", openLeague]);
+    acts.push(["MENU", "", () => show("menu")]);
   } else {
     acts.push(["PLAY AGAIN", "pri", () => openSel(0)]);
     acts.push(["MENU", "", () => show("menu")]);

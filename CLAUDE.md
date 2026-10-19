@@ -24,19 +24,24 @@ where we are, HANDOFF.md for how the last session ended.
   `./tools/smoke.sh`
 - Difficulty bench (a bot that plays like a good kid against each level; prints the average margin):
   `./tools/bench.sh [games per level]`, add `v` for a per-game breakdown. Run it after any gameplay change.
+  `SIZE=84,300 ./tools/bench.sh 10` plays the bot as a hooper of that height (in) and weight (lb).
 - Sound: `M` mutes effects. Run it muted when testing.
 
 ## Code map
 - `js/teams.js` all 30 teams, rosters and player ratings (edit freely)
 - `js/hof.js` Hall of Fame league: each franchise's all-time top three (edit freely)
 - `js/settings.js` the settings menu's options and saving them
-- `js/save.js` your save: Court Coins, packs, campaign stars (browser storage only)
+- `js/save.js` your save: Court Coins, packs, campaign stars (on the device; also in your account when signed in)
 - `js/anim.js` the animation system: keyframe clips for every move, blending, smoothing
 - `js/packs.js` collectable animations (rarity, names), packs, Player Packs, Daily Shop (prices, odds), selling
 - `js/shoes.js` the 33 shoes, Shoeboxes, the shoe in the Daily Shop, drawing a pixel shoe
-- `js/hooper.js` your hooper's 8 stats, upgrade prices, recommended ratings, the upgrade panel
+- `js/hooper.js` your hooper's 8 stats, height and weight, upgrade prices, recommended ratings, the upgrade panel
 - `js/campaign.js` campaign chapters, games, every story line, goals; your crew; NBA career (teams, offers, salary)
 - `js/campui.js` campaign, hooper, story card, results, team choice screens; daily payday
+- `js/league.js` Career League: seasons, schedule, simulated games, standings, playoffs, rewards
+- `js/leagueui.js` the Career League hub screen
+- `js/account.js` accounts (Supabase): sign in / up, the ACCOUNT pop-up, cloud save sync, combining saves
+- `supabase/` the database setup (`setup.sql`) and David's setup steps (`README.md`). Never put the secret key in the game.
 - `js/story.js` story scenes (characters talking) and in-game chatter
 - `js/daily.js` daily reward ladder and three daily challenges (pool, rewards), the DAILY pop-up
 - `js/shop.js` Shop (Daily Shop, Packs, Player Packs, Shoeboxes, Codes), pack opening and unboxing
@@ -62,4 +67,4 @@ where we are, HANDOFF.md for how the last session ended.
   Animation Lab at ¼ speed from front, side and back before calling them done.
 
 ## Out of scope (unless David asks)
-Online accounts (brief only, not until David asks), online play, fouls/free throws, substitutions, seasons, saving progress.
+Online play (BRIEF-online.md only), chat, fouls/free throws, substitutions, franchise management (trades, drafts).

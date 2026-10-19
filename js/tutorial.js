@@ -40,7 +40,7 @@ function openTutorial() {
   const you = SAVE.name ? crewTeam() : NBA("OKC");
   Object.assign(OPT, { mode: "clean", court: "arena", diff: 0 });
   G.rules = { ...RULES_STD };
-  G.camp = G.mg = null;
+  G.camp = G.mg = G.league = null;
   setTeamObjs(you, NBA("SAS"));
   start(1);
   G.tip = null;

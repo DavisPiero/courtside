@@ -23,7 +23,12 @@ way; coming back from any of them lands on these buttons.
 ## Campaigns
 Create your hooper (name, skin, hair), then choose your road. **Upgrade your hooper** on EDIT HOOPER: eight stats
 (Speed, Accuracy, Range, Finishing, Handling, Defence, Hops, Stamina), +2 an upgrade, prices rising from 50 CC at
-50 to about 500 near 99. Your rating is the average. New hoopers start at 50; anyone already in the NBA starts at
+50 to about 500 near 99. Your rating is the average. **Height and weight** are free to change on the same screen:
+5'6" to 7'0" (default 6'4") and 150 to 300 lb (default 200). Size is a trade-off, not an upgrade, so it doesn't
+change your rating: taller means better reach (blocks, contests, steal reach, shooting over people) and dunking but
+less speed and handling; heavier means stronger (wins bumps, finishes through contact, up sooner after a knockdown)
+but slower, lower jumps and less stamina. A SIZE box under the hooper shows the build's ups and downs as green and
+red arrows. The body is drawn taller or broader to match. Measured with the bench: no build is clearly best. New hoopers start at 50; anyone already in the NBA starts at
 75 (NBA entry); a hooper part-way through the Street campaign starts 3 under the next game's recommended rating.
 Every campaign game shows a recommended rating (Street 50 to 74, NBA 75 to 90).
 - **STREET, "King of the Courts"**: outdoor courts (Street, The Cage, Rooftop, Beach), Mayhem games allowed. You're the new kid on the block;
@@ -52,6 +57,36 @@ chapter's ending. During campaign games your crew, Coach Ray, the announcer and 
 bubble under the scoreboard (dunks, ankle breakers, comebacks, half time, close finishes).
 Beating a chapter's boss for the first time wins a free All-Star Pack (open it from the results, or later from
 the Shop's Packs tab). Campaign progress was reset once for the new story (2026-10-17); coins and animations kept.
+
+## Career League
+Opens once you've won the NBA Finals: a third card on the Campaign screen. Season after season with your hooper
+and your NBA team's best two (the same team your contract pays from).
+- **Pre-season:** stay with your team or take one of three offers (the best ten teams after a good season, the
+  middle ten after missing the playoffs); moving pays the 1250 CC signing bonus.
+- **Season:** 12 games, four 30-second quarters, Arena, professional rules. One is a rivalry game against Zeke
+  Knox, who signs with one of the best ten. Standings for all 30 teams; every other game is simulated from team
+  ratings. All-Star difficulty; Hall of Famer against the best ten from season 2, against last season's champion
+  and in the Finals, and against everyone while you are the defending champion. The best ten teams get 1.5
+  rating points better each season (up to 8). Recommended rating 90, +2 a season up to 99.
+- **Playoffs:** the top 8 (1v8, 4v5, 2v7, 3v6), best of 3, the Finals best of 5. Other series are played out at
+  once. Missing out or losing ends the season and the rest is simulated to crown a champion.
+- **Rewards:** +50 a league win (on top of the usual coins), 500 for making the playoffs, 750 a series won, a ring
+  pays 2000 more plus a free Hall of Fame Pack. Rings are counted; past seasons are listed in the pre-season.
+- **The hub:** next game (opponent, their best two, difficulty) and PLAY, then STANDINGS (a playoff line under 8th),
+  SCHEDULE (results) and PLAYOFFS (the bracket). Part 2 (not built): All-Star Weekend, awards, story scenes,
+  trophy room.
+
+## Accounts
+An ACCOUNT button on the main menu (it shows your username when you're signed in). Supabase: email, username and
+password, no parent emails. Create an account (email, a unique username of 3 to 16 letters, numbers or _, a
+password of 8+ with a letter and a number; then confirm by email), sign in with email and password, forgot password
+(an emailed link), change password, sign out, delete account (press twice).
+- The game still saves on the device first, so it plays offline; when signed in, the save goes to your account a
+  few seconds after each change. Another device's newer save wins when you open the game.
+- Signing in with progress on the device adds it to the account: coins added together, animations, shoes and
+  codes combined, the best stars, scores and hooper stats kept; a code used in both saves pays once.
+- Signing out clears the device back to a fresh save (keeping today's daily so it can't be claimed twice).
+- Each player can only read and write their own save (row-level security, `supabase/setup.sql`).
 
 ## Daily
 A ★ DAILY button next to your coins on the main menu (a red dot while today's reward is waiting). It opens by
@@ -194,5 +229,5 @@ with every option and what it means.
 - No music for now (removed 2026-10-17). Sound effects only.
 
 ## Not building
-Fouls, free throws, out of bounds, substitutions, seasons/franchise, online play or accounts (for
-now), real-money purchases (ever), more than 3v3.
+Fouls, free throws, out of bounds, substitutions, franchise management (trades, drafts, ageing), online play
+(for now; see BRIEF-online.md), chat between players (ever), real-money purchases (ever), more than 3v3.
