@@ -19,7 +19,8 @@ where we are, HANDOFF.md for how the last session ended.
   http://localhost:8791/?mute (the preview config in `.claude/launch.json` serves it).
   Always test with `?mute` so no sound plays. `&device=pc` or `&device=touch` skips the
   loading and device screens.
-- Smoke test (loads the game headless, plays every mode/court/difficulty and each minigame, reports scores,
+- Test another date for limited events: add `&date=2026-11-01` to the URL.
+- Smoke test (loads the game headless, plays every mode/court/difficulty and each minigame and the Halloween quests, reports scores,
   then opens every menu screen at iPad and phone sizes and fails if a button is off screen):
   `./tools/smoke.sh`
 - Difficulty bench (a bot that plays like a good kid against each level; prints the average margin):
@@ -40,7 +41,9 @@ where we are, HANDOFF.md for how the last session ended.
 - `js/campui.js` campaign, hooper, story card, results, team choice screens; daily payday
 - `js/league.js` Career League: seasons, schedule, simulated games, standings, playoffs, rewards
 - `js/leagueui.js` the Career League hub screen
-- `js/account.js` accounts (Supabase): sign in / up, the ACCOUNT pop-up, cloud save sync, combining saves
+- `js/account.js` accounts (Supabase): sign in / up, the gear's ACCOUNT SETTINGS pop-up, delete check, cloud save sync, combining saves
+- `js/profile.js` the account page: pixel profile pictures, titles (Developer for King), showcase, lifetime totals
+- `js/event.js` limited events: Halloween 2026 dates, quests, rewards, the menu banner and quest pop-up
 - `supabase/` the database setup (`setup.sql`) and David's setup steps (`README.md`). Never put the secret key in the game.
 - `js/story.js` story scenes (characters talking) and in-game chatter
 - `js/daily.js` daily reward ladder and three daily challenges (pool, rewards), the DAILY pop-up
@@ -49,13 +52,14 @@ where we are, HANDOFF.md for how the last session ended.
 - `js/core.js` helpers, options and difficulty, global state, screen sizing
 - `js/projection.js` 3D projection and drawing primitives
 - `js/arena.js` arena and street court (crowd, fences, floors, skyline)
-- `js/courts.js` the court list (colours, scenery) and the Rooftop, Beach and The Cage courts
+- `js/courts.js` the court list (colours, scenery) and the Rooftop, Beach, The Cage and Haunted Hollow (limited) courts
 - `js/players.js` player models (drawing; poses come from anim.js), ball
 - `js/render.js` hoops, per-frame render, post effects
 - `js/camera.js` cameras and cutscene cameras
 - `js/gameplay.js` rules, moves, AI, input
 - `js/loop.js` fixed-step simulation, HUD
 - `js/showtime.js` On Fire, alley-oops, buzzer beaters, the win celebration and trophy
+- `js/fx.js` particles for rare moves (glow by rarity, Witching Hour bats, Fire Breather, Supernova)
 - `js/minigames.js` 3-point contest, dunk contest, 1-on-1
 - `js/tutorial.js` the tutorial (court steps, then cards)
 - `js/audio.js` sound effects (no music)

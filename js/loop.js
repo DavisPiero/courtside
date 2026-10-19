@@ -83,16 +83,24 @@ function step(dt) {
 }
 // Particles, hype, rim wobble, toasts. Runs every step, cutscenes included.
 function fxStep(dt) {
+  moveFx(dt); // rare moves glow (js/fx.js)
   for (let i = G.fx.length - 1; i >= 0; i--) {
     const s = G.fx[i];
     s.l -= dt;
     s.x += s.vx * dt;
     s.y += s.vy * dt;
     s.z += s.vz * dt;
-    // confetti floats down, flames rise, everything else falls
-    s.vz -= (s.cf ? 1.2 : s.up ? -4 : 30) * dt;
+    // confetti floats down, flames rise, everything else falls; gv: a particle's own gravity (js/fx.js), dr: drag
+    s.vz -= (s.gv !== undefined ? s.gv : s.cf ? 1.2 : s.up ? -4 : 30) * dt;
+    if (s.dr) {
+      const k = Math.pow(s.dr, dt);
+      s.vx *= k;
+      s.vy *= k;
+      s.vz *= k;
+    }
     if (s.b && s.z < 0 && G.stain.length < 160) G.stain.push([s.x, s.y, Math.random() < 0.5 ? 1 : 2]);
-    if (s.l <= 0 || s.z < 0) G.fx.splice(i, 1);
+    if (s.l <= 0 || (s.z < 0 && s.gv === undefined)) G.fx.splice(i, 1);
+    else if (s.z < 0) s.z = 0;
   }
   G.hype *= Math.pow(0.6, dt);
   G.rim[0] = Math.max(0, G.rim[0] - dt * 0.9);

@@ -1,7 +1,7 @@
 "use strict";
 // Campaign screens: create your hooper, chapter map, story card, results (also used after Quick Play).
 const CUI = { cid: "street", ch: 0, ci: 0, gi: 0, heroP: null };
-SCREENS.push("hero", "campPick", "camp", "sign", "story", "res", "inv", "shop", "open", "lab");
+SCREENS.push("hero", "campPick", "camp", "sign", "story", "res", "inv", "shop", "open", "lab", "prof");
 
 // ---------- your hooper: name, skin tone, hair
 function openHero(first) {
@@ -228,13 +228,19 @@ function showResults() {
   const dropGoal = gm && gm.goals.find((gl) => gl.k === "drops");
   const pay = payout(won, extra, dropGoal ? dropGoal.n * 2 : 0);
   // daily challenges are paid on top (punches don't cut them)
-  for (const r of dailyEvent({ mini: "", won, margin: G.home - G.away, st: G.st, court: OPT.court, diff: OPT.diff, score: G.home })) pay.rows.push(r), (pay.total += r[1]);
+  const ev = { mini: "", won, margin: G.home - G.away, st: G.st, court: OPT.court, diff: OPT.diff, score: G.home };
+  lifeCount(ev);
+  for (const r of dailyEvent(ev)) pay.rows.push(r), (pay.total += r[1]);
+  // Halloween quests: Quick Play on Haunted Hollow only (js/event.js)
+  const evq = camp || lgm ? { rows: [], got: [] } : evGame(ev);
+  for (const r of evq.rows) pay.rows.push(r), (pay.total += r[1]);
   $("res").classList.toggle("won", won);
   $("resTitle").textContent = lgm && lgm.ring ? "CHAMPIONS!" : won ? (camp && gm.outro && camp.gi === 5 ? "BOSS DOWN!" : "WIN!") : G.home === G.away ? "TIE" : "LOSS";
   $("resScore").textContent = `${TM[0].c} ${G.home} – ${G.away} ${TM[1].c}`;
   $("resOutro").innerHTML = ""; // the story lines played as a scene before this screen
   $("resGoals").innerHTML =
     (unlocked ? `<div class="meta res-unlock r-epic">YOU WON A FREE ALL-STAR PACK!</div>` : "") +
+    evq.got.map((t) => `<div class="meta res-unlock r-limited">${t}</div>`).join("") +
     (gm ? gm.goals.map((gl, i) => `<div class="${won && met[i] ? "ok" : ""}">${goalText(gl)}</div>`).join("") : "");
   $("resPay").innerHTML =
     pay.rows.map(([l, v]) => `<div class="${v < 0 ? "neg" : ""}">${l}<b>${v < 0 ? "−" + -v : "+" + v}</b></div>`).join("") + `<div class="tot">COURT COINS<b>+${pay.total} CC</b></div>`;

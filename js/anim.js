@@ -238,6 +238,18 @@ SHOTS["shot.sky"] = {
     [1, { aR: [0.85, -0.18, 5.0], aL: [0.4, 0.5, 3.7], fL: [0.1, 0.45, 0.3], fR: [-0.1, -0.45, 0.2] }],
   ],
 };
+// Heaven's Gate (Godlike): rise higher than the Skywalker, knees tucked, both arms up like you're opening a
+// gate in the sky, and release from right at the top.
+SHOTS["shot.heavens"] = {
+  jump: [0.24, 20],
+  keys: [
+    [0, { hz: 2.4, lean: 0.45, aR: [0.6, -0.3, 1.1], aL: [0.6, 0.25, 1.2] }],
+    [0.2, { hz: 1.9, lean: 0.45, aR: [0.5, -0.26, 1.8], aL: [0.5, 0.18, 1.8], fL: [0.35, 0.75, 0], fR: [-0.15, -0.75, 0] }],
+    [0.45, { hz: 3.35, lean: -0.1, aR: [0.1, -0.5, 4.5], aL: [0.1, 0.9, 4.3], fL: [0.5, 0.4, 1.5], fR: [0.4, -0.4, 1.3] }],
+    [0.72, { hz: 3.35, lean: -0.15, aR: [0.65, -0.2, 5.3], aL: [0.1, 1.2, 4.6], fL: [0.45, 0.4, 1.4], fR: [0.35, -0.4, 1.2] }],
+    [1, { aR: [0.85, -0.18, 5.1], aL: [0.2, 1.3, 4.4], fL: [0.1, 0.45, 0.4], fR: [-0.1, -0.45, 0.3] }],
+  ],
+};
 // Session 6b shots: Hop Into It hops forward, the Slingshot loads behind the head, the Leg Kick kicks out wide.
 SHOTS["shot.hop"] = {
   jump: [0.34, 9.5],
@@ -402,6 +414,12 @@ const MOVE_POSES = {
     [0.5, { hz: 2.85, lean: 0.1, twist: 0.2, aL: [0.2, 1.1, 1.6] }],
     [1, { hz: 2.7, lean: 0.4, twist: -0.1 }],
   ],
+  // Phantom (Godlike): two full spins, low and fast, so quick you leave a ghost of yourself behind.
+  phantom: [
+    [0, { hz: 2.55, lean: 0.4, aL: [0.8, 1.4, 1.5] }],
+    [0.5, { hz: 2.3, lean: 0.35, aL: [0.4, 1.7, 2.1], fL: [0.45, 0.9, 0], fR: [-0.35, -0.9, 0] }],
+    [1, { hz: 2.7, lean: 0.4 }],
+  ],
   ai: [
     [0, { hz: 2.75, lean: 0.35 }],
     [0.3, { hz: 3.2, lean: -0.05, aL: [0.4, 1.0, 1.4] }],
@@ -513,9 +531,24 @@ CELS["cel.griddy"] = (t) => {
     aL: gog ? [0.75, 0.32, 3.3] : [-0.7 * s, 1.0, 1.0 + Math.max(0, -s) * 0.9], aR: gog ? [0.75, -0.32, 3.3] : [0.7 * s, -1.0, 1.0 + Math.max(0, s) * 0.9],
     fL: [0.25 + Math.max(0, s) * 0.85, 0.5, Math.max(0, s) * 0.35], fR: [0.25 + Math.max(0, -s) * 0.85, -0.5, Math.max(0, -s) * 0.35] }]];
 };
+// Supernova (Celestial): float up, curl into a ball of light, then burst open with arms and legs flung wide.
+CELS["cel.supernova"] = (t) => {
+  const u = (t * 0.7) % 1,
+    k = u < 0.3 ? 0 : ease(cl((u - 0.3) / 0.12, 0, 1)) * (u > 0.85 ? 1 - (u - 0.85) / 0.15 : 1);
+  return [[0, { hz: lp(2.2, 3.3, k), lean: lp(0.35, -0.2, k), yaw: (t * 0.6) % 6.2832,
+    aL: lerpA([0.75, 0.25, 2.3], [0.1, 2.2, 3.7], k), aR: lerpA([0.75, -0.25, 2.3], [0.1, -2.2, 3.7], k),
+    fL: lerpA([0.7, 0.35, 1.2], [0.1, 0.9, 0], k), fR: lerpA([0.7, -0.35, 1.0], [0.1, -0.9, 0], k) }]];
+};
+// Fire Breather (Mythic): lean back, cup your hands at your mouth, then lean in and breathe fire (js/fx.js).
+CELS["cel.fire"] = (t) => {
+  const u = (t * 0.8) % 1,
+    k = u < 0.3 ? ease(u / 0.3) * 0 : ease(cl((u - 0.3) / 0.1, 0, 1));
+  return [[0, { hz: 3.15, lean: lp(-0.35, 0.35, k), pitch: lp(-0.15, 0.1, k), aL: [0.6, 0.14, 2.95], aR: [0.6, -0.14, 2.95], fL: [lp(0.1, 0.6, k), 0.6, 0], fR: [lp(-0.1, -0.4, k), -0.6, 0] }]];
+};
 // The jump that goes with some celebrations (backflip).
 function celHop(style, t) {
   if (style === "cel.levitate") return 2.6 + Math.sin(t * 2) * 0.35;
+  if (style === "cel.supernova") return 3.4 + Math.sin(t * 2.2) * 0.4;
   if (style !== "cel.backflip") return 0;
   const u = (t * 0.6) % 1;
   return u > 0.15 && u < 0.7 ? Math.sin(((u - 0.15) / 0.55) * Math.PI) * 3.2 : 0;
@@ -529,11 +562,12 @@ const ACTIONS = {
     [0.35, { lean: 0.35, aL: [2.0, 0.25, 2.05], aR: [2.0, -0.25, 2.05], fL: [0.7, 0.5, 0] }],
     [1, { lean: 0.15, aL: [1.4, 0.4, 1.8], aR: [1.4, -0.4, 1.8] }],
   ],
-  // Steal swipe: drop and rake low to high.
+  // Steal swipe: just the arm rakes across, low to high, with a little shoulder turn. No crouch and no planted
+  // foot, so the legs keep running and you keep your momentum.
   swipe: [
-    [0, { hz: 2.7, lean: 0.4, aR: [1.4, -0.9, 0.6] }],
-    [0.5, { hz: 2.5, lean: 0.6, twist: 0.4, aR: [2.3, 0.2, 0.9], fR: [0.8, -0.6, 0] }],
-    [1, { hz: 2.8, lean: 0.35, aR: [1.4, -0.6, 1.9] }],
+    [0, { twist: -0.15, aR: [1.3, -0.95, 0.9] }],
+    [0.5, { twist: 0.35, aR: [2.4, 0.15, 1.15] }],
+    [1, { twist: 0.1, aR: [1.4, -0.6, 1.9] }],
   ],
   // Punch: load (shoulder back), drive the hips and throw, then recoil to guard.
   punch: [
@@ -578,6 +612,9 @@ const RIM_FX = {
   "dunk.double360": { two: 1, spin: 2, high: 1.3, slow: 1.15 },
   "dunk.moon": { glide: 24, spin: 1, walk: 1, high: 1.5, slow: 1.6 },
   "dunk.liftoff": { two: 1, spin: 1, trail: 1, high: 1.7, slow: 1.4 },
+  "dunk.witch": { witch: 1, high: 1.65, slow: 1.45 },
+  "dunk.comet": { glide: 20, spin: 1, high: 1.7, slow: 1.6 },
+  "layup.angel": { glide: 9, high: 1.5, slow: 1.4 },
   "dunk.superman": { two: 1, glide: 7, high: 1.15 },
   "dunk.scorpion": { two: 1, high: 1.3, slow: 1.15 },
   "layup.hopstep": { slow: 1.1 },
@@ -654,6 +691,19 @@ function rimHand(style, k, z) {
     case "dunk.liftoff":
       // Both hands overhead like a rocket nose, then down through the rim.
       return k < 0.75 ? lerpA([0.5, 0, 6.5], [0.3, 0, 9.6], ease(k / 0.75)) : lerpA([0.3, 0, 9.6], [1.45, 0, 10.4 - z], ease((k - 0.75) / 0.25));
+    case "dunk.witch":
+      // Witching Hour: the ball swirls round over your head like a cauldron spoon, then is hammered down.
+      if (k < 0.72) {
+        const a = (k / 0.72) * Math.PI * 3;
+        return [0.2 + Math.cos(a) * 0.9, Math.sin(a) * 0.9, lp(6.2, 9.6, ease(k / 0.72))];
+      }
+      return lerpA([0.2 + Math.cos(Math.PI * 3) * 0.9, 0, 9.6], end, ease((k - 0.72) / 0.28));
+    case "dunk.comet":
+      // Comet (Celestial): the ball held straight up like a torch the whole flight, then brought down hard.
+      return k < 0.72 ? lerpA([0.6, -0.4, 6.4], [0.25, -0.35, 9.6], ease(Math.min(1, k / 0.4))) : lerpA([0.25, -0.35, 9.6], end, ease((k - 0.72) / 0.28));
+    case "layup.angel":
+      // Angel Glide (Mythic): float in with the ball low at the hip, then reach all the way up and roll it in.
+      return k < 0.55 ? [0.6, -0.5, 5.0 + Math.sin(k * 6) * 0.15] : lerpA([0.6, -0.5, 5.0], [1.3, -0.3, 9.7 - z], ease((k - 0.55) / 0.45));
     case "dunk.cockback":
       // One arm cocked all the way back and down behind the body, then whipped over the top.
       return k < 0.65 ? lerpA([0.5, -0.6, 5.6], [-1.6, -0.5, 6.8], ease(k / 0.65)) : lerpA([-1.6, -0.5, 6.8], end, ease((k - 0.65) / 0.35));
@@ -701,6 +751,9 @@ function airLegs(style, k) {
     return { fL: [w * 0.9, 0.45, 0.9 + Math.max(0, w) * 0.7], fR: [-w * 0.9, -0.45, 0.9 + Math.max(0, -w) * 0.7] };
   }
   if (style === "dunk.liftoff") return { fL: [0.05, 0.3, 0.4], fR: [-0.05, -0.3, 0.35] }; // legs together, like a rocket
+  if (style === "dunk.comet") return { fL: [-1.25, 0.35, 1.0], fR: [-1.35, -0.35, 0.9] }; // legs streaming behind like a tail
+  if (style === "layup.angel") return { fL: [0.6, 0.4, 1.3], fR: [-0.6, -0.4, 0.9] };
+  if (style === "dunk.witch") return { fL: [0.75, 0.4, 1.7], fR: [-0.9, -0.4, 1.25] }; // riding a broomstick
   if (style === "dunk.honey") return { fL: [0.3, 0.45, 1.2], fR: [0.1, -0.45, 0.9] };
   if (style === "dunk.superman") return { fL: [-1.4, 0.35, 0.9], fR: [-1.45, -0.35, 0.85] }; // legs straight out behind
   if (style === "dunk.scorpion" && k < 0.72) return { fL: [-1.7, 0.35, 3.3], fR: [-1.6, -0.35, 3.1] }; // heels up behind the head

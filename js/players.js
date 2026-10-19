@@ -137,6 +137,7 @@ function ballLocal(p) {
       const w = (u - 0.2) / 0.8;
       return [lp(1.0, 1.1, w), h * 0.55 * (1 - Math.sin(w * Math.PI) * 0.6), 0.55 + Math.sin(w * Math.PI) * 7.6 * (1 - w * 0.3) + w * 1.6];
     }
+    if (m.k === "phantom") return [0.35, lp(h * 0.85, -h * 0.85, sm(cl((u - 0.3) / 0.4, 0, 1))), 2.4]; // switched hands between the spins
     return [0.35, h * 0.85, 2.5]; // spin and half spin: ball tucked at the hip while the body turns
   }
   return [0.9, h * 0.55, 0.55 + Math.abs(Math.sin(B.bph)) * 2.7];

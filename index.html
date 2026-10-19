@@ -61,7 +61,7 @@
 
 <!-- Main menu -->
 <div id="menu" class="scr">
-  <div class="mtop"><button class="btn accb" id="bAcc">ACCOUNT</button><button class="btn dailyb" id="bDaily">★ DAILY</button><div class="cc ccbal">0 CC</div></div>
+  <div class="mtop"><button class="btn accb" id="bAcc"><canvas id="accPic"></canvas><span id="accTxt">ACCOUNT</span></button><button class="btn dailyb" id="bDaily">★ DAILY</button><div class="cc ccbal">0 CC</div></div>
   <div class="payday" id="payday"></div>
   <!-- DAILY: today's reward and three challenges (js/daily.js) -->
   <div id="daily"><div class="pnl dlybox">
@@ -73,12 +73,15 @@
     <div class="dchs" id="dlyList"></div>
     <div class="act"><button class="btn" id="bDlyX">CLOSE</button></div>
   </div></div>
-  <!-- ACCOUNT: sign in, create an account, or your account (js/account.js) -->
-  <div id="acct"><div class="pnl accbox">
-    <h2>ACCOUNT</h2>
-    <div id="accBody"></div>
-    <p class="accmsg" id="accMsg" aria-live="polite"></p>
-    <div class="act"><button class="btn" id="bAccX">CLOSE</button></div>
+  <!-- Limited event banner and pop-up: Halloween quests (js/event.js) -->
+  <button class="evb" id="bEvent" hidden><canvas id="evbPic"></canvas><span><b>HALLOWEEN</b><i id="evbSub"></i></span></button>
+  <div id="event"><div class="pnl evbox">
+    <h2>HALLOWEEN <small id="evLeft"></small></h2>
+    <div class="evtrack" id="evTrack"></div>
+    <div class="evquest" id="evQuest"></div>
+    <div class="evprizes" id="evPrizes"></div>
+    <p class="evnote">Quests count in Quick Play games on the HAUNTED HOLLOW court, one quest a game.</p>
+    <div class="act"><button class="btn pri" id="bEvGo">PLAY ON HAUNTED HOLLOW</button><button class="btn" id="bEvX">CLOSE</button></div>
   </div></div>
   <div class="menu-l">
     <div class="brand">COURT<em>SIDE</em></div>
@@ -286,6 +289,44 @@
   </div>
 </div>
 
+<!-- ACCOUNT page: your picture, title, numbers and showcase (js/profile.js). The gear opens account settings. -->
+<div id="prof" class="scr dim">
+  <div class="pnl box profbox">
+    <div class="pcard" id="pCard">
+      <button class="ppic" id="bPPic" aria-label="Change your picture"><canvas id="pPic"></canvas><i>CHANGE</i></button>
+      <div class="pwho">
+        <div class="pname"><b id="pName"></b><button class="gear" id="bGear" aria-label="Account settings"><canvas id="gearCv"></canvas></button></div>
+        <button class="ptitle" id="bPTitle"></button>
+        <span class="pstat" id="pStat"></span>
+      </div>
+    </div>
+    <div class="pnums" id="pNums"></div>
+    <h3 class="phead">SHOWCASE <small>Tap a slot to show off a move or your kicks</small></h3>
+    <div class="pshow" id="pShow"></div>
+    <div class="act"><button class="btn pri" id="bProfX">BACK</button></div>
+  </div>
+</div>
+<!-- Choosers on the account page: a picture, a title, a showcase slot (js/profile.js) -->
+<div id="ppick" class="pop"><div class="pnl ppickbox">
+  <h2 id="ppT"></h2>
+  <div class="ppgrid" id="ppG"></div>
+  <div class="act"><button class="btn" id="bPpX">CLOSE</button></div>
+</div></div>
+<!-- ACCOUNT settings (the gear): sign in, create an account, change password, sign out, delete (js/account.js) -->
+<div id="acct" class="pop"><div class="pnl accbox">
+  <h2 id="accHead">ACCOUNT</h2>
+  <div id="accBody"></div>
+  <p class="accmsg" id="accMsg" aria-live="polite"></p>
+  <div class="act"><button class="btn" id="bAccX">CLOSE</button></div>
+</div></div>
+<!-- Deleting your account: are you sure? -->
+<div id="accDel" class="pop"><div class="pnl delbox">
+  <h2>DELETE YOUR ACCOUNT?</h2>
+  <p>This deletes your account and its cloud save <b>for good</b>. It can't be undone.</p>
+  <p class="accnote">Your progress on this device stays.</p>
+  <div class="act"><button class="btn pri" id="bDelNo">NO, KEEP IT</button><button class="btn bad" id="bDelYes">YES, DELETE</button></div>
+</div></div>
+
 <!-- Inventory: equip the animations you own -->
 <div id="inv" class="scr dim">
   <div class="pnl box inv nopin">
@@ -340,6 +381,7 @@
 <script src="js/gameplay.js"></script>
 <script src="js/loop.js"></script>
 <script src="js/showtime.js"></script>
+<script src="js/fx.js"></script>
 <script src="js/audio.js"></script>
 <script src="js/campaign.js"></script>
 <script src="js/hooper.js"></script>
@@ -352,6 +394,8 @@
 <script src="js/story.js"></script>
 <script src="js/shop.js"></script>
 <script src="js/daily.js"></script>
+<script src="js/profile.js"></script>
+<script src="js/event.js"></script>
 <script src="js/account.js"></script>
 <script src="js/touch.js"></script>
 <script src="js/main.js"></script>

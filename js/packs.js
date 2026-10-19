@@ -12,13 +12,14 @@ const RARITY = {
   legendary: { name: "LEGENDARY", col: "#ffb02e", refund: 250 },
   iconic: { name: "ICONIC", col: "#ff3d7f", refund: 300 }, // a famous player's signature: Player Packs and the Daily Shop only
   mythic: { name: "MYTHIC", col: "#ff2e4a", refund: 600 }, // very rare: top packs and the Daily Shop
-  godlike: { name: "GODLIKE", col: "#fff1a8", refund: 1500 }, // the rarest you can get by luck
-  gametime: { name: "GAMETIME", col: "#9d4dff", refund: 0 }, // one of a kind, from codes only (LAUNCHED, SNEAKERHEAD)
+  godlike: { name: "GODLIKE", col: "#fff1a8", refund: 1500 },
+  celestial: { name: "CELESTIAL", col: "#8af7ff", refund: 3000 }, // the rarest you can get by luck (session 8)
+  limited: { name: "LIMITED", col: "#9d4dff", refund: 0 }, // one of a kind, from codes (LAUNCHED, SNEAKERHEAD) and events (js/event.js)
 };
 // Rarities a random pack can roll, worst to best.
-const RARITIES = ["common", "rare", "epic", "legendary", "mythic", "godlike"];
+const RARITIES = ["common", "rare", "epic", "legendary", "mythic", "godlike", "celestial"];
 // Every rarity, worst to best (for sorting, the reveal build-up and selling).
-const RANK = ["starter", "common", "rare", "epic", "legendary", "iconic", "mythic", "godlike", "gametime"];
+const RANK = ["starter", "common", "rare", "epic", "legendary", "iconic", "mythic", "godlike", "celestial", "limited"];
 const A = (id, cat, name, rarity, desc, who) => ({ id, cat, name, rarity, desc, who });
 const ANIMS = [
   // Dunks
@@ -111,8 +112,19 @@ const ANIMS = [
   // GODLIKE: the rarest you can pull.
   A("dunk.moon", "dunk", "Moonwalk", "godlike", "Take off from way out, walk on the air, and spin it home."),
   A("cel.levitate", "cel", "Levitate", "godlike", "Float up off the floor, legs crossed, slowly turning."),
-  // GAMETIME: one of a kind. Only from the code LAUNCHED.
-  A("dunk.liftoff", "dunk", "Liftoff", "gametime", "Crouch low and blast off like a rocket, in a trail of sparks."),
+  // Session 8: rarer moves that glow (js/fx.js). Mythic leaves a glowing trail, Godlike wears a golden aura,
+  // Celestial throws stars and colour everywhere.
+  A("layup.angel", "layup", "Angel Glide", "mythic", "Float in from way out, hang there, and roll it in from the very top."),
+  A("cel.fire", "cel", "Fire Breather", "mythic", "Cup your hands, lean in, and breathe fire."),
+  A("shot.heavens", "shot", "Heaven's Gate", "godlike", "Rise higher than anyone ever has, arms open to the sky, and let it go from the top."),
+  A("dribble.phantom", "dribble", "Phantom", "godlike", "Two spins so fast you leave a ghost of yourself behind."),
+  // CELESTIAL: rarer than Godlike. Hall of Fame Packs (0.2%) and, very rarely, the Daily Shop.
+  A("dunk.comet", "dunk", "Comet", "celestial", "Take off from way out with the ball held up like a torch, spin through the stars, and bring it down."),
+  A("cel.supernova", "cel", "Supernova", "celestial", "Float up, curl into a ball of light, then burst open across the sky."),
+  // LIMITED: one of a kind. Liftoff only from the code LAUNCHED.
+  A("dunk.liftoff", "dunk", "Liftoff", "limited", "Crouch low and blast off like a rocket, in a trail of sparks."),
+  // LIMITED, Halloween 2026: the last Halloween quest's reward (js/event.js).
+  A("dunk.witch", "dunk", "Witching Hour", "limited", "Rise on a spiral of ghost-fire, stir the ball over your head, and slam it home in a burst of bats."),
   // ICONIC: famous players' signatures, from Player Packs and the Daily Shop.
   A("shot.mj", "shot", "Jordan Fadeaway", "iconic", "Turn, rise, fade, legs kicked out. Unguardable.", "JORDAN"),
   A("dunk.mj", "dunk", "Free Throw Line", "iconic", "Take off from way out and glide in, legs split.", "JORDAN"),
@@ -149,7 +161,7 @@ const SHOP = [
   { id: "street", name: "STREET PACK", price: 150, cards: 1, odds: { common: 70, rare: 25, epic: 5 }, min: null, col: "#5f6b86" },
   { id: "pro", name: "PRO PACK", price: 400, cards: 2, odds: { common: 45, rare: 38, epic: 14, legendary: 3 }, min: "rare", col: "#2f6fd6" },
   { id: "allstar", name: "ALL-STAR PACK", price: 900, cards: 3, odds: { common: 15, rare: 44, epic: 32, legendary: 8, mythic: 1 }, min: "epic", col: "#7d3ccf" },
-  { id: "hof", name: "HALL OF FAME PACK", price: 2000, cards: 3, odds: { common: 0, rare: 33, epic: 44, legendary: 19, mythic: 3.5, godlike: 0.5 }, min: "legendary", col: "#c98a12" },
+  { id: "hof", name: "HALL OF FAME PACK", price: 2000, cards: 3, odds: { common: 0, rare: 32.8, epic: 44, legendary: 19, mythic: 3.5, godlike: 0.5, celestial: 0.2 }, min: "legendary", col: "#c98a12" },
 ];
 
 const owns = (id) => ANIM[id] && (ANIM[id].rarity === "starter" || SAVE.owned.includes(id));
@@ -217,11 +229,11 @@ const PLAYER_PACKS = [
 ].map((p) => ({ ...p, price: 1200, cards: 2, odds: { common: 0, rare: 60, epic: 32, legendary: 8 } }));
 
 // ---------- Daily Shop: five single animations and one shoe, the same for everyone in the same hour, new every hour.
-const SINGLE_PRICE = { common: 120, rare: 300, epic: 700, legendary: 1400, iconic: 2000, mythic: 4000, godlike: 10000 };
-// Sell an animation back for a quarter of its shop price. Starters and Gametime can't be sold.
+const SINGLE_PRICE = { common: 120, rare: 300, epic: 700, legendary: 1400, iconic: 2000, mythic: 4000, godlike: 10000, celestial: 20000 };
+// Sell an animation back for a quarter of its shop price. Starters and Limited can't be sold.
 const sellPrice = (a) => (SINGLE_PRICE[a.rarity] ? Math.round(SINGLE_PRICE[a.rarity] / 4) : 0);
-// Slots: one big featured item (mostly Iconic or Legendary, sometimes Mythic, rarely Godlike), then Epic, two
-// Rares, a Common.
+// Slots: one big featured item (mostly Iconic or Legendary, sometimes Mythic, rarely Godlike, about one hour in
+// 40 Celestial), then Epic, two Rares, a Common.
 const DAILY_SLOTS = [["iconic", "iconic", "legendary", "legendary", "legendary", "mythic", "mythic", "godlike"], ["epic"], ["rare"], ["rare"], ["common"]];
 const dayKey = (d) => d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
 const hourKey = (d) => dayKey(d) * 100 + d.getHours();
@@ -237,8 +249,11 @@ function seeded(n) {
 function dailyItems(date) {
   const rnd = seeded(hourKey(date || new Date())),
     taken = new Set();
-  return DAILY_SLOTS.map((rs) => {
-    const r = rs[(rnd() * rs.length) | 0],
+  // The Celestial roll has its own seed, so adding it didn't change the rest of any hour's shop.
+  const cel = seeded(hourKey(date || new Date()) * 13 + 5)() < 0.025;
+  return DAILY_SLOTS.map((rs, i) => {
+    const r0 = rs[(rnd() * rs.length) | 0],
+      r = i === 0 && cel ? "celestial" : r0,
       pool = ANIMS.filter((a) => a.rarity === r && !taken.has(a.id)),
       a = pool[(rnd() * pool.length) | 0];
     taken.add(a.id);

@@ -47,8 +47,22 @@ const COURTS = {
     bg: cageBg,
     around: cageAround,
   },
+  // Limited: only while its event is on (js/event.js). Halloween 2026.
+  haunt: {
+    name: "HAUNTED HOLLOW",
+    tip: "LIMITED · Halloween. A court in a graveyard pumpkin patch under a full moon. Halloween quests count here.",
+    limited: "halloween26",
+    floor: [50, 40, 64],
+    out: [36, 44, 30],
+    line: "rgba(255,146,46,.92)",
+    fog: [74, 42, 96],
+    bg: hauntBg,
+    around: hauntAround,
+  },
 };
 const COURT_IDS = Object.keys(COURTS);
+// The courts you can pick right now: a limited court only while its event is on.
+const courtIds = () => COURT_IDS.filter((k) => !COURTS[k].limited || eventOn(COURTS[k].limited));
 const CT = () => COURTS[OPT.court] || COURTS.street;
 
 // A big flat area drawn in tiles, so parts behind the camera don't stop the rest from drawing.
@@ -280,4 +294,151 @@ function cageAround() {
     txt3("THE CAGE", [20, 63.8, 7.5], [1, 0, 0], [0, 0, -1], 4, "#ffffff", 0.9);
   }
   fence(18, "255,150,60");
+}
+
+// ---------- HAUNTED HOLLOW (limited, Halloween): night in a graveyard pumpkin patch. A huge full moon, dead trees,
+// gravestones, an iron fence with spikes, jack-o'-lanterns that flicker, bats, and low green fog.
+const HAUNT = { trees: [], stones: [], lanterns: [], bats: [] };
+(function () {
+  let sd = 31;
+  const r = () => ((sd = (sd * 16807) % 2147483647) / 2147483647);
+  for (let i = 0; i < 9; i++) HAUNT.trees.push([-40 + i * 22 + r() * 10, 74 + r() * 18, 16 + r() * 10, r() * 6]);
+  for (const y of [8, 34]) HAUNT.trees.push([-34 - r() * 6, y + r() * 8, 15 + r() * 6, r() * 6], [128 + r() * 6, y + r() * 8, 15 + r() * 6, r() * 6]);
+  // Gravestones beyond the far sideline and both ends: x, y, width, height, shape (0 round top, 1 cross, 2 slab).
+  for (let x = -12; x < 108; x += 7 + r() * 5) HAUNT.stones.push([x, 62 + r() * 6, 1.6 + r() * 0.8, 2.4 + r() * 1.6, (r() * 3) | 0]);
+  for (let y = 2; y < 50; y += 8 + r() * 6) HAUNT.stones.push([-16 - r() * 4, y, 1.6, 2.2 + r() * 1.4, (r() * 3) | 0], [110 + r() * 4, y, 1.6, 2.2 + r() * 1.4, (r() * 3) | 0]);
+  // Jack-o'-lanterns at the corners and along the far side.
+  for (const [x, y] of [[-9, -9], [103, -9], [-9, 59], [103, 59], [20, 61], [47, 61], [74, 61], [-11, 25], [105, 25]]) HAUNT.lanterns.push([x, y, 0.8 + r() * 0.5, r() * 9]);
+  for (let i = 0; i < 7; i++) HAUNT.bats.push([r() * 6.28, 30 + r() * 30, 0.6 + r() * 0.8, r() * 6.28]);
+})();
+function hauntBg() {
+  skyGround("#05030c", "#22103a", "#4c2350", "#16190f");
+  c.fillStyle = "rgba(255,255,255,.65)";
+  for (let i = 0; i < 70; i++) {
+    const q = P(V.x + Math.cos(i * 2.4) * 900, V.y + Math.sin(i * 2.4) * 900, 160 + ((i * 37) % 240));
+    if (q) c.fillRect(q[0] | 0, q[1] | 0, 1, 1);
+  }
+  // The full moon: a big pale halo, the disc, a few darker craters.
+  glow(47, 1600, 300, 150, "190,230,170", 0.12);
+  glow(47, 1600, 300, 80, "220,240,190", 0.2);
+  const m = P(47, 1600, 300);
+  if (m) {
+    const R = Math.max(4, 46 * m[3]);
+    c.fillStyle = "#f2f0d2";
+    c.beginPath();
+    c.arc(m[0], m[1], R, 0, 7);
+    c.fill();
+    c.fillStyle = "#d6d3b0";
+    for (const [dx, dy, k] of [[-0.3, -0.2, 0.22], [0.25, 0.15, 0.16], [0.05, 0.4, 0.1], [0.35, -0.35, 0.09]]) {
+      c.beginPath();
+      c.arc(m[0] + dx * R, m[1] + dy * R, k * R, 0, 7);
+      c.fill();
+    }
+    // Bats flapping across the moon.
+    c.fillStyle = "#0b0610";
+    for (const [a0, rad, sp, ph] of HAUNT.bats) {
+      const a = a0 + T * sp * 0.5,
+        bx = m[0] + Math.cos(a) * R * (rad / 30),
+        by = m[1] + Math.sin(a * 1.3) * R * 0.6,
+        w = Math.max(2, R * 0.09),
+        f = Math.sin(T * 14 + ph) * w * 0.6;
+      c.beginPath();
+      c.moveTo(bx - w, by - f);
+      c.lineTo(bx - w * 0.3, by);
+      c.lineTo(bx, by - w * 0.25);
+      c.lineTo(bx + w * 0.3, by);
+      c.lineTo(bx + w, by - f);
+      c.lineTo(bx, by + w * 0.3);
+      c.closePath();
+      c.fill();
+    }
+  }
+  // Dark grass with patches of dead leaves; dirt paths between the graves.
+  groundTiles(-60, -60, 156, 110, 12, (x, y) => ((x * 7 + y * 13) % 5 === 0 ? "#2a2416" : (x / 12 + y / 12) & 1 ? "#1d2614" : "#1a2312"));
+  for (const [x, y, h, ph] of HAUNT.trees) deadTree(x, y, h, ph);
+}
+// A bare, twisted tree: a trunk and branches that fork twice.
+function deadTree(x, y, h, ph) {
+  const col = "#120c10";
+  const branch = (a, len, ang, w, d) => {
+    const b = [a[0] + Math.cos(ang) * len * 0.35, a[1] + Math.sin(ang) * len * 0.2, a[2] + len];
+    seg(a, b, w, col);
+    if (d < 2) for (const s of [-0.7, 0.6]) branch(b, len * 0.6, ang + s + ph * 0.1, w * 0.6, d + 1);
+  };
+  const top = [x, y, h * 0.5];
+  seg([x, y, 0], top, 0.7, col);
+  branch(top, h * 0.32, ph, 0.45, 0);
+  branch(top, h * 0.28, ph + 2.6, 0.4, 0);
+}
+function hauntAround() {
+  // Gravestones, far ones first.
+  const stones = HAUNT.stones.map((g) => ({ g, d: dp(g[0], g[1], 0) })).sort((a, b) => b.d - a.d);
+  for (const { g } of stones) {
+    const [x, y, w, h, kind] = g;
+    if (kind === 1) {
+      seg([x, y, 0], [x, y, h + 0.6], 0.32, "#7d7a84");
+      seg([x - 0.7, y, h - 0.2], [x + 0.7, y, h - 0.2], 0.28, "#7d7a84");
+    } else {
+      box(x - w / 2, y - 0.3, w, 0.6, 0, h, kind ? "#5f5c66" : "#6e6b76");
+      if (!kind) {
+        const q = P(x, y - 0.3, h);
+        if (q) {
+          c.fillStyle = "#6e6b76";
+          c.beginPath();
+          c.arc(q[0], q[1], (w / 2) * q[3], Math.PI, 0);
+          c.fill();
+        }
+      }
+    }
+  }
+  // A low wrought-iron fence with spikes, skipping the sides between the camera and the play.
+  const sides = lowWall(-12, -12, 106, 62, 0.01, "rgba(0,0,0,0)");
+  for (const [a, e, show] of sides) {
+    if (!show) continue;
+    const L = hy(e[0] - a[0], e[1] - a[1]);
+    for (let s = 0; s <= L; s += 1.6) {
+      const k = s / L,
+        px = lp(a[0], e[0], k),
+        py = lp(a[1], e[1], k);
+      seg([px, py, 0], [px, py, 4.2], 0.1, "#1a1620");
+      seg([px, py, 4.2], [px, py, 4.7], 0.16, "#2a2430");
+    }
+    seg([a[0], a[1], 3.8], [e[0], e[1], 3.8], 0.12, "#241e2a");
+    seg([a[0], a[1], 0.6], [e[0], e[1], 0.6], 0.12, "#241e2a");
+  }
+  // Jack-o'-lanterns: an orange pumpkin with a flickering face, and the glow it throws.
+  for (const [x, y, sz, ph] of HAUNT.lanterns) {
+    const q = P(x, y, sz * 0.8);
+    if (!q) continue;
+    const R = Math.max(2, sz * q[3] * 1.1),
+      fl = 0.75 + Math.sin(T * 9 + ph) * 0.12 + Math.sin(T * 23 + ph * 2) * 0.08;
+    glow(x, y, sz, sz * 3.2, "255,120,20", 0.16 * fl);
+    c.fillStyle = "#d8661a";
+    c.beginPath();
+    c.ellipse(q[0], q[1], R * 1.2, R, 0, 0, 7);
+    c.fill();
+    c.fillStyle = "#a8460e";
+    c.fillRect((q[0] - R * 0.08) | 0, (q[1] - R) | 0, Math.max(1, R * 0.16) | 0, (R * 2) | 0);
+    c.fillStyle = "#3a6a1e";
+    c.fillRect((q[0] - R * 0.12) | 0, (q[1] - R * 1.35) | 0, Math.max(1, R * 0.24) | 0, Math.max(1, R * 0.4) | 0);
+    c.fillStyle = `rgba(255,${(200 * fl) | 0},60,${fl})`;
+    const eye = (dx) => {
+      c.beginPath();
+      c.moveTo(q[0] + dx - R * 0.22, q[1] - R * 0.05);
+      c.lineTo(q[0] + dx + R * 0.22, q[1] - R * 0.05);
+      c.lineTo(q[0] + dx, q[1] - R * 0.4);
+      c.fill();
+    };
+    eye(-R * 0.42);
+    eye(R * 0.42);
+    c.fillRect((q[0] - R * 0.55) | 0, (q[1] + R * 0.22) | 0, Math.max(2, R * 1.1) | 0, Math.max(1, R * 0.28) | 0);
+  }
+  // Orange lamps on crooked posts.
+  for (const [x, y] of [[-10, -10], [104, 60], [-10, 60], [104, -10]]) lamp(x, y, 20, "255,130,40");
+  // Low green fog drifting over the graves.
+  for (let i = 0; i < 26; i++) {
+    const x = ((((T * 2.2 + i * 13) % 150) + 150) % 150) - 28,
+      y = i & 1 ? 66 + (i % 7) : -14 - (i % 5);
+    glow(x, y, 0.3, 2.2 + (i % 3) * 0.6, "120,200,140", 0.07);
+  }
 }

@@ -156,11 +156,12 @@ function fitCheck() {
   const check = (id) => {
     fitScreens();
     // with a pop-up open, only its buttons matter (the screen behind is covered on purpose)
-    const root = pickOpen() && id === "setup" ? $("pick") : id === "menu" && $("daily").classList.contains("on") ? $("daily") : id === "menu" && $("acct").classList.contains("on") ? $("acct") : $(id);
+    const pop = ["accDel", "acct", "ppick"].find((k) => $(k).classList.contains("on")),
+      root = pop ? $(pop) : pickOpen() && id === "setup" ? $("pick") : id === "menu" && $("daily").classList.contains("on") ? $("daily") : id === "menu" && $("event").classList.contains("on") ? $("event") : $(id);
     for (const b of root.querySelectorAll("button, input")) {
       const r = b.getBoundingClientRect();
       // a scrolling list, or the scrolling middle of a panel, may hide buttons; a pinned button row may not
-      if (!r.width || !r.height || b.closest(".rows") || b.closest(".pgrid") || b.closest("[inert]") || (b.closest(".fitscroll") && !b.closest(".fitscroll:not(.nopin) > .act"))) continue;
+      if (!r.width || !r.height || b.closest(".rows") || b.closest(".pgrid") || b.closest(".ppgrid") || b.closest("[inert]") || (b.closest(".fitscroll") && !b.closest(".fitscroll:not(.nopin) > .act"))) continue;
       const off = r.bottom > innerHeight + 1 || r.right > innerWidth + 1 || r.top < -1 || r.left < -1,
         h = off ? null : document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
       if (off || !h || !(b === h || b.contains(h)) || cutSide(b)) bad.push(`${id}: ${(b.textContent || b.id).trim().slice(0, 20)}`);
@@ -174,6 +175,8 @@ function fitCheck() {
   const run = (id, fn) => {
     try {
       hide();
+      closeAcct();
+      closeEvent();
       fn();
       check(id);
     } catch (e) {
@@ -191,13 +194,24 @@ function fitCheck() {
   run("hero", () => openHero());
   run("menu", showPlay);
   run("menu", () => (show("menu"), openDaily()));
+  run("menu", () => (show("menu"), closeDaily(), openEvent()));
+  // The account page as a guest and signed in (a long name, a full showcase), its choosers, the gear's pop-up
+  // in every state, and the are-you-sure for deleting.
+  SAVE.prof.show = ["dunk.basic", "cel.basic", "shot.basic"];
+  SAVE.prof.shoe = "";
+  run("prof", () => openProf());
   for (const v of ["signin", "up", "in"])
-    run("menu", () => {
-      show("menu");
-      closeDaily();
+    run("prof", () => {
       Object.assign(ACC, { state: v === "in" ? "in" : "out", view: v, name: "FITCHECK_LONGNAME", user: v === "in" ? { email: "a.very.long.email.address@example.com" } : null });
+      openProf();
       openAcct();
     });
+  run("prof", () => (openProf(), closeAcct()));
+  run("prof", () => (openProf(), accDelete()));
+  run("prof", () => (openProf(), pickPic()));
+  run("prof", () => (openProf(), pickTitle()));
+  run("prof", () => (openProf(), pickMove(0)));
+  run("prof", () => (openProf(), pickShoe()));
   ACC.state = "off";
   ACC.user = null;
   run("campPick", () => $("campPick").classList.add("on"));
@@ -348,6 +362,25 @@ function smoke() {
       ok = false;
       out.push(`minigame ${k}: ERROR ${e.message} ${(e.stack || "").split("\n")[1] || ""}`);
     }
+  }
+  // Halloween quests: games on other courts don't count; eight good games on Haunted Hollow finish the track and
+  // give the coins, the Jack-O shoes and the Witching Hour dunk. (Only while the event is on.)
+  try {
+    if (eventOn("halloween26")) {
+      SAVE.ev = {};
+      const had = { shoe: ownsShoe("jacko"), dunk: SAVE.owned.includes("dunk.witch") },
+        cc0 = SAVE.cc,
+        good = { won: true, margin: 15, st: { pts: 30, stl: 4, dunks: 6, threes: 4 }, court: "haunt", diff: 2 };
+      evGame({ ...good, court: "street" });
+      if (evDone("halloween26") !== 0) throw new Error("a game on another court counted");
+      for (let i = 0; i < 9; i++) evGame(good);
+      const S = SAVE.ev.halloween26;
+      if (S.q !== 8 || !ownsShoe("jacko") || !SAVE.owned.includes("dunk.witch")) throw new Error(`quests ${S.q}/8, shoes ${ownsShoe("jacko")}, dunk ${SAVE.owned.includes("dunk.witch")}`);
+      out.push(`halloween quests 8/8, +${SAVE.cc - cc0} CC, Jack-O and Witching Hour granted${had.shoe || had.dunk ? " (already owned)" : ""}`);
+    } else out.push("halloween over: quests skipped");
+  } catch (e) {
+    ok = false;
+    out.push(`halloween: ERROR ${e.message}`);
   }
   // Career League: a whole season, the AI playing your games, through to a champion.
   try {

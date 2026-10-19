@@ -70,11 +70,13 @@ function sfxReveal(r) {
       iconic: [392, 523, 659, 784, 1047, 1319, 1568],
       mythic: [330, 392, 523, 659, 784, 1047, 1319, 1568],
       godlike: [262, 330, 392, 523, 659, 784, 1047, 1319, 1568, 2093],
-      gametime: [294, 370, 440, 587, 740, 880, 1175, 1480],
+      celestial: [262, 330, 392, 523, 659, 784, 1047, 1319, 1568, 2093, 2637],
+      limited: [294, 370, 440, 587, 740, 880, 1175, 1480],
     }[r] || [523];
   notes.forEach((f, i) => setTimeout(() => !AU.mute && tone("triangle", f, f, 0.22, 0.12), i * 70));
   if (RANK.indexOf(r) >= RANK.indexOf("legendary")) setTimeout(() => !AU.mute && nz(0.6, 0.35, 900), 60);
-  if (r === "godlike" || r === "gametime") setTimeout(() => !AU.mute && (tone("sine", 1047, 2093, 0.9, 0.12), nz(1.2, 0.3, 4000)), 500);
+  if (r === "celestial") setTimeout(() => !AU.mute && (tone("sine", 784, 3136, 1.4, 0.12), nz(1.6, 0.3, 5000)), 800);
+  if (r === "godlike" || r === "limited" || r === "celestial") setTimeout(() => !AU.mute && (tone("sine", 1047, 2093, 0.9, 0.12), nz(1.2, 0.3, 4000)), 500);
 }
 // Story talk: a little garble of blips, pitched per character (like someone mumbling fast).
 function sfxTalk(pitch) {
