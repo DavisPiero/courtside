@@ -24,6 +24,7 @@ const SAVE = {
   hooper: null, // your hooper's eight stats (js/hooper.js); null until first worked out from your progress
   best: {}, // best scores in the minigames
   daily: null, // today's challenges and the daily-reward ladder (js/daily.js)
+  league: null, // the Career League season (js/league.js)
 };
 // A brand-new save, for signing out (js/account.js). Taken before loadSave() fills SAVE in.
 const SAVE_FRESH = JSON.stringify(SAVE);
@@ -117,6 +118,7 @@ function saveMerge(a, b) {
   // Never lose a signed NBA team because the other save led on stars.
   const other = lead === A ? B : A;
   if (!(M.nba && M.nba.team) && other.nba && other.nba.team) Object.assign(M, { nba: other.nba, payday: other.payday });
+  if (!M.league && other.league) M.league = other.league;
   // The look of your hooper and what's equipped stay as they were on the account.
   for (const k of ["name", "skin", "hair", "equip", "shoe", "daily"]) M[k] = a && a[k] !== undefined && (k !== "name" || a.name) ? A[k] : B[k];
   return M;

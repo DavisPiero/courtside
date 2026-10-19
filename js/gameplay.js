@@ -1450,5 +1450,6 @@ function end() {
   if (G.prac) show("menu");
   else if (G.mg) mgEnd();
   else if (G.camp) campEnd();
+  else if (G.league) leagueEnd();
   else showResults();
 }

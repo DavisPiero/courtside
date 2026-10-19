@@ -41,7 +41,7 @@ function startMini(k) {
   }
   Object.assign(OPT, { mode: "clean", court: k === "1v1" ? "cage" : "arena", diff: 1 });
   G.rules = { ...RULES_STD, nq: 1, qlen: k === "three" ? 60 : 999, target: k === "1v1" ? 11 : 0 };
-  G.camp = null;
+  G.camp = G.league = null;
   G.mg = { k, score: 0, rack: 0, ball: 0, wait: 0, round: 0, last: null, judged: 0, moves: new Set(), log: [] };
   setTeamObjs(you, opp);
   start(0);

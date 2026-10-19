@@ -221,6 +221,19 @@ function fitCheck() {
   run("lab", () => openLab());
   same("sets", ["VIDEO", "AUDIO", "GAMEPLAY", "CONTROLS"], (t) => ((SETUI.tab = t), openSettings("menu")));
   run("sign", () => openSign(() => {}));
+  // Career League hub at each stage of a season (results made up, no games played).
+  const lgFake = (n) => {
+    for (let i = 0; i < n && lgNext(); i++) (G.league = { opp: lgNext().opp, extra: [] }), leagueRecord(i % 3 > 0, "50-44");
+  };
+  SAVE.nba.team = SAVE.nba.team || "BOS";
+  SAVE.league = null;
+  run("league", () => openLeague());
+  run("league", () => (leagueSign(lg().offers[0]), (LUI.tab = "table"), openLeague()));
+  run("league", () => (lgFake(5), (LUI.tab = "sched"), openLeague()));
+  run("league", () => (lgFake(9), (LUI.tab = "po"), openLeague()));
+  run("league", () => (lgFake(20), openLeague()));
+  SAVE.league = null;
+  G.league = null;
   run("pause", () => $("pause").classList.add("on"));
   run("tutc", () => $("tutc").classList.add("on"));
   run("res", () => {
@@ -335,6 +348,35 @@ function smoke() {
       ok = false;
       out.push(`minigame ${k}: ERROR ${e.message} ${(e.stack || "").split("\n")[1] || ""}`);
     }
+  }
+  // Career League: a whole season, the AI playing your games, through to a champion.
+  try {
+    SAVE.nba.team = "BOS";
+    SAVE.league = null;
+    leagueNew();
+    leagueSign(lg().offers[0]);
+    let games = 0;
+    while (lg().phase !== "done") {
+      startLeague();
+      G.tip = null;
+      G.auto = 2; // the bench bot (a good kid) on Rookie, so the test reaches the playoffs
+      OPT.diff = 0;
+      let n = 0;
+      while (G.run && G.league) {
+        step(1 / 120);
+        T += 1 / 120;
+        if (++n % 240 === 0) (camUpd(1 / 120), render(), hud());
+        if (n > 120 * 400) throw new Error("league game never ended");
+      }
+      if (G.run) G.run = 0;
+      if (++games > 40) throw new Error("season never ended");
+    }
+    const L = lg(),
+      r = L.rec[L.team];
+    out.push(`league  season 1 ${L.team} ${r[0]}-${r[1]}, ${FINISH_TEXT[L.finish]}, champions ${L.champion}, ${games} games`);
+  } catch (e) {
+    ok = false;
+    out.push(`league: ERROR ${e.message} ${(e.stack || "").split("\n")[1] || ""}`);
   }
   G.run = 0;
   G.auto = 0;
