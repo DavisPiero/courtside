@@ -3,11 +3,11 @@
 _Written 2026-10-19 (session 7). Replace this file at the end of each session; don't add a second one._
 
 ## State of the repo
-- Branch `session7`, committed, **not merged** (David hasn't signed it off). `main` is session 6d and live.
+- Session 7 is merged to `main` and pushed (live). No open branches. David has run the Supabase setup.
 - `./tools/smoke.sh` passes. Bench at default size: about +39 / +11 / -6 / -17 (noise around 6d's numbers).
 
 ## Read first
-STATE.md, then `supabase/README.md` if David hasn't run the setup yet. If he has, test a real sign-up with him.
+STATE.md. Then test a real sign-up with David on the live site.
 
 ## What changed (where to look)
 - Size: `SIZE`, `sizeFx()`, `sizedRow()`, `drawSize()`, `sizeStep()` in js/hooper.js; `SAVE.hooper.ht/wt`. In games:
@@ -31,7 +31,7 @@ STATE.md, then `supabase/README.md` if David hasn't run the setup yet. If he has
 - I can't create real accounts; David does the first real sign-up. The iPad keyboard for email/password is untested.
 
 ## What comes next
-David runs the Supabase setup and tests accounts, then signs off session 7. Then league part 2 or two players on
+David tests accounts on the live site. Then league part 2 or two players on
 one device (BRIEF-online.md step 1): David picks.
 
 ## Open questions for David

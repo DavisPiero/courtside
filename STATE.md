@@ -1,14 +1,15 @@
 # Courtside: state
 
-_Updated 2026-10-19, session 7, on branch `session7`, **not merged** (live `main` is session 6d)._
+_Updated 2026-10-19, session 7, merged to `main` and live (David signed it off)._
 
 ## Where we are
-`main` (live) has sessions 1 to 6d. Branch `session7` adds:
+`main` (live) has sessions 1 to 7. Session 7 added:
 - **Hooper height and weight** on EDIT HOOPER (5'6" to 7'0", 150 to 300 lb) with trade-offs, a SIZE box and a body
   drawn to match. Bench: no build is clearly best.
 - **Accounts** (Supabase): ACCOUNT button on the main menu; create account (email, username, password), sign in,
   forgot / change password, sign out, delete account; the save syncs to the account; guest progress is added on
-  sign-in. **Not yet tried against the real database**: David has to run `supabase/setup.sql` first.
+  sign-in. David ran the Supabase setup (checked: username check answers, tables refuse signed-out visitors);
+  no real account has been made yet.
 - **Career League part 1**: a third card on the Campaign screen (after winning the NBA Finals). Pre-season offers,
   12 games, standings, simulated games, playoffs, rings, rewards.
 - **BRIEF-online.md**: the plan for online 1-on-1 with friends.
@@ -16,12 +17,10 @@ Smoke test passes (every mode, court, level, minigame, a whole league season to 
 including the ACCOUNT pop-up and the league hub).
 
 ## Next
-1. David: run the Supabase setup (`supabase/README.md`, about 5 minutes), then make the first real account
-   (on the live site after merging, or at http://localhost:8791/?mute), and try sign in on the iPad.
-2. David checks session 7 and signs it off (then merge and push).
-3. Career League part 2 (All-Star Weekend, awards, story scenes, trophy room), or the first step of
+1. David makes the first real account on the live site and tries signing in on the iPad.
+2. Career League part 2 (All-Star Weekend, awards, story scenes, trophy room), or the first step of
    BRIEF-online.md (two players on one device). David picks.
-4. Still waiting: the iPad check of 6b, the first outside playtest.
+3. Still waiting: the iPad check of 6b, the first outside playtest.
 
 ## Open with David (guesses until confirmed)
 1. Height/weight effects and their sizes are my guesses (js/hooper.js `sizeFx`). Does 7'0" feel right in a game?
