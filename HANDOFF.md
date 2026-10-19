@@ -3,12 +3,12 @@
 _Written 2026-10-19 (session 8). Replace this file at the end of each session; don't add a second one._
 
 ## State of the repo
-- Work is on branch `session8`, committed, not merged. `main` is still session 7 (live).
+- Session 8 is merged to `main` and pushed (live). No open branches.
 - `./tools/smoke.sh` passes (now includes Haunted Hollow, the Halloween quests, the account page, its choosers,
   the gear pop-up and the delete check). Bench (10 games): +42.5 / +15.6 / +1.1 / -9.8.
 
 ## Read first
-STATE.md. If David signs off, merge quickly: Halloween ends at midnight as 1 November begins (device clock).
+STATE.md. Halloween ends at midnight as 1 November begins (device clock); nothing to do when it ends.
 
 ## What changed (where to look)
 - Steals: `exposed(v, q, back)` and `humanSteal()` in js/gameplay.js (×1.35, behind = 0.6, REACHED = `p.swT`
@@ -34,7 +34,7 @@ STATE.md. If David signs off, merge quickly: Halloween ends at midnight as 1 Nov
 - Back up `localStorage["courtside.save.v1"]` before testing and restore it after; clear `courtside.acct` too.
 
 ## What comes next
-David's sign-off and merge; David registers King. Then league part 2 or two players on one device.
+David registers King on the live site. Then league part 2 or two players on one device.
 
 ## Open questions for David
 See STATE.md "Open with David".

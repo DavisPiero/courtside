@@ -1,9 +1,9 @@
 # Courtside: state
 
-_Updated 2026-10-19, session 8, on branch `session8`, not merged (waiting for David's sign-off)._
+_Updated 2026-10-19, session 8, merged to `main` and live (David signed it off)._
 
 ## Where we are
-`main` (live) has sessions 1 to 7. `session8` adds:
+`main` (live) has sessions 1 to 8. Session 8 added:
 - **Steals**: about a third easier on every level, and they work from behind; the swipe is arm-only and never
   slows you down ("REACHED!" is now a longer wait before the next swipe).
 - **Gametime is now Limited.**
@@ -15,9 +15,8 @@ _Updated 2026-10-19, session 8, on branch `session8`, not merged (waiting for Da
 Smoke test and fit check pass (5 sizes). Bench: +42 / +16 / +1 / -10.
 
 ## Next
-1. David plays it, then signs off so Halloween goes live while there are 12 days left.
-2. David makes the King account on the live site (nobody else should get the name first).
-3. Then: Career League part 2 or BRIEF-online.md step 1; the iPad check of 6b; the first outside playtest.
+1. David makes the King account on the live site (nobody else should get the name first).
+2. Then: Career League part 2 or BRIEF-online.md step 1; the iPad check of 6b; the first outside playtest.
 
 ## Open with David (guesses until confirmed)
 1. Session 8 guesses: names (Haunted Hollow, Jack-O, Witching Hour, Celestial and the six moves), 8 quests and
