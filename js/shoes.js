@@ -4,7 +4,7 @@
 // Equip one in the Inventory (SHOES tab). Rarities use the same table as animations (js/packs.js).
 // Colours: up = the upper, ov = overlays (toe, heel, collar), ac = the stripe or swoosh, so = the sole.
 // cut: low, mid or high top. glow: the sole lights up (1, or the colour it pulses to). mark: "flame" for Launched,
-// "pumpkin" for Jack-O.
+// "pumpkin" for Jack-O, "code" for Hacker.
 const SH = (id, name, rarity, up, ov, ac, so, cut, desc, glow) => ({ id, name, rarity, up, ov, ac, so, cut, desc, glow });
 const SHOES = [
   // Common
@@ -63,6 +63,8 @@ const SHOES = [
   { ...SH("launched", "Launched", "limited", "#5b2fb0", "#2b2540", "#ff7a1a", "#9d4dff", "high", "Courtside's own sneaker. Purple and black, a rocket flame down the side and a sole that glows.", "#e6d4ff"), mark: "flame" },
   // Limited, Halloween 2026: from the Halloween quests only (js/event.js)
   { ...SH("jacko", "Jack-O", "limited", "#ff7a1a", "#17121a", "#ff7a1a", "#2a1f2e", "high", "Halloween 2026. Pumpkin orange and black, a carved jack-o'-lantern face and a sole that glows ghost green.", "#7cff6a"), mark: "pumpkin" },
+  // Limited: from the code HACKER only
+  { ...SH("hacker", "Hacker", "limited", "#0d1210", "#05140b", "#39ff7a", "#123d24", "high", "Courtside's hacked sneaker. Jet black, green code running down the side, a glitch in the heel and a sole that glows terminal green.", "#39ff7a"), mark: "code" },
 ];
 const SHOE = Object.fromEntries(SHOES.map((s) => [s.id, s]));
 const ownsShoe = (id) => SAVE.shoes.includes(id);
@@ -147,7 +149,7 @@ function drawShoe(g, s, x, y, px, t) {
   // Laces: white stitches down the instep.
   for (let i = 9; i <= 16; i += 2) R(i, top(i) + 1, "#f7f7f7");
   // The stripe: from the heel, dipping under the laces and sweeping up toward the toe.
-  [[3, 6], [4, 7], [5, 8], [6, 8], [7, 8], [8, 8], [9, 8], [10, 8], [11, 7], [12, 7], [13, 7], [14, 6], [15, 6], [16, 7], [6, 7], [10, 7]].forEach(([i, j]) => j >= top(i) && R(i, j, s.ac));
+  if (s.mark !== "code") [[3, 6], [4, 7], [5, 8], [6, 8], [7, 8], [8, 8], [9, 8], [10, 8], [11, 7], [12, 7], [13, 7], [14, 6], [15, 6], [16, 7], [6, 7], [10, 7]].forEach(([i, j]) => j >= top(i) && R(i, j, s.ac));
   // Launched: the stripe is a rocket flame, hot yellow at the tail, with a little rocket at its tip.
   if (s.mark === "flame") {
     [[2, 7], [3, 7], [3, 8], [4, 6], [4, 8]].forEach(([i, j]) => j >= top(i) && R(i, j, "#ffe08a"));
@@ -165,6 +167,20 @@ function drawShoe(g, s, x, y, px, t) {
     if (t !== undefined && Math.sin(t * 7) > 0.2) (R(4, 5, "#ffd23c"), R(8, 5, "#ffd23c"));
     R(3, top(3) - 1, "#3d9a3a");
     R(4, top(4) - 1, "#2c7a2a");
+  }
+  // Hacker: columns of green code fall down the side (a bright head, a dim tail), and the heel glitches
+  // magenta and cyan now and then.
+  if (s.mark === "code") {
+    const tt = t || 0;
+    for (let i = 3; i <= 19; i += 3) {
+      const n = 10 - top(i),
+        hd = top(i) + (((tt * 7 + i * 2.3) | 0) % n);
+      for (let k = 0; k < 3; k++) {
+        const j = hd - k;
+        if (j >= top(i) && j <= 9) R(i, j, ["#b8ffd0", "#39ff7a", "#1f8a45"][k]);
+      }
+    }
+    if (Math.sin(tt * 13) > 0.85) (R(1, 5, "#ff3df2"), R(2, 7, "#3df2ff"), R(1, 8, "#ff3df2"));
   }
   // Sole: a light midsole stripe, the sole, a darker tread. A glowing sole pulses.
   const so = s.glow && t !== undefined ? (Math.sin(t * 5) > 0 ? s.so : typeof s.glow === "string" ? s.glow : "#d4fbff") : s.so;

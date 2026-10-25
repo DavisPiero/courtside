@@ -641,10 +641,12 @@ function openInv() {
   drawInv();
   show("inv");
 }
+// Where to get something you don't own yet: Limited things only come from codes and events, never the Shop.
+const whereFrom = (x) => (x.rarity === "limited" ? "CODES AND EVENTS" : "IN THE SHOP");
 function animRow(a, sel) {
   const own = owns(a.id);
   let btn;
-  if (!own) btn = `<div class="inpk">IN THE SHOP</div>`;
+  if (!own) btn = `<div class="inpk">${whereFrom(a)}</div>`;
   else if (a.cat === "dribble") {
     const on = SAVE.equip.moves.includes(a.id),
       full = !on && SAVE.equip.moves.length >= MAX_MOVES;
@@ -664,7 +666,7 @@ function shoeRow(x, sel) {
     on = SAVE.shoe === x.id;
   return `<div class="pack shoerow r-${x.rarity}${own ? "" : " lock"}${x.id === sel ? " sel" : ""}" data-id="${x.id}">
     <canvas class="shcv" data-s="${x.id}"></canvas><b>${x.name}</b><span class="rtag">${RARITY[x.rarity].name}</span><span>${x.desc}</span>
-    <div class="pbtns">${own ? `<button class="btn${on ? " own" : ""}" data-wear="${x.id}">${on ? "WEARING" : "WEAR"}</button>` : `<div class="inpk">IN THE SHOP</div>`}</div></div>`;
+    <div class="pbtns">${own ? `<button class="btn${on ? " own" : ""}" data-wear="${x.id}">${on ? "WEARING" : "WEAR"}</button>` : `<div class="inpk">${whereFrom(x)}</div>`}</div></div>`;
 }
 function drawInv() {
   $("invTabs").innerHTML = [...CATS, ["shoe", "SHOES"]].map(([c, l]) => `<button data-c="${c}" class="${c === INV.cat ? "on" : ""}">${l}</button>`).join("");
