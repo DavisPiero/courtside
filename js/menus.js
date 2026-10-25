@@ -571,6 +571,7 @@ function previewAnim(cv, P0, id, speed, angle) {
   port.dk = null;
   port.mv = null;
   port.style = { [k.cat]: k.id };
+  port.lean = P0.labLean || null; // a leaning shot (Animation Lab only)
   // Dunks and layups reach the rim, so draw them smaller to keep the whole jump in view.
   port.k = k.cat === "dunk" || k.cat === "layup" ? 30 : PK;
   port.ball = [0.95, -0.6, 0.55 + Math.abs(Math.sin(t * 5.5)) * 2.6];
@@ -760,6 +761,9 @@ const CORE_ANIMS = [
   ["core.punch", "Punch"],
   ["core.slide", "Slide tackle"],
   ["core.rag", "Knocked down"],
+  ["core.fade", "Fadeaway (stick back)"],
+  ["core.side", "Side leap (stick sideways)"],
+  ["core.leaner", "Leaner (stick forward)"],
   ["dribble.cross", "Crossover"],
   ["dribble.legs", "Between the legs"],
   ["dribble.back", "Behind the back"],
@@ -787,7 +791,10 @@ function openLab() {
 function labPreview() {
   if (!$("lab").classList.contains("on")) return;
   const P0 = previewModel("lab"),
-    id = LAB.sel;
+    id = LAB.sel,
+    ln = { "core.fade": "fade", "core.side": "side", "core.leaner": "lean" }[id];
+  P0.labLean = ln ? { k: ln, s: 1 } : null;
+  if (ln) return previewAnim($("labCv"), P0, "shot.basic", LAB.speed, LAB.angle);
   if (!id.startsWith("core.")) {
     return previewAnim($("labCv"), P0, id, LAB.speed, LAB.angle);
   }
