@@ -172,21 +172,16 @@ function drawProf() {
     ["WINS", SAVE.life.wins || 0],
   ];
   $("pNums").innerHTML = nums.map(([l, v]) => `<div><b>${v}</b><i>${l}</i></div>`).join("");
-  // Showcase: three moves and a pair of shoes.
-  const sh = SAVE.prof.show,
-    slot = (i) => {
-      const a = ANIM[sh[i]] && owns(sh[i]) ? ANIM[sh[i]] : null;
-      return a
-        ? `<button class="pslot r-${a.rarity}" data-s="${i}"><canvas id="pShow${i}"></canvas><b>${a.name}</b><span class="rtag r-${a.rarity}">${RARITY[a.rarity].name}</span></button>`
-        : `<button class="pslot empty" data-s="${i}"><em>+</em><b>ADD A MOVE</b></button>`;
-    },
-    s = SHOE[SAVE.prof.shoe] && ownsShoe(SAVE.prof.shoe) ? SHOE[SAVE.prof.shoe] : null;
-  $("pShow").innerHTML =
-    [0, 1, 2].map(slot).join("") +
-    (s
-      ? `<button class="pslot shoe r-${s.rarity}" data-s="shoe"><canvas id="pShowShoe"></canvas><b>${s.name}</b><span class="rtag r-${s.rarity}">${RARITY[s.rarity].name}</span></button>`
-      : `<button class="pslot shoe empty" data-s="shoe"><em>+</em><b>ADD YOUR KICKS</b></button>`);
-  $("pShow").querySelectorAll(".pslot").forEach((b) => (b.onclick = () => (b.dataset.s === "shoe" ? pickShoe() : pickMove(+b.dataset.s))));
+  // Showcase: four open slots, each a move or a pair of shoes you own.
+  $("pShow").innerHTML = SAVE.prof.slots
+    .map((v, i) => {
+      const x = slotItem(v);
+      return x
+        ? `<button class="pslot${x.shoe ? " shoe" : ""} r-${x.it.rarity}" data-s="${i}"><canvas id="pShow${i}"></canvas><b>${x.it.name}</b><span class="rtag r-${x.it.rarity}">${RARITY[x.it.rarity].name}</span></button>`
+        : `<button class="pslot empty" data-s="${i}"><em>+</em><b>ADD</b></button>`;
+    })
+    .join("");
+  $("pShow").querySelectorAll(".pslot").forEach((b) => (b.onclick = () => pickSlot(+b.dataset.s)));
   $("bPPic").onclick = pickPic;
   $("bPTitle").onclick = pickTitle;
   $("bGear").onclick = openAcct;
@@ -195,11 +190,21 @@ function drawProf() {
 // The showcase moves play on a loop while the page is open (called every frame from js/menus.js invPreview).
 function profPreview() {
   if (!$("prof").classList.contains("on") || $("ppick").classList.contains("on")) return;
-  SAVE.prof.show.forEach((id, i) => {
-    const cv = $("pShow" + i);
-    if (cv && ANIM[id]) previewAnim(cv, previewModel("show" + i), id);
+  SAVE.prof.slots.forEach((v, i) => {
+    const cv = $("pShow" + i),
+      x = slotItem(v);
+    if (!cv || !x) return;
+    if (x.shoe) shoeCanvas(cv, x.it, T);
+    else previewAnim(cv, previewModel("show" + i), x.it.id);
   });
-  if ($("pShowShoe")) shoeCanvas($("pShowShoe"), SHOE[SAVE.prof.shoe], T);
+}
+// What a showcase slot holds ("a:" a move, "s:" a shoe), or null if it's empty or no longer yours.
+function slotItem(v) {
+  const k = (v || "").slice(0, 1),
+    id = (v || "").slice(2);
+  if (k === "a" && ANIM[id] && owns(id)) return { it: ANIM[id] };
+  if (k === "s" && SHOE[id] && ownsShoe(id)) return { it: SHOE[id], shoe: 1 };
+  return null;
 }
 // A little pixel gear: eight teeth round a ring.
 function drawGear(cv) {
@@ -226,6 +231,7 @@ function openPP(title, html, after) {
   $("ppT").textContent = title;
   $("ppG").innerHTML = html;
   $("ppick").classList.add("on");
+  $("ppick").firstElementChild.classList.toggle("fixed", html.startsWith('<div class="pptabs">')); // tabs: one size
   $("bPpX").onclick = closePP;
   if (after) after();
 }
@@ -258,39 +264,43 @@ function pickTitle() {
     () => $("ppG").querySelectorAll(".ppopt").forEach((b) => (b.onclick = () => ((SAVE.prof.title = b.dataset.v), writeSave(), closePP(), drawProf()))),
   );
 }
-// A showcase slot: any move you own (best first), or empty it.
-function pickMove(i) {
-  const list = ANIMS.filter((a) => a.rarity !== "starter" && owns(a.id)).sort((a, b) => RANK.indexOf(b.rarity) - RANK.indexOf(a.rarity) || a.name.localeCompare(b.name));
+// A showcase slot: a tab for each kind of thing (moves, shoes), best first, or empty it. Picking something that's
+// already in another slot swaps the two.
+function pickSlot(i, kind) {
+  const cur = SAVE.prof.slots[i] || "";
+  kind = kind || cur.slice(0, 1) || "a";
+  const best = (a, b) => RANK.indexOf(b.rarity) - RANK.indexOf(a.rarity) || a.name.localeCompare(b.name),
+    tab = (k, l) => `<button class="${kind === k ? "on" : ""}" data-k="${k}">${l}</button>`;
+  let list;
+  if (kind === "s") {
+    const sh = SHOES.filter((s) => ownsShoe(s.id)).sort(best);
+    list =
+      (sh.length ? "" : `<p class="ppnone">Open Shoeboxes in the Shop to collect shoes.</p>`) +
+      sh.map((s) => `<button class="ppopt pshoe r-${s.rarity}${cur === "s:" + s.id ? " on" : ""}" data-v="s:${s.id}"><canvas data-shoe="${s.id}"></canvas><b>${s.name}</b><span class="rtag r-${s.rarity}">${RARITY[s.rarity].name}</span></button>`).join("");
+  } else {
+    const mv = ANIMS.filter((a) => a.rarity !== "starter" && owns(a.id)).sort(best);
+    list =
+      (mv.length ? "" : `<p class="ppnone">Open packs or visit the Daily Shop to collect moves.</p>`) +
+      mv.map((a) => `<button class="ppopt mv r-${a.rarity}${cur === "a:" + a.id ? " on" : ""}" data-v="a:${a.id}"><b>${a.name}</b><span class="rtag r-${a.rarity}">${RARITY[a.rarity].name} · ${CATS.find((c) => c[0] === a.cat)[1]}</span></button>`).join("");
+  }
   openPP(
-    "SHOWCASE: A MOVE",
-    `<button class="ppopt mv" data-v=""><b>EMPTY</b><span>Leave this slot empty</span></button>` +
-      (list.length ? "" : `<p class="ppnone">Open packs or visit the Daily Shop to collect moves.</p>`) +
-      list.map((a) => `<button class="ppopt mv r-${a.rarity}${SAVE.prof.show[i] === a.id ? " on" : ""}" data-v="${a.id}"><b>${a.name}</b><span class="rtag r-${a.rarity}">${RARITY[a.rarity].name} · ${CATS.find((c) => c[0] === a.cat)[1]}</span></button>`).join(""),
-    () =>
+    "SHOWCASE",
+    `<div class="pptabs">${tab("a", "MOVES")}${tab("s", "SHOES")}</div>` + `<button class="ppopt mv" data-v=""><b>EMPTY</b><span>Leave this slot empty</span></button>` + list,
+    () => {
+      $("ppG").querySelectorAll(".pptabs button").forEach((b) => (b.onclick = () => pickSlot(i, b.dataset.k)));
+      $("ppG").querySelectorAll("canvas[data-shoe]").forEach((cv) => shoeCanvas(cv, SHOE[cv.dataset.shoe]));
       $("ppG").querySelectorAll(".ppopt").forEach(
         (b) =>
           (b.onclick = () => {
             const v = b.dataset.v,
-              S = SAVE.prof.show;
-            if (v && S.includes(v)) S[S.indexOf(v)] = S[i]; // already in another slot: swap them
+              S = SAVE.prof.slots;
+            if (v && S.includes(v)) S[S.indexOf(v)] = S[i];
             S[i] = v;
             writeSave();
             closePP();
             drawProf();
           }),
-      ),
-  );
-}
-function pickShoe() {
-  const list = SHOES.filter((s) => ownsShoe(s.id)).sort((a, b) => RANK.indexOf(b.rarity) - RANK.indexOf(a.rarity) || a.name.localeCompare(b.name));
-  openPP(
-    "SHOWCASE: YOUR KICKS",
-    `<button class="ppopt mv" data-v=""><b>EMPTY</b><span>Leave this slot empty</span></button>` +
-      (list.length ? "" : `<p class="ppnone">Open Shoeboxes in the Shop to collect shoes.</p>`) +
-      list.map((s) => `<button class="ppopt pshoe r-${s.rarity}${SAVE.prof.shoe === s.id ? " on" : ""}" data-v="${s.id}"><canvas data-shoe="${s.id}"></canvas><b>${s.name}</b><span class="rtag r-${s.rarity}">${RARITY[s.rarity].name}</span></button>`).join(""),
-    () => {
-      $("ppG").querySelectorAll("canvas[data-shoe]").forEach((cv) => shoeCanvas(cv, SHOE[cv.dataset.shoe]));
-      $("ppG").querySelectorAll(".ppopt").forEach((b) => (b.onclick = () => ((SAVE.prof.shoe = b.dataset.v), writeSave(), closePP(), drawProf())));
+      );
     },
   );
 }

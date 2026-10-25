@@ -198,6 +198,7 @@ function buildSprite(p) {
     shotU: port ? ((port.t * 0.75) % 1) * 1.15 : p.aishot ? (p.aishot.t / p.aishot.d) * 0.72 : shooting ? G.shot.t / G.shot.d : 0,
     hand: p.hand || -1,
     shotS: styleOf(p, "shot"),
+    lean: port ? port.lean : p.lean && (shooting || p.leanAir) ? p.lean : null,
     fol: port ? 0 : p.fol || 0,
     pas: p.pas || 0,
     swp: p.swp || 0,

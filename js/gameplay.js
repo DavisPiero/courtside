@@ -41,8 +41,9 @@ function greenZone(p) {
     rk = ((p.rng || 75) - 75) / 25, // range rating: -1 at 50, about +1 at 99
     R0 = RANGE + rk * 3,
     range = dh <= R0 ? 1 : dh <= HALF ? lp(1, cl(0.45 + rk * 0.15, 0.3, 0.6), (dh - R0) / (HALF - R0)) : cl(0.25 + rk * 0.08, 0.17, 0.33);
-  const fire = G.fire && G.fire[p.t] ? 1.5 : 1; // on fire: a much bigger green zone
-  return Math.max(0.012, base * range * fire * (1 - Math.min(0.85, contest(p) * squeeze)));
+  const fire = G.fire && G.fire[p.t] ? 1.5 : 1, // on fire: a much bigger green zone
+    L = (p.lean && LEAN[p.lean.k]) || { base: 1, cont: 1 }; // a leaning shot (js/gameplay.js beginShot)
+  return Math.max(0.012, base * L.base * range * fire * (1 - Math.min(0.85, contest(p) * L.cont * squeeze)));
 }
 // Shot range in feet from the hoop: comfortable out to RANGE (just past the 3-point line), HALF is half court.
 const RANGE = 26,
@@ -72,6 +73,7 @@ function init() {
   G.bb = G.win = null;
   G.winDone = 0;
   G.cut = null;
+  G.cutT = 0; // when your team's next arc cut can start (js/showtime.js oopCut)
   G.shot = null;
   G.dead = 0;
   G.fx = [];
@@ -469,6 +471,19 @@ function beginShot(p) {
       miss = cl((4.5 - df) / 4.5, 0, 1) * D.layup * cl(1 - (p.fin - 75) / 60, 0.5, 1.3);
     scripted(p, "layup", Math.random() < miss);
     return;
+  }
+  // Leaning shots (David, like 2K): the stick's direction as you go up sets the jump. Back is a fadeaway,
+  // sideways a side leap, toward the rim a leaner. Each is harder to contest but has a slightly smaller green zone.
+  p.lean = null;
+  if (p.t === 0 && p.id === G.ctrl && G.in) {
+    const ux = (h - p.x) / dh,
+      uy = (25 - p.y) / dh,
+      fw = G.in.x * ux + G.in.y * uy,
+      sd = -G.in.x * uy + G.in.y * ux, // + = to the shooter's left
+      k = fw < -0.55 ? "fade" : fw > 0.6 ? "lean" : Math.abs(sd) > 0.5 ? "side" : null,
+      sg = sd < 0 ? -1 : 1,
+      L = LEAN[k];
+    if (k) p.lean = { k, s: sg, vx: (ux * L.fw - uy * sg * L.sd), vy: (uy * L.fw + ux * sg * L.sd) };
   }
   G.shot = { p, t: 0, d: 0.85, zw: greenZone(p) };
   if (G.auto === 2) G.shot.rel = 0.72 + (Math.random() + Math.random() + Math.random() - 1.5) * 0.09; // the bot's timing, like a good kid's
@@ -963,8 +978,17 @@ function jumpForShot(p, u) {
   if (u >= k[0] && p.z === 0 && !p.shotJumped) {
     p.vz = k[1];
     p.shotJumped = 1;
+    // a leaning shot leaps that way and keeps drifting until it lands (human() leaves the speed alone)
+    if (p.lean) (p.vx = p.lean.vx), (p.vy = p.lean.vy), (p.leanAir = 1);
   }
 }
+// Leaning shots: drift speed toward the rim (fw) and sideways (sd) in ft/s, and how they change the green zone
+// (base: its size when open; cont: how much a defender's contest counts).
+const LEAN = {
+  fade: { fw: -6, sd: 0, base: 0.85, cont: 0.6 },
+  side: { fw: 0, sd: 6.5, base: 0.88, cont: 0.72 },
+  lean: { fw: 4, sd: 0, base: 0.95, cont: 0.85 },
+};
 function handler(p, dt) {
   if (p.aishot) return aiShotStep(p, dt);
   if (G.auto === 2 && p.t === 0) return botHandler(p, dt);
@@ -1072,7 +1096,7 @@ function ai(dt) {
       const tx = o.x + (dx / dl) * g,
         ty = o.y + (dy / dl) * g,
         lag = hy(tx - p.x, ty - p.y);
-      mv(p, tx, ty, 1 + (lag > 2 ? 0.45 * (dk(p).iq || 0) : 0), dt);
+      mv(p, tx, ty, p.bw > T ? 0.45 : 1 + (lag > 2 ? 0.45 * (dk(p).iq || 0) : 0), dt); // p.bw: ball-watching while their man cuts
       p.def = true;
       p.ft = Math.atan2(o.y - p.y, o.x - p.x);
       if (b.own === o.id && dist(p, o) < 3.4 && !G.shot && Math.random() < dt * dk(p).stealRate) steal(p, o);
@@ -1115,8 +1139,10 @@ function human(dt) {
     G.sqT = T;
     sfx("squeak");
   }
-  p.vx += (wx * sp - p.vx) * kk;
-  p.vy += (wy * sp - p.vy) * kk;
+  if (!p.leanAir) {
+    p.vx += (wx * sp - p.vx) * kk;
+    p.vy += (wy * sp - p.vy) * kk;
+  }
   // Sprinting drains stamina; the stamina rating changes how fast (75 is the usual rate).
   p.stam = cl(p.stam + (spr ? -17 * cl(1 + (75 - (p.stm || 75)) * 0.012, 0.6, 1.35) : mg ? 3 : 9) * dt, 0, 100);
   if (G.shot) p.ft = Math.atan2(25 - p.y, HX(p.t) - p.x);
@@ -1212,6 +1238,9 @@ function botHandler(p, dt) {
   if (df < 3.5 && !p.mv && Math.random() < dt * 1.5) dribbleMove(p);
   const go = () => ((p.ai = 0), (p.plan = null), beginShot(p));
   if (G.shot) return;
+  // a kid throws the lob when the gold arrow shows (about a third of a second to react)
+  const oq = oopMate(p);
+  if (oq && Math.random() < dt * 3) return (p.ai = 0), (p.plan = null), alleyOop(p, oq);
   if (dh < 10.5 && p.ai > 0.25) return go();
   if (p.plan.k === "pull" && p.ai > 1.0 && (df > 4 || G.sc < 5) && dh < 27) return go();
   if (G.sc < 3) return go();
@@ -1276,6 +1305,8 @@ function integ(p, dt) {
       p.z = 0;
       p.vz = 0;
       p.land = 0.18; // brief squat on landing
+      p.leanAir = 0;
+      if (!G.shot || G.shot.p !== p) p.lean = null;
     }
   }
   if (p.land > 0) p.land -= dt;

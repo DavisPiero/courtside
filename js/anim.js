@@ -806,6 +806,25 @@ function basePose(p, c) {
   return q;
 }
 
+// Leaning shots on top of the jump shot (w 0..1 as the shooter rises). Fadeaway: shoulders back, legs kicked
+// out in front. Side leap: the body turns into it and the legs trail away. Leaner: chest forward, one knee up.
+function leanPose(q, L, w) {
+  if (L.k === "fade") {
+    q.lean -= 0.35 * w;
+    q.pitch += 0.14 * w;
+    q.fL = [q.fL[0] + 0.45 * w, q.fL[1], q.fL[2] + 0.25 * w];
+    q.fR = [q.fR[0] + 0.3 * w, q.fR[1], q.fR[2] + 0.1 * w];
+  } else if (L.k === "side") {
+    const s = L.s;
+    q.twist += 0.18 * s * w;
+    q.lean -= 0.1 * w;
+    q.fL = [q.fL[0] - 0.1 * w, q.fL[1] - s * 0.65 * w, q.fL[2] + (s < 0 ? 0.8 : 0.15) * w];
+    q.fR = [q.fR[0] - 0.1 * w, q.fR[1] - s * 0.65 * w, q.fR[2] + (s > 0 ? 0.8 : 0.15) * w];
+  } else {
+    q.lean += 0.25 * w;
+    q.fL = [q.fL[0] + 0.35 * w, q.fL[1], q.fL[2] + 0.7 * w];
+  }
+}
 // ---------- the full pose for a player this frame
 function animPose(p, c) {
   const base = basePose(p, c);
@@ -850,6 +869,7 @@ function animPose(p, c) {
     const k = SHOTS[c.shotS] || SHOTS["shot.basic"];
     act(side(k.keys), 1, cl(c.fol / 0.2, 0, 1));
   }
+  if (c.lean) leanPose(q, c.lean, c.shooting ? cl((c.shotU - 0.25) / 0.35, 0, 1) : 1);
   if (c.pas > 0) act(ACTIONS.pass, 1 - c.pas / 0.25);
   if (c.swp > 0) act(ACTIONS.swipe, 1 - c.swp / 0.25);
   if (c.cel) act(CELS[c.celS] ? CELS[c.celS](c.tt) : CELS["cel.basic"](c.tt), 0);

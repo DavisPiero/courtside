@@ -166,6 +166,7 @@ const CODES = {
   "5673b267": { name: "LAUNCHED", cc: 1000, anim: "dunk.liftoff" },
   e01fa49e: { name: "SNEAKERHEAD", shoe: "launched", box: "premium" },
   c024be5a: { name: "BIG LEAGUE", cc: 2000 },
+  "83558c3f": { name: "HACKER", cc: 10000, shoe: "hacker" },
 };
 function codeHash(str) {
   let h = 0x811c9dc5;

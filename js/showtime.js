@@ -60,6 +60,19 @@ function oopCut(p, dt) {
   if (!hd || hd.t !== p.t) return (p.cut2 = 0), (p.oop = 0), false;
   // Only once the ball is past half court.
   if ((hd.x - 47) * d < 0) return (p.cut2 = 0), (p.oop = 0), false;
+  // Your team: bring the ball up to the 3-point line and your most open teammate cuts hard to the rim (one cut
+  // at a time, then a short wait). Their defender is caught watching the ball for a moment (less on hard levels).
+  if (p.t === 0 && !p.cut2 && T > G.cutT && hd !== p) {
+    const dhh = hy(hx - hd.x, 25 - hd.y);
+    if (dhh < 28 && dhh > 18 && p === cutter(hd)) {
+      p.cut2 = rn(1.7, 2.1);
+      p.cutCd = rn(4, 8);
+      p.cutY = 25 + (p.y > 25 ? 1 : -1) * rn(0, 2.5);
+      G.cutT = T + 3.2;
+      const o = G.pl[3 + p.i];
+      o.bw = T + dk(o).watch;
+    }
+  }
   if (!p.cut2) {
     p.cutCd = (p.cutCd || rn(2, 5)) - dt;
     if (p.cutCd > 0) return false;
@@ -68,11 +81,24 @@ function oopCut(p, dt) {
     p.cutY = 25 + rn(-3, 3);
   }
   p.cut2 = Math.max(0, p.cut2 - dt);
-  mv(p, hx - d * 2.5, p.cutY, 1.15, dt);
+  mv(p, hx - d * 2.5, p.cutY, 1.25, dt);
   p.ft = Math.atan2(25 - p.y, hx - p.x);
   const dh = hy(hx - p.x, 25 - p.y);
+  const was = p.oop;
   p.oop = p.cut2 > 0 && dh < 16 && dh > 3 && minDef(p) > 3 ? 1 : 0;
+  if (p.oop && !was && p.t === 0) G.st.oopc = (G.st.oopc || 0) + 1; // chances (the bench counts them)
   return p.cut2 > 0;
+}
+// Who cuts when the handler reaches the arc: the teammate with the most room.
+function cutter(hd) {
+  let best = null,
+    bd = -1;
+  for (const q of G.pl) {
+    if (q.t !== hd.t || q === hd || q.rag || q.gone) continue;
+    const r = minDef(q);
+    if (r > bd) (bd = r), (best = q);
+  }
+  return best;
 }
 // The teammate an alley-oop would go to right now, or null.
 function oopMate(p) {

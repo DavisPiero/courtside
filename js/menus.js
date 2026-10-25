@@ -571,6 +571,7 @@ function previewAnim(cv, P0, id, speed, angle) {
   port.dk = null;
   port.mv = null;
   port.style = { [k.cat]: k.id };
+  port.lean = P0.labLean || null; // a leaning shot (Animation Lab only)
   // Dunks and layups reach the rim, so draw them smaller to keep the whole jump in view.
   port.k = k.cat === "dunk" || k.cat === "layup" ? 30 : PK;
   port.ball = [0.95, -0.6, 0.55 + Math.abs(Math.sin(t * 5.5)) * 2.6];
@@ -640,10 +641,12 @@ function openInv() {
   drawInv();
   show("inv");
 }
+// Where to get something you don't own yet: Limited things only come from codes and events, never the Shop.
+const whereFrom = (x) => (x.rarity === "limited" ? "CODES AND EVENTS" : "IN THE SHOP");
 function animRow(a, sel) {
   const own = owns(a.id);
   let btn;
-  if (!own) btn = `<div class="inpk">IN THE SHOP</div>`;
+  if (!own) btn = `<div class="inpk">${whereFrom(a)}</div>`;
   else if (a.cat === "dribble") {
     const on = SAVE.equip.moves.includes(a.id),
       full = !on && SAVE.equip.moves.length >= MAX_MOVES;
@@ -663,7 +666,7 @@ function shoeRow(x, sel) {
     on = SAVE.shoe === x.id;
   return `<div class="pack shoerow r-${x.rarity}${own ? "" : " lock"}${x.id === sel ? " sel" : ""}" data-id="${x.id}">
     <canvas class="shcv" data-s="${x.id}"></canvas><b>${x.name}</b><span class="rtag">${RARITY[x.rarity].name}</span><span>${x.desc}</span>
-    <div class="pbtns">${own ? `<button class="btn${on ? " own" : ""}" data-wear="${x.id}">${on ? "WEARING" : "WEAR"}</button>` : `<div class="inpk">IN THE SHOP</div>`}</div></div>`;
+    <div class="pbtns">${own ? `<button class="btn${on ? " own" : ""}" data-wear="${x.id}">${on ? "WEARING" : "WEAR"}</button>` : `<div class="inpk">${whereFrom(x)}</div>`}</div></div>`;
 }
 function drawInv() {
   $("invTabs").innerHTML = [...CATS, ["shoe", "SHOES"]].map(([c, l]) => `<button data-c="${c}" class="${c === INV.cat ? "on" : ""}">${l}</button>`).join("");
@@ -760,6 +763,9 @@ const CORE_ANIMS = [
   ["core.punch", "Punch"],
   ["core.slide", "Slide tackle"],
   ["core.rag", "Knocked down"],
+  ["core.fade", "Fadeaway (stick back)"],
+  ["core.side", "Side leap (stick sideways)"],
+  ["core.leaner", "Leaner (stick forward)"],
   ["dribble.cross", "Crossover"],
   ["dribble.legs", "Between the legs"],
   ["dribble.back", "Behind the back"],
@@ -787,7 +793,10 @@ function openLab() {
 function labPreview() {
   if (!$("lab").classList.contains("on")) return;
   const P0 = previewModel("lab"),
-    id = LAB.sel;
+    id = LAB.sel,
+    ln = { "core.fade": "fade", "core.side": "side", "core.leaner": "lean" }[id];
+  P0.labLean = ln ? { k: ln, s: 1 } : null;
+  if (ln) return previewAnim($("labCv"), P0, "shot.basic", LAB.speed, LAB.angle);
   if (!id.startsWith("core.")) {
     return previewAnim($("labCv"), P0, id, LAB.speed, LAB.angle);
   }

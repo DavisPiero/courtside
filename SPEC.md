@@ -79,7 +79,8 @@ and your NBA team's best two (the same team your contract pays from).
 ## Accounts
 An ACCOUNT button on the main menu (your picture and, when signed in, your username) opens the **account page**:
 a profile card (your picture, your name, your title, a gear), your numbers (rating, rings, coins, moves and shoes
-collected, wins) and a **Showcase** of three moves and a pair of shoes that play on a loop. Guests see the same page
+collected, wins) and a **Showcase** of four open slots: each holds any move or pair of shoes you own (a chooser
+with MOVES and SHOES tabs; picking one that's already shown swaps them). Moves play on a loop. Guests see the same page
 as GUEST with a SIGN IN link. Tap the picture, the title or a showcase slot to choose.
 - **Pictures:** 14 pixel icons drawn in code (ball, flame, crown, star, trophy, lightning, hoop, diamond, rocket,
   your kicks, your hooper's face); Ring (a Career League ring), Pumpkin and Ghost (Halloween quests) are earned.
@@ -131,7 +132,7 @@ contract. (A win pays 38, a loss 13; every reward went up about a quarter in ses
 - **Codes**: type a code for a reward, once per save, case sensitive. On touch devices the box uses Courtside's
   own on-screen keyboard (capitals and numbers), never the iPad's. LAUNCHED: the Limited animation
   (Liftoff) and 1000 CC. SNEAKERHEAD: the Limited sneaker (Launched) and a free Premium Shoebox. BIG LEAGUE: 2000 CC (the on-screen
-  keyboard has a SPACE key). Codes are stored scrambled, but the game is public, so a determined player could find them.
+  keyboard has a SPACE key). HACKER: 10,000 CC and the Limited Hacker sneaker. Codes are stored scrambled, but the game is public, so a determined player could find them.
 **Opening a pack** is a show: the pack shakes, its top strip rips off and light pours out (white for Common and
 Rare, the best card's rarity colour from Epic up, so you know something good is coming), the cards slide up out of
 the pack face down, and you tap each one. A card
@@ -150,7 +151,8 @@ a rare jump shot leaves a glowing trail on the ball. Witching Hour rises on a pu
 bats burst off the rim; Fire Breather breathes flame; Supernova bursts into stars. (Not shown in the Animation Lab.)
 **Shoes**: 45 real shoes (no logos) in Common to Godlike (Air Mag, Jordan 4 'Undefeated'), plus Courtside's own
 Limited pairs: Launched (purple and black, rocket flame, glowing sole) and Jack-O (Halloween 2026: pumpkin orange
-and black, a jack-o'-lantern face, a ghost-green glowing sole); your whole team wears
+and black, a jack-o'-lantern face, a ghost-green glowing sole) and Hacker (code HACKER: jet black, green code falling
+down the side, a glitch in the heel, a terminal-green glowing sole); your whole team wears
 the pair you pick. The **Inventory** equips what you own (one per category, up to 5 extra dribble moves, a pair
 of shoes) and **sells** animations for a quarter of their shop price (press twice; not starters, Limited or
 anything equipped). No real money, ever.
@@ -176,8 +178,10 @@ in and long take-offs; each round uses the next dunk you own, repeats lose point
   AI shoots better) until the other team scores. You can see it: a pulsing red outline round every player on that
   team and round the ball, the shot meter's green zone glows orange with ON FIRE over it, and an orange flash
   when it starts.
-- **Alley-oops**: teammates now and then cut to the rim. When one is open near the rim a gold arrow shows over
-  them and PASS throws the lob (on touch the PASS button turns gold and says OOP!). They catch it and dunk.
+- **Alley-oops**: bring the ball up to the 3-point line and your most open teammate cuts hard to the rim; their
+  defender is caught watching the ball for a moment (shorter on harder levels). Teammates also cut now and then on
+  their own. When one is open near the rim a gold arrow shows over them and PASS throws the lob (on touch the PASS
+  button turns gold and says OOP!). They catch it and dunk. About 5 chances a game on Pro (it was 1).
 - **Buzzer beaters**: a shot in the air at 0:00 still counts; the game slows down while it flies. In at the end of
   the game: BUZZER BEATER!
 - **The win**: winning Quick Play or an NBA campaign game plays a celebration (about 4 s): your team at centre
@@ -220,8 +224,8 @@ with every option and what it means.
   **Adaptive AI:** the further ahead you get (from 4 points, full at 20) and the later in the game, the sharper the
   other team plays ("THEY'RE ADJUSTING!"); it eases off if they catch up. Not in Practice or the contests.
   Measured by `./tools/bench.sh`: a bot that plays like a good kid (sprints, dribble moves, human-timed shots,
-  mashes STEAL) wins 3-minute games by about +42 on Rookie, +16 on Pro, about even on All-Star, and loses by about
-  10 on Hall of Famer (it won by 88, 69, 62 and 43 before session 6c). Steals were made easier in 6d and session 8
+  mashes STEAL) wins 3-minute games by about +44 on Rookie, +19 on Pro, +3 on All-Star, and loses by about
+  11 on Hall of Famer (session 9, 30 games a level; the bot throws an oop when the gold arrow shows) (it won by 88, 69, 62 and 43 before session 6c). Steals were made easier in 6d and session 8
   (session 8 added about 3 to 6 points a game).
 - **Bumping:** bodies can't overlap, but the player you control slides round anyone they brush past and keeps most
   of their speed. Defenders never try to stand closer than bumping range.
@@ -235,6 +239,10 @@ with every option and what it means.
   (see `Reference/`). Each player's height, speed, shooting, finishing, handling, defence and blocking
   shape how they play.
 - **Shooting:** the shot meter's green zone shrinks as defenders close in, more on harder difficulties.
+  **Leaning shots:** hold a direction as you go up and you leap that way: back (away from the rim) is a fadeaway,
+  sideways a side leap, toward the rim a leaner. A leaning shot is harder to contest but its green zone is a little
+  smaller, so it pays off when someone's on you (fadeaway: 85% size, a defender counts 60%; side leap 88%/72%;
+  leaner 95%/85%). Your controlled player only. In the Animation Lab under Movement and actions.
   The AI doesn't block your jump shots; tall players are hard to block.
 - **Range:** a perfect release always goes in, from anywhere (David, session 4). Past about 26 ft the green
   zone shrinks (under half by half court, a sliver past it), so long ones are hard to hit; your hooper's Range

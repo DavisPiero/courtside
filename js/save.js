@@ -26,7 +26,7 @@ const SAVE = {
   daily: null, // today's challenges and the daily-reward ladder (js/daily.js)
   league: null, // the Career League season (js/league.js)
   ev: {}, // limited-time events (js/event.js): event id -> { q: quests done, p: progress on the current one }
-  prof: { pic: "ball", title: "", show: ["", "", ""], shoe: "" }, // your account page (js/profile.js): picture, title, showcase
+  prof: { pic: "ball", title: "", slots: ["", "", "", ""] }, // your account page (js/profile.js): picture, title, 4 showcase slots ("a:" a move, "s:" a shoe)
   life: {}, // lifetime totals from session 8 on, for unlocking titles: games, wins, dunks, stl, threes, ankles, blk
 };
 // A brand-new save, for signing out (js/account.js). Taken before loadSave() fills SAVE in.
@@ -58,8 +58,15 @@ function saveLoadFrom(s) {
   for (const k in SAVE) SAVE[k] = s && k in s ? s[k] : F[k];
   SAVE.nba = Object.assign({ team: "", tier: 0, offers: [], offerTier: -1 }, SAVE.nba);
   SAVE.equip = Object.assign({ dunk: "dunk.basic", layup: "layup.basic", cel: "cel.basic", shot: "shot.basic", moves: [] }, SAVE.equip);
-  SAVE.prof = Object.assign({ pic: "ball", title: "", show: ["", "", ""], shoe: "" }, SAVE.prof);
-  if (!Array.isArray(SAVE.prof.show)) SAVE.prof.show = ["", "", ""];
+  SAVE.prof = Object.assign({ pic: "ball", title: "" }, SAVE.prof);
+  // Session 9: three move slots and a shoe slot became four open slots; keep what was there.
+  if (!Array.isArray(SAVE.prof.slots)) {
+    const P = SAVE.prof;
+    P.slots = [...(Array.isArray(P.show) ? P.show.slice(0, 3) : []).map((id) => (id ? "a:" + id : "")), P.shoe ? "s:" + P.shoe : ""];
+    delete P.show;
+    delete P.shoe;
+  }
+  while (SAVE.prof.slots.length < 4) SAVE.prof.slots.push("");
   for (const k of ["free", "freeBox", "best", "stars", "seen", "ev", "life"]) if (!SAVE[k] || typeof SAVE[k] !== "object") SAVE[k] = {};
   for (const k of ["shoes", "codes", "owned"]) if (!Array.isArray(SAVE[k])) SAVE[k] = [];
   if (typeof SAVE.cc !== "number" || !(SAVE.cc >= 0)) SAVE.cc = 0;
