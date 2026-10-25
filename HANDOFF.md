@@ -3,7 +3,7 @@
 _Written 2026-10-25 (session 9). Replace this file at the end of each session; don't add a second one._
 
 ## State of the repo
-- Branch `session9`, committed, not merged. `main` is session 8 (live). Merge only when David signs off.
+- Session 9 is merged to `main` and pushed (live). No open branches.
 - `./tools/smoke.sh` passes. Bench 30 games: +43.8 / +19.1 / +2.9 / -11.4. `./tools/bench.sh 10 v` now also prints
   `oopc` (oop chances a game) and `oops` (thrown).
 
