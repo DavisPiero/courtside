@@ -1133,6 +1133,11 @@ body.touch .dailyb { padding: 8px 14px 10px; font-size: 22px; }
 .ppopt.pic canvas { width: 72px; height: 72px; image-rendering: pixelated; background: #0a0f22; }
 .ppopt.pshoe canvas { width: 120px; height: 64px; image-rendering: pixelated; }
 .ppopt.ttl.dev b { color: #ff9bf0; }
+.ppickbox.fixed { height: min(620px, calc(100vh - 20px)); height: min(620px, calc(100dvh - 20px)); }
+.ppickbox.fixed .ppgrid { flex: 1; align-content: start; }
+.pptabs { grid-column: 1 / -1; display: flex; gap: 6px; }
+.pptabs button { flex: 1; padding: 8px 6px; border: 0; cursor: pointer; font: 400 22px/1 var(--px); color: var(--muted); background: var(--panel2); clip-path: var(--notch); }
+.pptabs button.on { color: #0b1020; background: #ffd23c; }
 .ppnone { grid-column: 1 / -1; margin: 6px 0; color: var(--muted); text-align: center; }
 .delbox { width: min(520px, 94vw); padding: 20px 24px 22px; display: flex; flex-direction: column; gap: 12px; box-shadow: inset 0 0 0 2px #ff5a4a; }
 .delbox h2 { font: 400 40px/1 var(--px); margin: 0; color: #ff6b5e; }

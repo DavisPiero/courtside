@@ -197,8 +197,7 @@ function fitCheck() {
   run("menu", () => (show("menu"), closeDaily(), openEvent()));
   // The account page as a guest and signed in (a long name, a full showcase), its choosers, the gear's pop-up
   // in every state, and the are-you-sure for deleting.
-  SAVE.prof.show = ["dunk.basic", "cel.basic", "shot.basic"];
-  SAVE.prof.shoe = "";
+  SAVE.prof.slots = ["a:dunk.basic", "a:cel.basic", "s:" + SHOES[0].id, ""];
   run("prof", () => openProf());
   for (const v of ["signin", "up", "in"])
     run("prof", () => {
@@ -210,8 +209,8 @@ function fitCheck() {
   run("prof", () => (openProf(), accDelete()));
   run("prof", () => (openProf(), pickPic()));
   run("prof", () => (openProf(), pickTitle()));
-  run("prof", () => (openProf(), pickMove(0)));
-  run("prof", () => (openProf(), pickShoe()));
+  run("prof", () => (openProf(), pickSlot(0, "a")));
+  run("prof", () => (openProf(), pickSlot(3, "s")));
   ACC.state = "off";
   ACC.user = null;
   run("campPick", () => $("campPick").classList.add("on"));
