@@ -141,3 +141,12 @@ One line each, newest last.
 - 2026-10-19 · Account page replaces the ACCOUNT pop-up (David); the gear opens settings; delete asks "are you sure?" with YES locked for 3 s (David asked for a double check; the lock is my addition).
 - 2026-10-19 · Developer title: shown when the signed-in username is King (any capitals). Usernames are unique, so whoever registers King gets it.
 - 2026-10-19 · Picture, title, showcase and lifetime totals live in the save (no database change); nobody else can see them until online play exists.
+- 2026-10-25 · Session 9: alley-oop cuts tied to the play (David: "can't do it much"): reach the 3-point line and your most open teammate cuts; cause was a random timer. Your team only.
+- 2026-10-25 · Cutter's defender ball-watches for a moment (0.9 s Rookie to 0.45 s Hall of Famer), so the cut can actually get open. Oop chances on Pro 1 -> about 5 a game.
+- 2026-10-25 · Bench bot now throws the oop when the arrow shows (a kid would). Bench vs main, 30 games: +43.8/+19.1/+2.9/-11.4 vs +43.8/+18.2/-2.0/-12.7.
+- 2026-10-25 · Leaning shots (David, like 2K): the stick's direction at the shot. Harder to contest, smaller green zone (my call), so it's a choice: an all-fadeaway bot scores the same, all-side-step a bit worse.
+- 2026-10-25 · Side leap can't tilt the body (the rig has no sideways roll); the legs swing out instead. A roll joint is a session 11 animation job if it doesn't read.
+- 2026-10-25 · Code HACKER: 10,000 CC + Limited Hacker shoe (David). Look is my guess: black, green falling code, glitch, green glowing sole.
+- 2026-10-25 · Limited items you don't own say CODES AND EVENTS, not IN THE SHOP (existing bug found while testing).
+- 2026-10-25 · Showcase: four open slots, each a move or a shoe (David: "just slots"); trails and shot effects join in session 10. Old showcases carried over.
+- 2026-10-25 · Plan agreed (David): session 10 trails, shot effects, cosmetics (CC on Edit Hooper, a few Limited), shoe detail; 11 art sample (Arena first) + animation; 12 dated events and weekly Monday drops.

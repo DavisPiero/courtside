@@ -1,40 +1,35 @@
 # Hand-off for the next session
 
-_Written 2026-10-19 (session 8). Replace this file at the end of each session; don't add a second one._
+_Written 2026-10-25 (session 9). Replace this file at the end of each session; don't add a second one._
 
 ## State of the repo
-- Session 8 is merged to `main` and pushed (live). No open branches.
-- `./tools/smoke.sh` passes (now includes Haunted Hollow, the Halloween quests, the account page, its choosers,
-  the gear pop-up and the delete check). Bench (10 games): +42.5 / +15.6 / +1.1 / -9.8.
+- Branch `session9`, committed, not merged. `main` is session 8 (live). Merge only when David signs off.
+- `./tools/smoke.sh` passes. Bench 30 games: +43.8 / +19.1 / +2.9 / -11.4. `./tools/bench.sh 10 v` now also prints
+  `oopc` (oop chances a game) and `oops` (thrown).
 
 ## Read first
-STATE.md. Halloween ends at midnight as 1 November begins (device clock); nothing to do when it ends.
+STATE.md. Halloween ends at midnight as 1 November begins; session 10's first drop should be ready around then.
 
 ## What changed (where to look)
-- Steals: `exposed(v, q, back)` and `humanSteal()` in js/gameplay.js (×1.35, behind = 0.6, REACHED = `p.swT`
-  pushed to +1.2 s). Swipe clip `ACTIONS.swipe` in js/anim.js (arm and twist only).
-- Rarity rename: `limited` everywhere (packs, shoes, shop, audio, css). Saves never stored rarity, so nothing to migrate.
-- Halloween: js/event.js (`EVENTS.halloween26`, `evGame`, banner `evBanner`, pop-up `openEvent`), results hook in
-  js/campui.js `showResults`, `SAVE.ev`. Court `haunt` in js/courts.js (`limited: "halloween26"`, `courtIds()`
-  hides it after the end). Jack-O in js/shoes.js (`mark: "pumpkin"`). Witching Hour: `dunk.witch` in packs/anim.
-- Particles: js/fx.js. `moveFx` runs every step from `fxStep` (js/loop.js); special particles (`g`, `st`, `bat`)
-  are drawn by `fxDraw` from js/render.js. Cap 420. Not shown in the Animation Lab (it draws portraits, not the court).
-- Celestial: `RARITY.celestial`, `RARITIES`, `RANK`, HoF odds, `SINGLE_PRICE`, Daily Shop (own seed) in js/packs.js;
-  shop TIERS/banner, audio notes, css `.r-celestial`. New moves: Comet, Supernova, Heaven's Gate, Phantom
-  (`MOVES.phantom.spins = 2`), Angel Glide, Fire Breather.
-- Account page: js/profile.js (`PICS`, `TITLES`, `myTitle`, `lifeCount`, `openProf`, choosers), `#prof` screen,
-  `.pop` pop-ups (`#acct`, `#ppick`, `#accDel`) now sit outside the menu. js/account.js: `accButton` draws the
-  picture, `accDelete` opens the are-you-sure, `accDeleteNow` deletes. `SAVE.prof`, `SAVE.life` (merged on sign-in).
+- Oop cuts: `oopCut` and `cutter` in js/showtime.js (arc trigger for team 0, `G.cutT` cooldown, set in `init`);
+  defender ball-watch `p.bw` in `ai()` js/gameplay.js; `watch` per level in `DIFF` js/core.js. Bench bot throws
+  oops in `botHandler`.
+- Leaning shots: `beginShot` sets `p.lean` from `G.in`; `LEAN` table and drift in `jumpForShot`; `human()` leaves
+  speed alone while `p.leanAir`; green zone in `greenZone`; pose `leanPose` in js/anim.js (via `ctx.lean`,
+  js/players.js); Lab rows `core.fade/side/leaner` in js/menus.js (`P0.labLean`). The bench bot doesn't lean;
+  a hand test (bot always fading / side-stepping) scored the same / a bit worse.
+- HACKER: js/shop.js `CODES` (hash 83558c3f); shoe `hacker`, `mark: "code"` in js/shoes.js `drawShoe`.
+  `whereFrom` in js/menus.js for the Limited label.
+- Showcase: `SAVE.prof.slots` (4 x "a:id" / "s:id" / ""), migrated from `show`/`shoe` in `saveLoadFrom` js/save.js;
+  `slotItem`, `pickSlot` (tabs, swap) in js/profile.js; `.pptabs`, `.ppickbox.fixed` in css/style.css.
+  Session 10 adds "t:" (trail) and "e:" (shot effect) to `slotItem` and a tab each to `pickSlot`.
 
 ## How to work on it
-- Test muted: `http://localhost:8791/?mute&device=pc` via the `courtside` preview config. `&date=2026-11-01` tests
-  the event being over.
-- The browser pane caches scripts hard: fetch every changed file with `{cache: "reload"}`, then reload. When the
-  pane is hidden, step the game by hand (`step`, `camUpd`, `render`) and use zoom for a fresh screenshot.
-- Back up `localStorage["courtside.save.v1"]` before testing and restore it after; clear `courtside.acct` too.
-
-## What comes next
-David registers King on the live site. Then league part 2 or two players on one device.
+- Test muted: `http://localhost:8791/?mute&device=pc` via the `courtside` preview config.
+- The browser pane caches scripts hard: fetch every changed file with `{cache: "reload"}`, then reload. The daily
+  pop-up opens on load; remove `.pop.on` before screenshots.
+- Back up `localStorage["courtside.save.v1"]` before testing and restore it after (sessionStorage survives reloads).
+- To freeze a Lab pose: `LAB.speed = 0.00001`, `previewModel("lab").lt = 0.9`.
 
 ## Open questions for David
 See STATE.md "Open with David".
