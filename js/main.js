@@ -295,7 +295,7 @@ function bench() {
         n++;
       }
       m.push(G.home - G.away);
-      for (const k of ["dunks", "greens", "threes", "stl", "ankles"]) (st[k] = (st[k] || 0) + (G.st[k] || 0) / N);
+      for (const k of ["dunks", "greens", "threes", "stl", "ankles", "oopc", "oops"]) (st[k] = (st[k] || 0) + (G.st[k] || 0) / N);
       st.them = (st.them || 0) + G.away / N;
       for (const k in G.bc) st["ai" + k] = (st["ai" + k] || 0) + G.bc[k] / N;
     }

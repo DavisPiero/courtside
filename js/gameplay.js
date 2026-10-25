@@ -72,6 +72,7 @@ function init() {
   G.bb = G.win = null;
   G.winDone = 0;
   G.cut = null;
+  G.cutT = 0; // when your team's next arc cut can start (js/showtime.js oopCut)
   G.shot = null;
   G.dead = 0;
   G.fx = [];
@@ -1072,7 +1073,7 @@ function ai(dt) {
       const tx = o.x + (dx / dl) * g,
         ty = o.y + (dy / dl) * g,
         lag = hy(tx - p.x, ty - p.y);
-      mv(p, tx, ty, 1 + (lag > 2 ? 0.45 * (dk(p).iq || 0) : 0), dt);
+      mv(p, tx, ty, p.bw > T ? 0.45 : 1 + (lag > 2 ? 0.45 * (dk(p).iq || 0) : 0), dt); // p.bw: ball-watching while their man cuts
       p.def = true;
       p.ft = Math.atan2(o.y - p.y, o.x - p.x);
       if (b.own === o.id && dist(p, o) < 3.4 && !G.shot && Math.random() < dt * dk(p).stealRate) steal(p, o);
@@ -1212,6 +1213,9 @@ function botHandler(p, dt) {
   if (df < 3.5 && !p.mv && Math.random() < dt * 1.5) dribbleMove(p);
   const go = () => ((p.ai = 0), (p.plan = null), beginShot(p));
   if (G.shot) return;
+  // a kid throws the lob when the gold arrow shows (about a third of a second to react)
+  const oq = oopMate(p);
+  if (oq && Math.random() < dt * 3) return (p.ai = 0), (p.plan = null), alleyOop(p, oq);
   if (dh < 10.5 && p.ai > 0.25) return go();
   if (p.plan.k === "pull" && p.ai > 1.0 && (df > 4 || G.sc < 5) && dh < 27) return go();
   if (G.sc < 3) return go();
